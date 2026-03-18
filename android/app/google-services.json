@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "357450381379",
+    "project_id": "pottery-station-ramgarh",
+    "storage_bucket": "pottery-station-ramgarh.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357450381379:android:1d3601a353ae7d45263cf6",
+        "android_client_info": {
+          "package_name": "com.example.pottery_web"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZ4ypqUGck3BGWB6o8GouedaTYX_6EcFo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
