@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/services/firebase_service.dart';
 import '../auth_service.dart';
 
 /// SignupController handles all business logic for the signup screen.
-/// SignupScreen calls this — SignupScreen itself has zero logic.
+/// After successful signup it also creates a Firestore user document.
 class SignupController {
 
-  // AuthService is the only class that talks to Firebase directly
   final AuthService _authService = AuthService();
 
   /// Attempts to create a new account with given credentials.
@@ -36,9 +36,16 @@ class SignupController {
 
     try {
       // Create account — auth_service also sends verification email automatically
-      await _authService.signUp(
+      final credential = await _authService.signUp(
         email: email.trim(),
         password: password,
+      );
+
+      // Create Firestore document for this user with default role 'customer'
+      // This is how role based routing works later
+      await FirebaseService.createUserDocument(
+        uid: credential.user!.uid,
+        email: email.trim(),
       );
 
       // null = signup successful, verification email sent

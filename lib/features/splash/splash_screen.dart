@@ -1,14 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../app/routes.dart';
+import '../../core/services/firebase_service.dart';
 
-/// SplashScreen is the first screen the user sees when the app launches.
-/// It checks auth state and redirects accordingly — no manual navigation needed.
+/// SplashScreen — first screen shown on app launch.
+/// Checks auth state and redirects based on login + verification + role.
 ///
-/// Logic flow:
-/// 1. No user logged in → go to Login
-/// 2. User logged in but email NOT verified → go to VerifyEmail
-/// 3. User logged in and verified → go to CustomerHome (Admin logic added later)
+/// Full logic flow:
+/// 1. No user logged in → Login
+/// 2. Logged in but email NOT verified → VerifyEmail
+/// 3. Verified + role is 'admin' → AdminDashboard
+/// 4. Verified + role is 'customer' → CustomerHome
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -20,51 +22,53 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Start navigation logic as soon as screen loads
     _handleNavigation();
   }
 
   Future<void> _handleNavigation() async {
-    // Small delay so splash screen is briefly visible
+    // Brief delay so splash is visible
     await Future.delayed(const Duration(seconds: 2));
 
-    // Safety check — if widget was removed from tree during delay, stop here
     if (!mounted) return;
 
-    // Get currently logged in user from Firebase
+    // Get currently logged in user
     final user = FirebaseAuth.instance.currentUser;
 
-    // CASE 1 — No user logged in at all
+    // CASE 1 — No user logged in
     if (user == null) {
       Navigator.pushReplacementNamed(context, Routes.login);
       return;
     }
 
-    // Reload user data from Firebase servers to get fresh emailVerified status.
-    // Without this, Firebase uses cached data and emailVerified may be stale.
+    // Reload to get fresh emailVerified status from Firebase servers
     await user.reload();
 
-    // Safety check again after async gap
     if (!mounted) return;
 
     // Get refreshed user object after reload
     final refreshedUser = FirebaseAuth.instance.currentUser;
 
-    // CASE 2 — User exists but email is not verified
+    // CASE 2 — Logged in but email not verified
     if (refreshedUser == null || !refreshedUser.emailVerified) {
       Navigator.pushReplacementNamed(context, Routes.verifyEmail);
       return;
     }
 
-    // CASE 3 — User is logged in and verified
-    // Role-based redirect (admin vs customer) will be added in a later step
-    // For now everyone goes to customerHome
-    Navigator.pushReplacementNamed(context, Routes.customerHome);
+    // CASE 3 — Verified — fetch role from Firestore
+    final role = await FirebaseService.getUserRole(refreshedUser.uid);
+
+    if (!mounted) return;
+
+    // Redirect based on role
+    if (role == 'admin') {
+      Navigator.pushReplacementNamed(context, Routes.adminDashboard);
+    } else {
+      Navigator.pushReplacementNamed(context, Routes.customerHome);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Simple loading UI — we will design this properly in UI phase
     return const Scaffold(
       body: Center(
         child: Column(
@@ -72,7 +76,10 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             Text(
               'Pottery Station Ramgarh',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             SizedBox(height: 24),
             CircularProgressIndicator(),
