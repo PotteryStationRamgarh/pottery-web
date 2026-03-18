@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import '../auth_service.dart';
 
-/// LoginController handles all business logic for the login screen.
-/// LoginScreen calls this — LoginScreen itself has zero logic.
-class LoginController {
+/// SigninController handles all business logic for the signin screen.
+/// SigninScreen calls this — SigninScreen itself has zero logic.
+class SigninController {
   
   // AuthService is the only class that talks to Firebase directly
   final AuthService _authService = AuthService();
@@ -11,10 +11,10 @@ class LoginController {
   /// Attempts to log in the user with given credentials.
   ///
   /// Returns:
-  /// - null → login successful and email is verified
-  /// - 'email_not_verified' → login worked but email not verified yet
+  /// - null → Signin successful and email is verified
+  /// - 'email_not_verified' → Signin worked but email not verified yet
   /// - any other string → error message to show the user
-  Future<String?> login({
+  Future<String?> signin({
     required String email,
     required String password,
   }) async {
@@ -24,8 +24,8 @@ class LoginController {
     }
 
     try {
-      // Attempt Firebase login
-      await _authService.login(
+      // Attempt Firebase signin
+      await _authService.signin(
         email: email.trim(),
         password: password,
       );
@@ -35,11 +35,11 @@ class LoginController {
 
       // Check if email is verified after reload
       if (!_authService.isEmailVerified) {
-        // Return sentinel value — LoginScreen handles this separately
+        // Return sentinel value — signinScreen handles this separately
         return 'email_not_verified';
       }
 
-      // null = everything passed, login successful
+      // null = everything passed, signin successful
       return null;
     } on FirebaseAuthException catch (e) {
       // Convert Firebase error codes to readable messages
@@ -65,7 +65,7 @@ class LoginController {
       case 'too-many-requests':
         return 'Too many attempts. Please try again later.';
       default:
-        return 'Login failed. Please try again.';
+        return 'Signin failed. Please try again.';
     }
   }
 }

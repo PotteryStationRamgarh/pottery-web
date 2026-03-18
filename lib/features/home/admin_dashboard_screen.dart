@@ -27,8 +27,8 @@ class AdminDashboardScreen extends StatelessWidget {
             onPressed: () async {
               await authService.logout();
               if (context.mounted) {
-                // After logout go back to login screen
-                Navigator.pushReplacementNamed(context, Routes.login);
+                // After logout go back to signin screen
+                Navigator.pushReplacementNamed(context, Routes.signin);
               }
             },
           ),

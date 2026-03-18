@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 /// AuthService handles all Firebase Authentication operations.
 /// This is the ONLY place in the app that directly talks to FirebaseAuth.
-/// Controllers (login, signup) will call methods from this class.
+/// Controllers (signin, signup) will call methods from this class.
 class AuthService {
   
   // Single instance of FirebaseAuth — used across all methods
@@ -36,8 +36,8 @@ class AuthService {
   }
 
   /// Logs in an existing user with email and password.
-  /// Throws FirebaseAuthException if login fails (caught in controller).
-  Future<UserCredential> login({
+  /// Throws FirebaseAuthException if signin fails (caught in controller).
+  Future<UserCredential> signin({
     required String email,
     required String password,
   }) async {

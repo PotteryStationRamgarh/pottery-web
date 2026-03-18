@@ -1,28 +1,25 @@
 import 'package:flutter/material.dart';
 import '../../../app/routes.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../features/auth/widgets/branding_image_widget.dart';
-import '../signup/signup_controller.dart';
-import '../signup/widgets/signup_form.dart';
+import '../widgets/branding_image_widget.dart';
+import 'signin_controller.dart';
+import 'widgets/signin_form.dart';
 
-/// SignupScreen — same floating island layout as SigninScreen.
-/// Desktop → image on left, form on right
-/// Mobile → no image, only logo and form
-class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
-
+/// SigninScreen — floating island layout.
+/// Desktop → image on left, form on right, floating card center
+/// Mobile → no image, only logo and form, clean minimal
+class SigninScreen extends StatefulWidget {
+  const SigninScreen({super.key});
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<SigninScreen> createState() => _SigninScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen>
+class _SigninScreenState extends State<SigninScreen>
     with SingleTickerProviderStateMixin {
 
-  final SignupController _controller = SignupController();
+  final SigninController _controller = SigninController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -61,7 +58,7 @@ class _SignupScreenState extends State<SignupScreen>
     });
   }
 
-  Future<void> _handleSignup() async {
+  Future<void> _handleSignin() async {
     FocusScope.of(context).unfocus();
 
     setState(() {
@@ -69,10 +66,9 @@ class _SignupScreenState extends State<SignupScreen>
       _errorMessage = null;
     });
 
-    final result = await _controller.signUp(
+    final result = await _controller.signin(
       email: _emailController.text,
       password: _passwordController.text,
-      confirmPassword: _confirmPasswordController.text,
     );
 
     if (!mounted) return;
@@ -80,6 +76,8 @@ class _SignupScreenState extends State<SignupScreen>
     setState(() => _isLoading = false);
 
     if (result == null) {
+      Navigator.pushReplacementNamed(context, Routes.customerHome);
+    } else if (result == 'email_not_verified') {
       Navigator.pushReplacementNamed(context, Routes.verifyEmail);
     } else {
       setState(() => _errorMessage = result);
@@ -90,7 +88,6 @@ class _SignupScreenState extends State<SignupScreen>
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -114,10 +111,12 @@ class _SignupScreenState extends State<SignupScreen>
   Widget _buildDesktopLayout() {
     return Center(
       child: Container(
+        // 50% width — 25% empty on each side
+        // 60% height — 20% empty on top and bottom
         width: MediaQuery.of(context).size.width * 0.50,
         height: MediaQuery.of(context).size.height * 0.60,
         decoration: BoxDecoration(
-          color: AppTheme.surfaceWhite,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
@@ -138,7 +137,7 @@ class _SignupScreenState extends State<SignupScreen>
                 child: const BrandingImageWidget(),
               ),
 
-              // Right — signup form 45%
+              // Right — signin form 45%
               Expanded(
                 flex: 45,
                 child: FadeTransition(
@@ -151,20 +150,18 @@ class _SignupScreenState extends State<SignupScreen>
                           horizontal: 36,
                           vertical: 24,
                         ),
-                        child: SignupForm(
+                        child: SigninForm(
                           emailController: _emailController,
                           passwordController: _passwordController,
-                          confirmPasswordController:
-                              _confirmPasswordController,
                           isLoading: _isLoading,
                           errorMessage: _errorMessage,
-                          onSignup: _handleSignup,
+                          onSignin: _handleSignin,
                           onDismissError: () {
                             setState(() => _errorMessage = null);
                           },
-                          onSigninTap: () {
+                          onSignupTap: () {
                             Navigator.pushReplacementNamed(
-                                context, Routes.signin);
+                                context, Routes.signup);
                           },
                         ),
                       ),
@@ -191,9 +188,10 @@ class _SignupScreenState extends State<SignupScreen>
           vertical: 48,
         ),
         child: Container(
+          // Floating card on mobile
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppTheme.surfaceWhite,
+            color: AppTheme.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
@@ -211,18 +209,17 @@ class _SignupScreenState extends State<SignupScreen>
             opacity: _fadeAnimation,
             child: SlideTransition(
               position: _slideAnimation,
-              child: SignupForm(
+              child: SigninForm(
                 emailController: _emailController,
                 passwordController: _passwordController,
-                confirmPasswordController: _confirmPasswordController,
                 isLoading: _isLoading,
                 errorMessage: _errorMessage,
-                onSignup: _handleSignup,
+                onSignin: _handleSignin,
                 onDismissError: () {
                   setState(() => _errorMessage = null);
                 },
-                onSigninTap: () {
-                  Navigator.pushReplacementNamed(context, Routes.signin);
+                onSignupTap: () {
+                  Navigator.pushReplacementNamed(context, Routes.signup);
                 },
               ),
             ),

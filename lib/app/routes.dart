@@ -1,5 +1,5 @@
 /// Central place for all named routes in the app.
-/// Always use these constants instead of hardcoding strings like '/login'.
+/// Always use these constants instead of hardcoding strings like '/signin'.
 /// This prevents typos and makes refactoring easy.
 class Routes {
   
@@ -9,8 +9,8 @@ class Routes {
   /// First screen shown when app launches
   static const String splash = '/';
 
-  /// Login screen for existing users
-  static const String login = '/login';
+  /// Signin screen for existing users
+  static const String signin = '/signin';
 
   /// Signup screen for new users
   static const String signup = '/signup';

@@ -4,10 +4,10 @@ import '../../app/routes.dart';
 import '../../core/services/firebase_service.dart';
 
 /// SplashScreen — first screen shown on app launch.
-/// Checks auth state and redirects based on login + verification + role.
+/// Checks auth state and redirects based on signin + verification + role.
 ///
 /// Full logic flow:
-/// 1. No user logged in → Login
+/// 1. No user logged in → signin
 /// 2. Logged in but email NOT verified → VerifyEmail
 /// 3. Verified + role is 'admin' → AdminDashboard
 /// 4. Verified + role is 'customer' → CustomerHome
@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // CASE 1 — No user logged in
     if (user == null) {
-      Navigator.pushReplacementNamed(context, Routes.login);
+      Navigator.pushReplacementNamed(context, Routes.signin);
       return;
     }
 

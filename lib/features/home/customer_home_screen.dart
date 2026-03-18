@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/routes.dart';
 import '../../features/auth/auth_service.dart';
 
-/// CustomerHomeScreen — shown to verified customers after login.
+/// CustomerHomeScreen — shown to verified customers after signin.
 /// This is a placeholder screen for V1.
 /// Full UI and features will be built in the UI phase.
 class CustomerHomeScreen extends StatelessWidget {
@@ -26,8 +26,8 @@ class CustomerHomeScreen extends StatelessWidget {
             onPressed: () async {
               await authService.logout();
               if (context.mounted) {
-                // After logout go back to login screen
-                Navigator.pushReplacementNamed(context, Routes.login);
+                // After logout go back to signin screen
+                Navigator.pushReplacementNamed(context, Routes.signin);
               }
             },
           ),
