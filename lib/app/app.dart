@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../app/routes.dart';
-import '../features/splash/splash_screen.dart'; // NOW ACTIVE
-
-// import '../features/auth/login/login_screen.dart';
-// import '../features/auth/signup/signup_screen.dart';
+import '../features/splash/splash_screen.dart';
+import '../features/auth/login/login_screen.dart';
+import '../features/auth/signup/signup_screen.dart';
 // import '../features/auth/verify_email/verify_email_screen.dart';
 // import '../features/home/customer_home_screen.dart';
 // import '../features/home/admin_dashboard_screen.dart';
@@ -23,11 +22,10 @@ class MyApp extends StatelessWidget {
       initialRoute: Routes.splash,
 
       routes: {
-        // SplashScreen is now active — handles all navigation logic
         Routes.splash: (context) => const SplashScreen(),
+        Routes.login: (context) => const LoginScreen(),
+        Routes.signup: (context) => const SignupScreen(), 
 
-        // Uncommented one by one as we build each screen
-        // Routes.login: (context) => const LoginScreen(),
         // Routes.signup: (context) => const SignupScreen(),
         // Routes.verifyEmail: (context) => const VerifyEmailScreen(),
         // Routes.customerHome: (context) => const CustomerHomeScreen(),
