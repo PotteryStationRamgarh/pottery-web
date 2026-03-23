@@ -1,132 +1,273 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import '../../models/app_config.dart';
+import '../../models/product.dart';
 
-/// FirestoreService handles all Firestore database operations.
-/// This is the ONLY place in the app that directly talks to Firestore
-/// for content related data (images, portfolio, settings).
+/// FirestoreService — only class that talks directly to Firestore.
 ///
-/// Structure in Firestore:
-/// settings/branding → { loginImage: "url", signupImage: "url" }
-/// portfolio/        → collection of portfolio items with image URLs
+/// Collections:
+/// app_config/         → branding, contact, content, social, features, exhibition
+/// users/{uid}         → email, role, createdAt
+/// categories/         → name, imageUrl, order, isActive
+/// products/           → title, description, imageUrls[], categoryId, order, isActive
+/// exclusive_products/ → title, description, imageUrls[], totalPieces, hasCertificate
+/// support_messages/   → userId, name, email, message, status, createdAt
 class FirestoreService {
-  // Private constructor — this class should never be instantiated
   FirestoreService._();
 
-  // Single instance of Firestore
-  static final FirebaseFirestore _db = FirebaseFirestore.instance;
+  static final _db = FirebaseFirestore.instance;
 
   // ─────────────────────────────────────────
-  // BRANDING SECTION
-  // Stores URLs for login and signup page images
+  // APP CONFIG — individual fetchers
   // ─────────────────────────────────────────
 
-  /// Saves the login page image URL to Firestore.
-  /// Called by admin after uploading image to Cloudinary.
-  static Future<void> setLoginImage(String imageUrl) async {
+  static Future<AppBranding> getBranding() async {
     try {
-      await _db.collection('settings').doc('branding').set(
-        {'loginImage': imageUrl},
-        SetOptions(merge: true), // merge so other fields are not overwritten
-      );
-      debugPrint('Login image URL saved: $imageUrl');
-    } catch (e) {
-      debugPrint('Error saving login image URL: $e');
-      rethrow;
-    }
-  }
-
-  /// Saves the signup page image URL to Firestore.
-  /// Called by admin after uploading image to Cloudinary.
-  static Future<void> setSignupImage(String imageUrl) async {
-    try {
-      await _db.collection('settings').doc('branding').set(
-        {'signupImage': imageUrl},
-        SetOptions(merge: true), // merge so other fields are not overwritten
-      );
-      debugPrint('Signup image URL saved: $imageUrl');
-    } catch (e) {
-      debugPrint('Error saving signup image URL: $e');
-      rethrow;
-    }
-  }
-
-  /// Fetches branding settings from Firestore.
-  /// Returns a map with loginImage and signupImage URLs.
-  /// Returns empty map if no branding document exists yet.
-  static Future<Map<String, dynamic>> getBrandingSettings() async {
-    try {
-      final doc = await _db.collection('settings').doc('branding').get();
+      final doc = await _db.collection('app_config').doc('branding').get();
       if (doc.exists && doc.data() != null) {
-        return doc.data()!;
+        return AppBranding.fromMap(doc.data()!);
       }
-      // No branding document yet — return empty map
-      return {};
+      return AppBranding.empty();
     } catch (e) {
-      debugPrint('Error fetching branding settings: $e');
-      return {};
+      debugPrint('getBranding error: $e');
+      return AppBranding.empty();
+    }
+  }
+
+  static Future<AppContact> getContact() async {
+    try {
+      final doc = await _db.collection('app_config').doc('contact').get();
+      if (doc.exists && doc.data() != null) {
+        return AppContact.fromMap(doc.data()!);
+      }
+      return AppContact.empty();
+    } catch (e) {
+      debugPrint('getContact error: $e');
+      return AppContact.empty();
+    }
+  }
+
+  static Future<AppContent> getContent() async {
+    try {
+      final doc = await _db.collection('app_config').doc('content').get();
+      if (doc.exists && doc.data() != null) {
+        return AppContent.fromMap(doc.data()!);
+      }
+      return AppContent.empty();
+    } catch (e) {
+      debugPrint('getContent error: $e');
+      return AppContent.empty();
+    }
+  }
+
+  static Future<AppSocial> getSocial() async {
+    try {
+      final doc = await _db.collection('app_config').doc('social').get();
+      if (doc.exists && doc.data() != null) {
+        return AppSocial.fromMap(doc.data()!);
+      }
+      return AppSocial.empty();
+    } catch (e) {
+      debugPrint('getSocial error: $e');
+      return AppSocial.empty();
+    }
+  }
+
+  static Future<AppFeatures> getFeatures() async {
+    try {
+      final doc = await _db.collection('app_config').doc('features').get();
+      if (doc.exists && doc.data() != null) {
+        return AppFeatures.fromMap(doc.data()!);
+      }
+      return AppFeatures.empty();
+    } catch (e) {
+      debugPrint('getFeatures error: $e');
+      return AppFeatures.empty();
+    }
+  }
+
+  static Future<AppExhibition> getExhibition() async {
+    try {
+      final doc = await _db.collection('app_config').doc('exhibition').get();
+      if (doc.exists && doc.data() != null) {
+        return AppExhibition.fromMap(doc.data()!);
+      }
+      return AppExhibition.empty();
+    } catch (e) {
+      debugPrint('getExhibition error: $e');
+      return AppExhibition.empty();
     }
   }
 
   // ─────────────────────────────────────────
-  // PORTFOLIO SECTION
-  // Stores portfolio items with image URLs
+  // APP CONFIG — fetch all in parallel
+  // Called once by AppConfigProvider on init
   // ─────────────────────────────────────────
 
-  /// Adds a new portfolio item to Firestore.
-  /// [imageUrl] — Cloudinary URL of the portfolio image
-  /// [title] — title of the portfolio item
-  /// [description] — optional description
-  static Future<void> addPortfolioItem({
-    required String imageUrl,
-    required String title,
-    String description = '',
-  }) async {
+  static Future<Map<String, dynamic>> getAllConfig() async {
     try {
-      await _db.collection('portfolio').add({
-        'imageUrl': imageUrl,
-        'title': title,
-        'description': description,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-      debugPrint('Portfolio item added: $title');
+      final results = await Future.wait([
+        getBranding(),
+        getContact(),
+        getContent(),
+        getSocial(),
+        getFeatures(),
+        getExhibition(),
+      ]);
+      return {
+        'branding':   results[0] as AppBranding,
+        'contact':    results[1] as AppContact,
+        'content':    results[2] as AppContent,
+        'social':     results[3] as AppSocial,
+        'features':   results[4] as AppFeatures,
+        'exhibition': results[5] as AppExhibition,
+      };
     } catch (e) {
-      debugPrint('Error adding portfolio item: $e');
-      rethrow;
+      debugPrint('getAllConfig error: $e');
+      return {
+        'branding':   AppBranding.empty(),
+        'contact':    AppContact.empty(),
+        'content':    AppContent.empty(),
+        'social':     AppSocial.empty(),
+        'features':   AppFeatures.empty(),
+        'exhibition': AppExhibition.empty(),
+      };
     }
   }
 
-  /// Fetches all portfolio items from Firestore.
-  /// Returns a list of maps with image URLs and titles.
-  /// Returns empty list if no items exist yet.
-  static Future<List<Map<String, dynamic>>> getPortfolioItems() async {
+  // ─────────────────────────────────────────
+  // CATEGORIES
+  // ─────────────────────────────────────────
+
+  static Future<List<ProductCategory>> getCategories() async {
     try {
-      final snapshot = await _db
-          .collection('portfolio')
-          .orderBy('createdAt', descending: true)
+      final snap = await _db
+          .collection('categories')
+          .where('isActive', isEqualTo: true)
+          .orderBy('order')
           .get();
-
-      // Convert each document to a map and include document ID
-      return snapshot.docs.map((doc) {
-        return {
-          'id': doc.id,
-          ...doc.data(),
-        };
-      }).toList();
+      return snap.docs.map(ProductCategory.fromDoc).toList();
     } catch (e) {
-      debugPrint('Error fetching portfolio items: $e');
+      debugPrint('getCategories error: $e');
       return [];
     }
   }
 
-  /// Deletes a portfolio item from Firestore by document ID.
-  /// Called by admin from the admin dashboard.
-  static Future<void> deletePortfolioItem(String docId) async {
+  // ─────────────────────────────────────────
+  // PRODUCTS
+  // ─────────────────────────────────────────
+
+  static Future<List<Product>> getProductsByCategory(
+      String categoryId) async {
     try {
-      await _db.collection('portfolio').doc(docId).delete();
-      debugPrint('Portfolio item deleted: $docId');
+      final snap = await _db
+          .collection('products')
+          .where('categoryId', isEqualTo: categoryId)
+          .where('isActive', isEqualTo: true)
+          .orderBy('order')
+          .get();
+      return snap.docs.map(Product.fromDoc).toList();
     } catch (e) {
-      debugPrint('Error deleting portfolio item: $e');
+      debugPrint('getProductsByCategory error: $e');
+      return [];
+    }
+  }
+
+  static Future<List<Product>> getAllProducts() async {
+    try {
+      final snap = await _db
+          .collection('products')
+          .where('isActive', isEqualTo: true)
+          .orderBy('order')
+          .get();
+      return snap.docs.map(Product.fromDoc).toList();
+    } catch (e) {
+      debugPrint('getAllProducts error: $e');
+      return [];
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // EXCLUSIVE PRODUCTS
+  // ─────────────────────────────────────────
+
+  static Future<List<ExclusiveProduct>> getExclusiveProducts() async {
+    try {
+      final snap = await _db
+          .collection('exclusive_products')
+          .where('isActive', isEqualTo: true)
+          .orderBy('order')
+          .get();
+      return snap.docs.map(ExclusiveProduct.fromDoc).toList();
+    } catch (e) {
+      debugPrint('getExclusiveProducts error: $e');
+      return [];
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // SUPPORT MESSAGES
+  // ─────────────────────────────────────────
+
+  static Future<void> sendSupportMessage({
+    required String userId,
+    required String name,
+    required String email,
+    required String message,
+  }) async {
+    try {
+      await _db.collection('support_messages').add({
+        'userId':    userId,
+        'name':      name,
+        'email':     email,
+        'message':   message,
+        'status':    'unread',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('sendSupportMessage error: $e');
       rethrow;
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // LEGACY — used by auth branding image widget
+  // settings/branding → loginImage, signupImage
+  // ─────────────────────────────────────────
+
+  static Future<void> setLoginImage(String url) async {
+    try {
+      await _db.collection('settings').doc('branding').set(
+        {'loginImage': url},
+        SetOptions(merge: true),
+      );
+    } catch (e) {
+      debugPrint('setLoginImage error: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> setSignupImage(String url) async {
+    try {
+      await _db.collection('settings').doc('branding').set(
+        {'signupImage': url},
+        SetOptions(merge: true),
+      );
+    } catch (e) {
+      debugPrint('setSignupImage error: $e');
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getBrandingSettings() async {
+    try {
+      final doc =
+          await _db.collection('settings').doc('branding').get();
+      if (doc.exists && doc.data() != null) return doc.data()!;
+      return {};
+    } catch (e) {
+      debugPrint('getBrandingSettings error: $e');
+      return {};
     }
   }
 }
