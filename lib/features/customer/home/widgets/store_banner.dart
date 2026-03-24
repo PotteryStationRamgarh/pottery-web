@@ -32,8 +32,8 @@ class StoreBanner extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      // Dark warm background — strong contrast from the light sections above
-      color: AppTheme.appBackground,
+      // Dark warm primary brown background — matches Nav Bar button
+      color: AppTheme.primaryBrown,
       child: Stack(
         children: [
 
@@ -58,7 +58,7 @@ class StoreBanner extends StatelessWidget {
 
                     // Small label above title
                     Text(
-                      'POTTERY STATION',
+                      'POTTERY STATION RAMGARH',
                       style: GoogleFonts.jost(
                         fontSize: 10,
                         fontWeight: FontWeight.w300,
@@ -74,7 +74,7 @@ class StoreBanner extends StatelessWidget {
                       title,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.playfairDisplay(
-                        fontSize: isMobile ? 36 : 56,
+                        fontSize: isMobile ? 40 : 64, // Increased as requested
                         fontWeight: FontWeight.w600,
                         fontStyle: FontStyle.italic,
                         color: AppTheme.white,

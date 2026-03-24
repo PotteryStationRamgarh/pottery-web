@@ -36,8 +36,8 @@ class ExclusiveSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 768;
 
-    // Hide completely if nothing to show
-    if (!isLoading && products.isEmpty) return const SizedBox.shrink();
+    // We NO LONGER hide if products are empty — per user request to always show cards.
+    // if (!isLoading && products.isEmpty) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
@@ -53,16 +53,18 @@ class ExclusiveSection extends StatelessWidget {
           children: [
 
             // Section header
-            _buildHeader(isMobile),
+            _buildHeader(context, isMobile),
 
             SizedBox(height: isMobile ? 32 : 56),
 
             // Content — shimmer while loading, real cards when ready
             isLoading
                 ? _buildShimmer(isMobile)
-                : isMobile
-                    ? _buildMobileScroll()
-                    : _buildDesktopGrid(),
+                : (products.isEmpty)
+                    ? _buildFallbackGrid(isMobile)
+                    : isMobile
+                        ? _buildMobileScroll()
+                        : _buildDesktopGrid(),
 
           ],
         ),
@@ -74,7 +76,7 @@ class ExclusiveSection extends StatelessWidget {
   // HEADER
   // ─────────────────────────────────────────
 
-  Widget _buildHeader(bool isMobile) {
+  Widget _buildHeader(BuildContext context, bool isMobile) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -112,11 +114,73 @@ class ExclusiveSection extends StatelessWidget {
           ),
         ),
 
-        // View all link — only on desktop and only if more than 3 products
-        if (!isMobile && products.length > 3)
-          _ViewAllLink(onTap: () {}),
+        // View all link — always visible now to redirect to a dummy page as requested
+        _ViewAllLink(onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Collections page coming soon!')),
+          );
+        }),
 
       ],
+    );
+  }
+
+  // ─────────────────────────────────────────
+  // FALLBACK GRID — empty data state
+  // ─────────────────────────────────────────
+
+  Widget _buildFallbackGrid(bool isMobile) {
+    // Generate 3 dummy products to satisfy the "Always render cards" requirement
+    final fallbacks = List.generate(3, (i) => ExclusiveProduct(
+      id:             'fallback_$i',
+      title:          'Item not available',
+      description:    'Description not available',
+      imageUrls:      [],
+      totalPieces:    0,
+      hasCertificate: false,
+      order:          i,
+      isActive:       true,
+    ));
+
+    if (isMobile) {
+      return SizedBox(
+        height: 500, // Increased from 420 to prevent "LIMITED PRODUCT" badge overflow
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: 3,
+          itemBuilder: (context, index) {
+            return SizedBox(
+              width: 260,
+              child: Padding(
+                padding: EdgeInsets.only(right: index < 2 ? 16 : 0),
+                child: ExclusiveCard(
+                  product: fallbacks[index],
+                  onTap: () {},
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(3, (index) {
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top:   index == 1 ? 64.0 : 0.0, // Staggered look
+              left:  index == 0 ? 0.0  : 20.0,
+              right: index == 2 ? 0.0 : 20.0,
+            ),
+            child: ExclusiveCard(
+              product: fallbacks[index],
+              onTap: () {},
+            ),
+          ),
+        );
+      }),
     );
   }
 
@@ -155,7 +219,7 @@ class ExclusiveSection extends StatelessWidget {
 
   Widget _buildMobileScroll() {
     return SizedBox(
-      height: 420,
+      height: 500, // Increased from 420 to prevent "LIMITED PRODUCT" badge overflow
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: products.length,

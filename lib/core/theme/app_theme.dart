@@ -16,6 +16,10 @@ class AppTheme {
 
   /// Secondary brand color — hover states, subtle accents
   static const Color lightBrown = Color(0xFFC8A98A);
+  
+  /// Earthy warm tones for banners and accents
+  static const Color terracotta = Color(0xFFB35C37);
+  static const Color warmClay   = Color(0xFF8B5A2B);
 
   /// Surface color — inside cards and forms
   static const Color background = Color(0xFFFAF7F4);

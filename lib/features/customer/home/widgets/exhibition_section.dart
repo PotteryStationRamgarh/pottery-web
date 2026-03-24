@@ -25,8 +25,8 @@ class ExhibitionSection extends StatelessWidget {
     final exhibition = context.watch<ConfigProvider>().exhibition;
     final isMobile   = MediaQuery.of(context).size.width < 768;
 
-    // Hide completely if exhibition is not active
-    if (!exhibition.isActive) return const SizedBox.shrink();
+    // We NO LONGER hide if exhibition is not active — per user request to always show sections for structural consistency.
+    // if (!exhibition.isActive) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
@@ -152,7 +152,7 @@ class ExhibitionSection extends StatelessWidget {
 
         // Exhibition title
         Text(
-          exhibition.title,
+          exhibition.title.isNotEmpty ? exhibition.title : 'Upcoming Exhibition',
           style: GoogleFonts.playfairDisplay(
             fontSize: isMobile ? 28 : 38,
             fontWeight: FontWeight.w600,
@@ -203,12 +203,11 @@ class ExhibitionSection extends StatelessWidget {
         ],
 
         // Location row
-        if (exhibition.location.isNotEmpty)
-          _InfoRow(
-            icon: Icons.location_on_outlined,
-            title: exhibition.location,
-            subtitle: exhibition.address,
-          ),
+        _InfoRow(
+          icon: Icons.location_on_outlined,
+          title: exhibition.location.isNotEmpty ? exhibition.location : 'Location to be announced',
+          subtitle: exhibition.address.isNotEmpty ? exhibition.address : 'Ramgarh, Jharkhand',
+        ),
 
         const SizedBox(height: 16),
 
@@ -233,22 +232,6 @@ class ExhibitionSection extends StatelessWidget {
           ),
 
         const SizedBox(height: 32),
-
-        Divider(color: AppTheme.divider),
-
-        const SizedBox(height: 16),
-
-        // Free entry note
-        Text(
-          'Free entry. All are welcome.',
-          style: GoogleFonts.jost(
-            fontSize: 12,
-            fontWeight: FontWeight.w300,
-            fontStyle: FontStyle.italic,
-            color: AppTheme.textLight.withOpacity(0.55),
-            letterSpacing: 0.3,
-          ),
-        ),
 
       ],
     );

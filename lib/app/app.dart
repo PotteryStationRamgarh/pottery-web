@@ -8,6 +8,8 @@ import '../features/auth/verify_email/verify_email_screen.dart';
 import '../features/auth/forgot_password/forgot_password_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
 import '../features/customer/home/customer_home_screen.dart';
+import '../features/customer/gallery/gallery_screen.dart';
+import '../models/product.dart';
 //import '../features/admin/dashboard/admin_dashboard_screen.dart';
 
 /// Root of the entire app.
@@ -47,6 +49,12 @@ class MyApp extends StatelessWidget {
 
         // Main screen for logged-in customers
         Routes.customerHome: (context) => const CustomerHomeScreen(),
+
+        // Gallery page — arguments: Product
+        Routes.gallery: (context) {
+          final product = ModalRoute.of(context)!.settings.arguments as Product;
+          return GalleryScreen(product: product);
+        },
 
         // Only accessible to users with role: 'admin' in Firestore
         //Routes.adminDashboard: (context) => const AdminDashboardScreen(),

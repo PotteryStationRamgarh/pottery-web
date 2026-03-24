@@ -46,8 +46,15 @@ class AppLogo extends StatelessWidget {
   /// Styled text logo — Playfair Display italic
   /// Looks elegant and on-brand even without a real logo image
   Widget _textLogo() {
+    String displayTitle = appName.isNotEmpty ? appName : 'Pottery Station';
+    
+    // If it's the default and we want to ensure "Ramgarh" is there
+    if (displayTitle == 'Pottery Station') {
+      displayTitle = 'Pottery Station Ramgarh';
+    }
+
     return Text(
-      appName.isNotEmpty ? appName : 'Pottery Station',
+      displayTitle,
       style: GoogleFonts.playfairDisplay(
         fontSize: size * 0.75,
         fontWeight: FontWeight.w600,

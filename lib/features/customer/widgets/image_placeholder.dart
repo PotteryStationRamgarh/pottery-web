@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 
 /// ImagePlaceholder — shown when an image is loading or fails to load.
@@ -28,12 +29,25 @@ class ImagePlaceholder extends StatelessWidget {
           color: AppTheme.divider.withOpacity(0.4),
           borderRadius: borderRadius,
         ),
-        child: Center(
-          child: Icon(
-            icon,
-            size: 30,
-            color: AppTheme.greyPlaceholder.withOpacity(0.4),
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 26,
+              color: AppTheme.greyPlaceholder.withOpacity(0.4),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Image Not Available',
+              style: GoogleFonts.jost(
+                fontSize: 10,
+                color: AppTheme.greyPlaceholder.withOpacity(0.6),
+                fontWeight: FontWeight.w400,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -96,12 +110,23 @@ class NetworkImageWithPlaceholder extends StatelessWidget {
       errorBuilder: (context, error, stackTrace) {
         return Container(
           color: AppTheme.divider.withOpacity(0.25),
-          child: Center(
-            child: Icon(
-              Icons.broken_image_outlined,
-              size: 26,
-              color: AppTheme.greyPlaceholder.withOpacity(0.35),
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.broken_image_outlined,
+                size: 24,
+                color: AppTheme.greyPlaceholder.withOpacity(0.35),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Image Not Available',
+                style: GoogleFonts.jost(
+                  fontSize: 9,
+                  color: AppTheme.greyPlaceholder.withOpacity(0.55),
+                ),
+              ),
+            ],
           ),
         );
       },

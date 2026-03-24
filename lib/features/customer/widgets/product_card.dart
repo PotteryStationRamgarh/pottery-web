@@ -46,7 +46,9 @@ class _ProductCardState extends State<ProductCard> {
 
           // Product name
           Text(
-            widget.product.title,
+            widget.product.title.isNotEmpty 
+                ? widget.product.title 
+                : 'Item not available',
             style: GoogleFonts.jost(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -61,7 +63,9 @@ class _ProductCardState extends State<ProductCard> {
 
           // Short description — 2 lines max
           Text(
-            widget.product.description,
+            widget.product.description.isNotEmpty 
+                ? widget.product.description 
+                : 'Description not available',
             style: GoogleFonts.jost(
               fontSize: 12,
               fontWeight: FontWeight.w400,

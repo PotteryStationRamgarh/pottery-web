@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../app/routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../models/product.dart';
 import '../../widgets/product_card.dart';
@@ -33,8 +34,8 @@ class AllProductsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 768;
 
-    // Hide if nothing to show and not loading
-    if (!isLoading && products.isEmpty) return const SizedBox.shrink();
+    // We NO LONGER hide if products are empty — per user request to always show cards.
+    // if (!isLoading && products.isEmpty) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
@@ -49,13 +50,15 @@ class AllProductsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            _buildHeader(isMobile),
+            _buildHeader(context, isMobile),
 
             SizedBox(height: isMobile ? 32 : 52),
 
             isLoading
                 ? _buildShimmer(isMobile)
-                : _buildGrid(context, isMobile),
+                : (products.isEmpty)
+                    ? _buildFallbackGrid(context, isMobile)
+                    : _buildGrid(context, isMobile),
 
             // Browse by category CTA
             if (!isLoading && products.isNotEmpty) ...[
@@ -73,7 +76,7 @@ class AllProductsSection extends StatelessWidget {
   // HEADER
   // ─────────────────────────────────────────
 
-  Widget _buildHeader(bool isMobile) {
+  Widget _buildHeader(BuildContext context, bool isMobile) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -106,7 +109,11 @@ class AllProductsSection extends StatelessWidget {
         ),
 
         // Browse by category link — desktop only
-        if (!isMobile) _BrowseLink(onTap: onBrowseCategoryTap),
+        _BrowseLink(onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Collections page coming soon!')),
+          );
+        }),
 
       ],
     );
@@ -128,17 +135,17 @@ class AllProductsSection extends StatelessWidget {
         // 0.72 gives enough height for image + text below it
         childAspectRatio: 0.72,
       ),
-      itemCount: products.length,
+      itemCount: products.take(4).length,
       itemBuilder: (context, index) {
-        final product = products[index];
+        final product = products.take(4).toList()[index];
         return ProductCard(
           product: product,
           onImageTap: () {
-            // Open full screen swipeable gallery
-            ImageGallery.show(
+            // Navigate to dedicated gallery page instead of just showing overlay
+            Navigator.pushNamed(
               context,
-              images: product.imageUrls,
-              title:  product.title,
+              Routes.gallery,
+              arguments: product,
             );
           },
         );
@@ -187,6 +194,41 @@ class AllProductsSection extends StatelessWidget {
       ),
       itemCount: isMobile ? 4 : 8,
       itemBuilder: (_, __) => _ShimmerCard(),
+    );
+  }
+
+  // ─────────────────────────────────────────
+  // FALLBACK GRID — shown when Firestore returns no products
+  // ─────────────────────────────────────────
+
+  Widget _buildFallbackGrid(BuildContext context, bool isMobile) {
+    // Show exactly 4 dummy cards as requested
+    final fallbacks = List.generate(4, (i) => Product(
+      id:          'fallback_$i',
+      title:       'Item not available',
+      description: 'Description not available',
+      imageUrls:   [],
+      categoryId:  '',
+      order:       i,
+      isActive:    true,
+    ));
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount:   isMobile ? 2 : 4,
+        crossAxisSpacing: isMobile ? 14 : 24,
+        mainAxisSpacing:  isMobile ? 28 : 40,
+        childAspectRatio: 0.72,
+      ),
+      itemCount: fallbacks.length,
+      itemBuilder: (context, index) {
+        return ProductCard(
+          product: fallbacks[index],
+          onImageTap: () {},
+        );
+      },
     );
   }
 }

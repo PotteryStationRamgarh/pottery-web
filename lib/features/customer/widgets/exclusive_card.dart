@@ -52,7 +52,9 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
 
             // Product title — serif font for premium feel
             Text(
-              widget.product.title,
+              widget.product.title.isNotEmpty 
+                  ? widget.product.title 
+                  : 'Item not available',
               style: GoogleFonts.playfairDisplay(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -67,7 +69,9 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
 
             // Short description
             Text(
-              widget.product.description,
+              widget.product.description.isNotEmpty 
+                  ? widget.product.description 
+                  : 'Description not available',
               style: GoogleFonts.jost(
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
@@ -76,6 +80,29 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
+            ),
+
+            const SizedBox(height: 12),
+
+            // LIMITED PRODUCT label — from user requirements
+            Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  size: 11,
+                  color: AppTheme.terracotta,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'LIMITED PRODUCT',
+                  style: GoogleFonts.jost(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.terracotta,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 10),

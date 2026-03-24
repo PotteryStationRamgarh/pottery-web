@@ -28,7 +28,7 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final isMobile = MediaQuery.of(context).size.width < 1000;
     final config   = context.watch<ConfigProvider>();
 
     return Container(
@@ -60,8 +60,15 @@ class _DesktopNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    
+    // Dynamic spacing and padding based on available width
+    // Helps prevent "Overflow" errors on smaller desktop screens
+    final double horizontalPadding = width < 1200 ? 24 : 48;
+    final double itemSpacing      = width < 1200 ? 20 : 36;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 48),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Row(
         children: [
 
@@ -79,21 +86,21 @@ class _DesktopNav extends StatelessWidget {
             isActive: true,
             onTap: () {},
           ),
-          const SizedBox(width: 36),
+          SizedBox(width: itemSpacing),
 
           // Workshop — Coming Soon snackbar
           _NavItem(
             label: 'Workshop',
             onTap: () => _showComingSoon(context),
           ),
-          const SizedBox(width: 36),
+          SizedBox(width: itemSpacing),
 
           // About — opens a dialog with aboutUs text from Firestore
           _NavItem(
             label: 'About',
             onTap: () => _showAbout(context, config),
           ),
-          const SizedBox(width: 36),
+          SizedBox(width: itemSpacing),
 
           // Contact — opens a dialog with contact info from Firestore
           _NavItem(
@@ -101,12 +108,12 @@ class _DesktopNav extends StatelessWidget {
             onTap: () => _showContact(context, config),
           ),
 
-          const SizedBox(width: 28),
+          SizedBox(width: width < 1200 ? 16 : 28),
 
           // Profile icon — dropdown with email + sign out
           _ProfileButton(),
 
-          const SizedBox(width: 20),
+          SizedBox(width: width < 1200 ? 12 : 20),
 
           // Go to Store — coming soon snackbar for now
           _StoreButton(),
