@@ -133,6 +133,7 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       // Dark warm background — matches the premium pottery feel
+      // Dark background — matches the premium pottery feel
       backgroundColor: AppTheme.appBackground,
       body: Center(
         child: FadeTransition(

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/config_provider.dart';
+import '../../../../core/widgets/pottery_placeholder.dart';
 
 /// HeroSection — the very first thing the user sees on the home screen.
 /// Takes up the full viewport height on desktop.
@@ -66,7 +67,13 @@ class HeroSection extends StatelessWidget {
 
               // Right — hero image
               Expanded(
-                child: _buildImage(config, size.height * 0.78),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    // Cap image height on tablets/desktops so it doesn't get too tall
+                    maxHeight: size.height * 0.70,
+                  ),
+                  child: _buildImage(config, size.height * 0.70),
+                ),
               ),
 
             ],
@@ -85,8 +92,11 @@ class HeroSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
 
-        // Image on top for mobile
-        _buildImage(config, 300),
+        // Image on top for mobile — now with padding so it doesn't touch edges
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: _buildImage(config, 300),
+        ),
 
         const SizedBox(height: 36),
 
@@ -225,9 +235,9 @@ class HeroSection extends StatelessWidget {
                   width: double.infinity,
                   height: height,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _placeholder(),
+                  errorBuilder: (_, __, ___) => const PotteryPlaceholder(),
                 )
-              : _placeholder(),
+              : const PotteryPlaceholder(),
         ),
 
         // Decorative soft blur orb — bottom left of image
@@ -249,33 +259,6 @@ class HeroSection extends StatelessWidget {
     );
   }
 
-  // Placeholder shown when no hero image URL is set yet
-  Widget _placeholder() {
-    return Container(
-      color: AppTheme.lightBrown.withOpacity(0.12),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.spa_outlined,
-              size: 44,
-              color: AppTheme.lightBrown.withOpacity(0.35),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Set hero image in Firestore',
-              style: GoogleFonts.jost(
-                fontSize: 12,
-                color: AppTheme.lightBrown.withOpacity(0.35),
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ─────────────────────────────────────────
   // ABOUT DIALOG

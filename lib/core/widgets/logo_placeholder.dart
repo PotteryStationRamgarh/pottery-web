@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
+import '../theme/app_theme.dart';
 
 /// LogoPlaceholder — circular grey logo shown until real logo is ready.
 /// When logo is ready — swap this widget with Image.asset('assets/images/logo.png')

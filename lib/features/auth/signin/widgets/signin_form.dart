@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/hover_button.dart';
-import '../../widgets/logo_placeholder.dart';
+import '../../../../core/widgets/logo_placeholder.dart';
 
 /// signinForm — contains all form fields, error banner and button.
 /// Kept separate from SigninScreen so screen file stays clean.
@@ -14,6 +14,7 @@ class SigninForm extends StatefulWidget {
   final VoidCallback onSignin;
   final VoidCallback onDismissError;
   final VoidCallback onSignupTap;
+  final VoidCallback onForgotPasswordTap;
 
   const SigninForm({
     super.key,
@@ -24,6 +25,7 @@ class SigninForm extends StatefulWidget {
     required this.onSignin,
     required this.onDismissError,
     required this.onSignupTap,
+    required this.onForgotPasswordTap,
   });
 
   @override
@@ -104,6 +106,23 @@ class _SigninFormState extends State<SigninForm> {
               onPressed: () {
                 setState(() => _obscurePassword = !_obscurePassword);
               },
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Forgot Password link
+        Align(
+          alignment: Alignment.centerRight,
+          child: GestureDetector(
+            onTap: widget.onForgotPasswordTap,
+            child: Text(
+              'Forgot Password?',
+              style: AppTheme.bodySmall.copyWith(
+                color: AppTheme.primaryBrown,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ),

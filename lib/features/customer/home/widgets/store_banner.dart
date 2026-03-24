@@ -74,25 +74,25 @@ class StoreBanner extends StatelessWidget {
                       title,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.playfairDisplay(
-                        fontSize: isMobile ? 32 : 52,
+                        fontSize: isMobile ? 36 : 56,
                         fontWeight: FontWeight.w600,
                         fontStyle: FontStyle.italic,
-                        color: AppTheme.lightBrown,
+                        color: AppTheme.white,
                         height: 1.2,
                         letterSpacing: 0.3,
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
                     // Supporting description
                     Text(
                       desc,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.jost(
-                        fontSize: 14,
+                        fontSize: 16,
                         fontWeight: FontWeight.w300,
-                        color: AppTheme.lightBrown.withOpacity(0.5),
+                        color: AppTheme.white.withOpacity(0.8),
                         height: 1.75,
                         letterSpacing: 0.3,
                       ),

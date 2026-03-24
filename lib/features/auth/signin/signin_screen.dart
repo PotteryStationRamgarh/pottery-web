@@ -163,6 +163,9 @@ class _SigninScreenState extends State<SigninScreen>
                             Navigator.pushReplacementNamed(
                                 context, Routes.signup);
                           },
+                          onForgotPasswordTap: () {
+                            Navigator.pushNamed(context, Routes.forgotPassword);
+                          },
                         ),
                       ),
                     ),
@@ -220,6 +223,9 @@ class _SigninScreenState extends State<SigninScreen>
                 },
                 onSignupTap: () {
                   Navigator.pushReplacementNamed(context, Routes.signup);
+                },
+                onForgotPasswordTap: () {
+                  Navigator.pushNamed(context, Routes.forgotPassword);
                 },
               ),
             ),

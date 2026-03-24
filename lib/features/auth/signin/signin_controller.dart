@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/utils/validation_utils.dart';
 import '../auth_service.dart';
 
 /// SigninController handles all business logic for the signin screen.
@@ -18,10 +19,11 @@ class SigninController {
     required String email,
     required String password,
   }) async {
-    // Basic empty field validation before hitting Firebase
-    if (email.trim().isEmpty || password.isEmpty) {
-      return 'Email and password cannot be empty.';
-    }
+    // Enhanced validation using ValidationUtils
+    final emailError = ValidationUtils.validateEmail(email);
+    if (emailError != null) return emailError;
+
+    if (password.isEmpty) return 'Password cannot be empty.';
 
     try {
       // Attempt Firebase signin

@@ -28,6 +28,9 @@ class Routes {
   /// Shown after signup — user must verify email before they can enter
   static const String verifyEmail = '/verify-email';
 
+  /// Password recovery screen
+  static const String forgotPassword = '/forgot-password';
+
   // ─────────────────────────────────────────
   // MAINTENANCE
   // ─────────────────────────────────────────

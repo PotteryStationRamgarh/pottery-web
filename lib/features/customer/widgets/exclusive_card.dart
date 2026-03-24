@@ -196,7 +196,7 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
                   const Icon(
                     Icons.workspace_premium_outlined,
                     size: 12,
-                    color: Colors.white,
+                    color: AppTheme.white,
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -204,7 +204,7 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
                     style: GoogleFonts.jost(
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                      color: AppTheme.white,
                       letterSpacing: 0.3,
                     ),
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../app/routes.dart';
 import '../../../core/providers/config_provider.dart';
 import '../../../core/services/firestore_service.dart';
@@ -134,7 +135,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F4),
+      backgroundColor: AppTheme.background,
 
       // NavDrawer opens from the right on mobile
       // Triggered by hamburger icon in NavBar

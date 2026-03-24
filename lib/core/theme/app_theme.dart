@@ -46,6 +46,15 @@ class AppTheme {
   static const Color divider = Color(0xFFE8DDD5);
   static const Color borderColor = Color(0xFFE8DDD5); // alias for divider
 
+  /// Section Backgrounds
+  static const Color footerBackground = Color(0xFFF1EDE8);
+  static const Color exhibitionBackground = Color(0xFFF7F3EE);
+  
+  /// Helper colors
+  static const Color transparent = Colors.transparent;
+  static const Color black = Colors.black;
+  static const Color green = Colors.green;
+
   // ─────────────────────────────────────────
   // TYPOGRAPHY — Jost
   // ─────────────────────────────────────────
@@ -87,6 +96,13 @@ class AppTheme {
 
   static TextStyle get bodyMedium => GoogleFonts.jost(
         fontSize: 13,
+        fontWeight: FontWeight.w400,
+        color: textLight,
+        letterSpacing: 0.1,
+      );
+
+  static TextStyle get bodySmall => GoogleFonts.jost(
+        fontSize: 11,
         fontWeight: FontWeight.w400,
         color: textLight,
         letterSpacing: 0.1,

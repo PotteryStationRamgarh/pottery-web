@@ -74,11 +74,17 @@ class _DesktopNav extends StatelessWidget {
 
           const Spacer(),
 
-          // Collections — active since this is the home screen
           _NavItem(
             label: 'Collections',
             isActive: true,
             onTap: () {},
+          ),
+          const SizedBox(width: 36),
+
+          // Workshop — Coming Soon snackbar
+          _NavItem(
+            label: 'Workshop',
+            onTap: () => _showComingSoon(context),
           ),
           const SizedBox(width: 36),
 
@@ -178,11 +184,17 @@ class NavDrawer extends StatelessWidget {
 
               const SizedBox(height: 48),
 
-              // Nav items — same as desktop but vertical
               _DrawerItem(
                 label: 'Collections',
                 isActive: true,
                 onTap: () => Navigator.pop(context),
+              ),
+              _DrawerItem(
+                label: 'Workshop',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showComingSoon(context);
+                },
               ),
               _DrawerItem(
                 label: 'About',
@@ -500,6 +512,26 @@ void _showContact(BuildContext context, ConfigProvider config) {
       if (c.supportEmail.isNotEmpty) '✉️  ${c.supportEmail}',
       if (c.supportPhone.isNotEmpty) '📞  ${c.supportPhone}',
     ].join('\n\n'),
+  );
+}
+
+void _showComingSoon(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        'Workshop section coming soon!',
+        style: GoogleFonts.jost(
+          fontSize: 13,
+          color: AppTheme.white,
+        ),
+      ),
+      backgroundColor: AppTheme.primaryBrown,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      duration: const Duration(seconds: 2),
+    ),
   );
 }
 

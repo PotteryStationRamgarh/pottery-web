@@ -5,6 +5,7 @@ import '../features/splash/splash_screen.dart';
 import '../features/auth/signin/signin_screen.dart';
 import '../features/auth/signup/signup_screen.dart';
 import '../features/auth/verify_email/verify_email_screen.dart';
+import '../features/auth/forgot_password/forgot_password_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
 import '../features/customer/home/customer_home_screen.dart';
 //import '../features/admin/dashboard/admin_dashboard_screen.dart';
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
         Routes.signin:      (context) => const SigninScreen(),
         Routes.signup:      (context) => const SignupScreen(),
         Routes.verifyEmail: (context) => const VerifyEmailScreen(),
+        Routes.forgotPassword: (context) => const ForgotPasswordScreen(),
 
         // Shown when admin sets maintenanceMode: true in Firestore
         // Admin bypasses this and goes straight to dashboard

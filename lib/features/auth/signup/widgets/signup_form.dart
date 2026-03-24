@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/hover_button.dart';
-import '../../widgets/logo_placeholder.dart';
+import '../../../../core/widgets/logo_placeholder.dart';
 
 /// SignupForm — contains all form fields, error banner and button.
 /// Mirrors LoginForm structure for consistency.
