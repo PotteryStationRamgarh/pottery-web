@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/app_config.dart';
 import '../../models/product.dart';
+import '../../models/app_user.dart';
+import '../../models/support_message.dart';
 
 /// FirestoreService — only class that talks directly to Firestore.
 ///
@@ -143,7 +145,6 @@ class FirestoreService {
     try {
       final snap = await _db
           .collection('categories')
-          .where('isActive', isEqualTo: true)
           .orderBy('order')
           .get();
       return snap.docs.map(ProductCategory.fromDoc).toList();
@@ -163,7 +164,6 @@ class FirestoreService {
       final snap = await _db
           .collection('products')
           .where('categoryId', isEqualTo: categoryId)
-          .where('isActive', isEqualTo: true)
           .orderBy('order')
           .get();
       return snap.docs.map(Product.fromDoc).toList();
@@ -177,7 +177,6 @@ class FirestoreService {
     try {
       final snap = await _db
           .collection('products')
-          .where('isActive', isEqualTo: true)
           .orderBy('order')
           .get();
       return snap.docs.map(Product.fromDoc).toList();
@@ -195,7 +194,6 @@ class FirestoreService {
     try {
       final snap = await _db
           .collection('exclusive_products')
-          .where('isActive', isEqualTo: true)
           .orderBy('order')
           .get();
       return snap.docs.map(ExclusiveProduct.fromDoc).toList();
@@ -269,5 +267,92 @@ class FirestoreService {
       debugPrint('getBrandingSettings error: $e');
       return {};
     }
+  }
+
+  // ─────────────────────────────────────────
+  // ADMIN — UPDATE CONFIG
+  // ─────────────────────────────────────────
+
+  static Future<void> updateConfig(String docId, Map<String, dynamic> data) async {
+    try {
+      await _db.collection('app_config').doc(docId).set(data);
+    } catch (e) {
+      debugPrint('updateConfig error: $e');
+      rethrow;
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // ADMIN — CATEGORIES CRUD
+  // ─────────────────────────────────────────
+
+  static Future<DocumentReference> addCategory(ProductCategory category) async {
+    return await _db.collection('categories').add(category.toMap());
+  }
+
+  static Future<void> updateCategory(String id, Map<String, dynamic> data) async {
+    await _db.collection('categories').doc(id).update(data);
+  }
+
+  static Future<void> deleteCategory(String id) async {
+    await _db.collection('categories').doc(id).delete();
+  }
+
+  // ─────────────────────────────────────────
+  // ADMIN — PRODUCTS CRUD
+  // ─────────────────────────────────────────
+
+  static Future<DocumentReference> addProduct(Product product) async {
+    return await _db.collection('products').add(product.toMap());
+  }
+
+  static Future<void> updateProduct(String id, Map<String, dynamic> data) async {
+    await _db.collection('products').doc(id).update(data);
+  }
+
+  static Future<void> deleteProduct(String id) async {
+    await _db.collection('products').doc(id).delete();
+  }
+
+  // ─────────────────────────────────────────
+  // ADMIN — EXCLUSIVE PRODUCTS CRUD
+  // ─────────────────────────────────────────
+
+  static Future<DocumentReference> addExclusiveProduct(ExclusiveProduct product) async {
+    return await _db.collection('exclusive_products').add(product.toMap());
+  }
+
+  static Future<void> updateExclusiveProduct(String id, Map<String, dynamic> data) async {
+    await _db.collection('exclusive_products').doc(id).update(data);
+  }
+
+  static Future<void> deleteExclusiveProduct(String id) async {
+    await _db.collection('exclusive_products').doc(id).delete();
+  }
+
+  // ─────────────────────────────────────────
+  // ADMIN — SUPPORT MESSAGES
+  // ─────────────────────────────────────────
+
+  static Future<List<SupportMessage>> getSupportMessages() async {
+    final snap = await _db.collection('support_messages').orderBy('createdAt', descending: true).get();
+    return snap.docs.map(SupportMessage.fromDoc).toList();
+  }
+
+  static Future<void> updateSupportMessageStatus(String id, String status) async {
+    await _db.collection('support_messages').doc(id).update({'status': status});
+  }
+
+  // ─────────────────────────────────────────
+  // ADMIN — USERS
+  // ─────────────────────────────────────────
+
+  static Future<List<AppUser>> getUsers() async {
+    final snap = await _db.collection('users').orderBy('createdAt', descending: true).get();
+    return snap.docs.map(AppUser.fromDoc).toList();
+  }
+
+  static Future<void> updateUserRole(String uid, String role) async {
+    await _db.collection('users').doc(uid).update({'role': role});
   }
 }

@@ -29,6 +29,14 @@ class ProductCategory {
       isActive: map['isActive'] as bool?   ?? true,
     );
   }
+  Map<String, dynamic> toMap() {
+    return {
+      'name':     name,
+      'imageUrl': imageUrl,
+      'order':    order,
+      'isActive': isActive,
+    };
+  }
 }
 
 // ─────────────────────────────────────────
@@ -71,6 +79,18 @@ class Product {
   }
 
   String get primaryImage => imageUrls.isNotEmpty ? imageUrls.first : '';
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title':       title,
+      'description': description,
+      'imageUrls':   imageUrls,
+      'categoryId':  categoryId,
+      'order':       order,
+      'isActive':    isActive,
+      'createdAt':   createdAt ?? FieldValue.serverTimestamp(),
+    };
+  }
 }
 
 // ─────────────────────────────────────────
@@ -116,4 +136,17 @@ class ExclusiveProduct {
   }
 
   String get primaryImage => imageUrls.isNotEmpty ? imageUrls.first : '';
-}
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title':          title,
+      'description':    description,
+      'imageUrls':      imageUrls,
+      'totalPieces':    totalPieces,
+      'hasCertificate': hasCertificate,
+      'order':          order,
+      'isActive':       isActive,
+      'createdAt':      createdAt ?? FieldValue.serverTimestamp(),
+    };
+  }
+}

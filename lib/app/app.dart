@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../features/admin/admin_layout.dart';
 import '../app/routes.dart';
 import '../core/theme/app_theme.dart';
 import '../features/splash/splash_screen.dart';
@@ -57,7 +58,7 @@ class MyApp extends StatelessWidget {
         },
 
         // Only accessible to users with role: 'admin' in Firestore
-        //Routes.adminDashboard: (context) => const AdminDashboardScreen(),
+        Routes.adminDashboard: (context) => const AdminLayout(),
       },
     );
   }

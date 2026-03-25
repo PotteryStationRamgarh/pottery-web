@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../app/routes.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/services/firebase_service.dart';
 import '../widgets/branding_image_widget.dart';
 import 'signin_controller.dart';
 import 'widgets/signin_form.dart';
@@ -76,6 +78,15 @@ class _SigninScreenState extends State<SigninScreen>
     setState(() => _isLoading = false);
 
     if (result == null) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final role = await FirebaseService.getUserRole(user.uid);
+        if (!mounted) return;
+        if (role == 'admin') {
+          Navigator.pushReplacementNamed(context, Routes.adminDashboard);
+          return;
+        }
+      }
       Navigator.pushReplacementNamed(context, Routes.customerHome);
     } else if (result == 'email_not_verified') {
       Navigator.pushReplacementNamed(context, Routes.verifyEmail);

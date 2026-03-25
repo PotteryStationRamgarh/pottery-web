@@ -40,6 +40,35 @@ class AppBranding {
         storeBannerTitle: '',
         storeBannerDesc:  '',
       );
+
+  Map<String, dynamic> toMap() {
+    return {
+      'appName':          appName,
+      'logoUrl':          logoUrl,
+      'heroText':         heroText,
+      'heroDesc':         heroDesc,
+      'storeBannerTitle': storeBannerTitle,
+      'storeBannerDesc':  storeBannerDesc,
+    };
+  }
+
+  AppBranding copyWith({
+    String? appName,
+    String? logoUrl,
+    String? heroText,
+    String? heroDesc,
+    String? storeBannerTitle,
+    String? storeBannerDesc,
+  }) {
+    return AppBranding(
+      appName:          appName          ?? this.appName,
+      logoUrl:          logoUrl          ?? this.logoUrl,
+      heroText:         heroText         ?? this.heroText,
+      heroDesc:         heroDesc         ?? this.heroDesc,
+      storeBannerTitle: storeBannerTitle ?? this.storeBannerTitle,
+      storeBannerDesc:  storeBannerDesc  ?? this.storeBannerDesc,
+    );
+  }
 }
 
 // ─────────────────────────────────────────
@@ -70,6 +99,26 @@ class AppContact {
         supportPhone: '',
         address:      '',
       );
+
+  Map<String, dynamic> toMap() {
+    return {
+      'supportEmail': supportEmail,
+      'supportPhone': supportPhone,
+      'address':      address,
+    };
+  }
+
+  AppContact copyWith({
+    String? supportEmail,
+    String? supportPhone,
+    String? address,
+  }) {
+    return AppContact(
+      supportEmail: supportEmail ?? this.supportEmail,
+      supportPhone: supportPhone ?? this.supportPhone,
+      address:      address      ?? this.address,
+    );
+  }
 }
 
 // ─────────────────────────────────────────
@@ -104,6 +153,29 @@ class AppContent {
         privacyPolicy:   '',
         helpText:        '',
       );
+
+  Map<String, dynamic> toMap() {
+    return {
+      'aboutUs':         aboutUs,
+      'termsConditions': termsConditions,
+      'privacyPolicy':   privacyPolicy,
+      'helpText':        helpText,
+    };
+  }
+
+  AppContent copyWith({
+    String? aboutUs,
+    String? termsConditions,
+    String? privacyPolicy,
+    String? helpText,
+  }) {
+    return AppContent(
+      aboutUs:         aboutUs         ?? this.aboutUs,
+      termsConditions: termsConditions ?? this.termsConditions,
+      privacyPolicy:   privacyPolicy   ?? this.privacyPolicy,
+      helpText:        helpText        ?? this.helpText,
+    );
+  }
 }
 
 // ─────────────────────────────────────────
@@ -134,6 +206,26 @@ class AppSocial {
         facebookUrl:  '',
         websiteUrl:   '',
       );
+
+  Map<String, dynamic> toMap() {
+    return {
+      'instagramUrl': instagramUrl,
+      'facebookUrl':  facebookUrl,
+      'websiteUrl':   websiteUrl,
+    };
+  }
+
+  AppSocial copyWith({
+    String? instagramUrl,
+    String? facebookUrl,
+    String? websiteUrl,
+  }) {
+    return AppSocial(
+      instagramUrl: instagramUrl ?? this.instagramUrl,
+      facebookUrl:  facebookUrl  ?? this.facebookUrl,
+      websiteUrl:   websiteUrl   ?? this.websiteUrl,
+    );
+  }
 }
 
 // ─────────────────────────────────────────
@@ -152,6 +244,18 @@ class AppFeatures {
   }
 
   factory AppFeatures.empty() => const AppFeatures(maintenanceMode: false);
+
+  Map<String, dynamic> toMap() {
+    return {
+      'maintenanceMode': maintenanceMode,
+    };
+  }
+
+  AppFeatures copyWith({bool? maintenanceMode}) {
+    return AppFeatures(
+      maintenanceMode: maintenanceMode ?? this.maintenanceMode,
+    );
+  }
 }
 
 // ─────────────────────────────────────────
@@ -220,6 +324,56 @@ class AppExhibition {
         lastDayMessage:  '',
         upcomingMessage: '',
       );
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title':           title,
+      'location':        location,
+      'address':         address,
+      'startDate':       startDate != null ? Timestamp.fromDate(startDate!) : null,
+      'endDate':         endDate != null ? Timestamp.fromDate(endDate!) : null,
+      'openTime':        openTime,
+      'closeTime':       closeTime,
+      'displayTime':     displayTime,
+      'imageUrl':        imageUrl,
+      'isActive':        isActive,
+      'thankYouMessage': thankYouMessage,
+      'lastDayMessage':  lastDayMessage,
+      'upcomingMessage': upcomingMessage,
+    };
+  }
+
+  AppExhibition copyWith({
+    String? title,
+    String? location,
+    String? address,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? openTime,
+    String? closeTime,
+    String? displayTime,
+    String? imageUrl,
+    bool? isActive,
+    String? thankYouMessage,
+    String? lastDayMessage,
+    String? upcomingMessage,
+  }) {
+    return AppExhibition(
+      title:           title           ?? this.title,
+      location:        location        ?? this.location,
+      address:         address         ?? this.address,
+      startDate:       startDate       ?? this.startDate,
+      endDate:         endDate         ?? this.endDate,
+      openTime:        openTime        ?? this.openTime,
+      closeTime:       closeTime       ?? this.closeTime,
+      displayTime:     displayTime     ?? this.displayTime,
+      imageUrl:        imageUrl        ?? this.imageUrl,
+      isActive:        isActive        ?? this.isActive,
+      thankYouMessage: thankYouMessage ?? this.thankYouMessage,
+      lastDayMessage:  lastDayMessage  ?? this.lastDayMessage,
+      upcomingMessage: upcomingMessage ?? this.upcomingMessage,
+    );
+  }
 
   /// Before start → upcomingMessage
   /// On end date  → lastDayMessage

@@ -101,4 +101,16 @@ class ConfigProvider extends ChangeNotifier {
       return false; // default to not maintenance on error
     }
   }
+
+  /// Updates the features config in Firestore and locally
+  Future<void> updateFeatures(AppFeatures newFeatures) async {
+    try {
+      await FirestoreService.updateConfig('features', newFeatures.toMap());
+      _features = newFeatures;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('ConfigProvider: updateFeatures error $e');
+      rethrow;
+    }
+  }
 }
