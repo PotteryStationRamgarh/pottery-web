@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 
 /// AppLogo — used everywhere across the app.
 /// Auth screens, nav bar, splash, admin dashboard etc.
 ///
 /// If logoUrl is set in Firestore app_config/branding → shows the image.
-/// If logoUrl is empty → falls back to a styled text logo.
+/// If logoUrl is empty → falls back to a simple icon placeholder.
 ///
-/// [logoUrl]   — from ConfigProvider.branding.logoUrl
-/// [appName]   — from ConfigProvider.branding.appName
-/// [size]      — controls height of image / font size of text fallback
+/// [logoUrl]   — from BrandingProvider.branding.logoUrl
+/// [size]      — controls height of image / icon size of fallback
 /// [lightMode] — true = light colors (use on dark backgrounds like splash)
 class AppLogo extends StatelessWidget {
   final String logoUrl;
-  final String appName;
+  final String appName; // Kept for compatibility, but no longer used for fallback text
   final double size;
   final bool lightMode;
 
@@ -34,37 +32,33 @@ class AppLogo extends StatelessWidget {
         logoUrl,
         height: size,
         fit: BoxFit.contain,
-        // If image fails to load — fall back to text logo silently
-        errorBuilder: (_, __, ___) => _textLogo(),
+        // If image fails to load — fall back to icon placeholder
+        errorBuilder: (_, __, ___) => _iconPlaceholder(),
       );
     }
 
-    // No URL set — show the text logo
-    return _textLogo();
+    // No URL set — show the icon placeholder
+    return _iconPlaceholder();
   }
 
-  /// Styled text logo — Playfair Display italic
-  /// Looks elegant and on-brand even without a real logo image
-  Widget _textLogo() {
-    String displayTitle = appName.isNotEmpty ? appName : 'Pottery Station';
-    
-    // If it's the default and we want to ensure "Ramgarh" is there
-    if (displayTitle == 'Pottery Station') {
-      displayTitle = 'Pottery Station Ramgarh';
-    }
-
-    return Text(
-      displayTitle,
-      style: GoogleFonts.playfairDisplay(
-        fontSize: size * 0.75,
-        fontWeight: FontWeight.w600,
-        fontStyle: FontStyle.italic,
-        // Light mode = creamy brown (for dark backgrounds)
-        // Dark mode = primary brown (for light backgrounds)
-        color: lightMode
-            ? AppTheme.lightBrown
-            : AppTheme.primaryBrown,
-        letterSpacing: 0.5,
+  /// Simple icon-based placeholder instead of large text.
+  /// This prevents the "Pottery Station Ramgarh" text flicker while loading
+  /// or if no logo is configured.
+  Widget _iconPlaceholder() {
+    return Container(
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(size * 0.1),
+      decoration: BoxDecoration(
+        color: lightMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Icon(
+          Icons.blur_on_rounded, // An elegant, abstract icon that fits pottery
+          size: size * 0.7,
+          color: lightMode ? AppTheme.lightBrown : AppTheme.primaryBrown,
+        ),
       ),
     );
   }

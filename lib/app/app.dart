@@ -11,7 +11,7 @@ import '../features/maintenance/maintenance_screen.dart';
 import '../features/customer/home/customer_home_screen.dart';
 import '../features/customer/gallery/gallery_screen.dart';
 import '../models/product.dart';
-//import '../features/admin/dashboard/admin_dashboard_screen.dart';
+import '../features/admin/profile/admin_profile_page.dart';
 
 /// Root of the entire app.
 /// All screens are registered here as named routes.
@@ -59,6 +59,9 @@ class MyApp extends StatelessWidget {
 
         // Only accessible to users with role: 'admin' in Firestore
         Routes.adminDashboard: (context) => const AdminLayout(),
+
+        // Admin Profile Page
+        Routes.profile: (context) => const AdminProfilePage(),
       },
     );
   }

@@ -105,7 +105,7 @@ class _SigninScreenState extends State<SigninScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final isMobile = MediaQuery.of(context).size.width < 900; // Increased threshold for better web experience
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -120,70 +120,84 @@ class _SigninScreenState extends State<SigninScreen>
   // ─────────────────────────────────────────
 
   Widget _buildDesktopLayout() {
-    return Center(
-      child: Container(
-        // 50% width — 25% empty on each side
-        // 60% height — 20% empty on top and bottom
-        width: MediaQuery.of(context).size.width * 0.50,
-        height: MediaQuery.of(context).size.height * 0.60,
-        decoration: BoxDecoration(
-          color: AppTheme.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryBrown.withOpacity(0.08),
-              blurRadius: 40,
-              offset: const Offset(0, 8),
-            ),
-          ],
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.background, Color(0xFFF5F2F0)],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Row(
-            children: [
-
-              // Left — branding image 55%
-              Expanded(
-                flex: 55,
-                child: const BrandingImageWidget(),
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 950,
+          // Removed fixed height to allow dynamic growth, but constrained to viewport
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryBrown.withOpacity(0.12),
+                blurRadius: 40,
+                offset: const Offset(0, 12),
               ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: IntrinsicHeight(
+              child: Row(
+                children: [
+                  // Left — branding image
+                  const Expanded(
+                    flex: 55,
+                    child: BrandingImageWidget(),
+                  ),
 
-              // Right — signin form 45%
-              Expanded(
-                flex: 45,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 36,
-                          vertical: 24,
-                        ),
-                        child: SigninForm(
-                          emailController: _emailController,
-                          passwordController: _passwordController,
-                          isLoading: _isLoading,
-                          errorMessage: _errorMessage,
-                          onSignin: _handleSignin,
-                          onDismissError: () {
-                            setState(() => _errorMessage = null);
-                          },
-                          onSignupTap: () {
-                            Navigator.pushReplacementNamed(
-                                context, Routes.signup);
-                          },
-                          onForgotPasswordTap: () {
-                            Navigator.pushNamed(context, Routes.forgotPassword);
-                          },
+                  // Right — signin form
+                  Expanded(
+                    flex: 45,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Center(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40,
+                              vertical: 32,
+                            ),
+                            child: SigninForm(
+                              emailController: _emailController,
+                              passwordController: _passwordController,
+                              isLoading: _isLoading,
+                              errorMessage: _errorMessage,
+                              onSignin: _handleSignin,
+                              onDismissError: () {
+                                setState(() => _errorMessage = null);
+                              },
+                              onSignupTap: () {
+                                Navigator.pushReplacementNamed(
+                                    context, Routes.signup);
+                              },
+                              onForgotPasswordTap: () {
+                                Navigator.pushNamed(context, Routes.forgotPassword);
+                              },
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -199,45 +213,46 @@ class _SigninScreenState extends State<SigninScreen>
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
           horizontal: 24,
-          vertical: 48,
+          vertical: 32,
         ),
-        child: Container(
-          // Floating card on mobile
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: AppTheme.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryBrown.withOpacity(0.08),
-                blurRadius: 32,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 28,
-            vertical: 36,
-          ),
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: SigninForm(
-                emailController: _emailController,
-                passwordController: _passwordController,
-                isLoading: _isLoading,
-                errorMessage: _errorMessage,
-                onSignin: _handleSignin,
-                onDismissError: () {
-                  setState(() => _errorMessage = null);
-                },
-                onSignupTap: () {
-                  Navigator.pushReplacementNamed(context, Routes.signup);
-                },
-                onForgotPasswordTap: () {
-                  Navigator.pushNamed(context, Routes.forgotPassword);
-                },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 450),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryBrown.withOpacity(0.08),
+                  blurRadius: 32,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 28,
+              vertical: 36,
+            ),
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: SigninForm(
+                  emailController: _emailController,
+                  passwordController: _passwordController,
+                  isLoading: _isLoading,
+                  errorMessage: _errorMessage,
+                  onSignin: _handleSignin,
+                  onDismissError: () {
+                    setState(() => _errorMessage = null);
+                  },
+                  onSignupTap: () {
+                    Navigator.pushReplacementNamed(context, Routes.signup);
+                  },
+                  onForgotPasswordTap: () {
+                    Navigator.pushNamed(context, Routes.forgotPassword);
+                  },
+                ),
               ),
             ),
           ),

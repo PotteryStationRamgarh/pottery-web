@@ -1,19 +1,48 @@
 import 'dart:typed_data';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:minio/minio.dart';
 import '../utils/image_compressor.dart';
+import 'remote_config_service.dart';
 
-/// MediaService — Handles compression and R2/Storage uploads.
-/// Requires a docId to be generated first.
+/// MediaService — Handles compression and R2 uploads using MinIO (S3 compatible client)
+/// Strict rule: DocId MUST exist before calling this.
 class MediaService {
-  static final _storage = FirebaseStorage.instance;
 
-  /// Compress → Upload → Return URLs
-  /// pathPrefix examples: 'products', 'exclusive', 'categories', 'exhibition', 'branding'
+  // ✅ FIX 2: Hardcoded Public Config (Public data is safe)
+  static const String _bucket = 'pottery-station-ramgarh-assets';
+  static const String _publicUrlBase = 'https://pub-32b0eccfedfb4b29980313569dfccc15.r2.dev';
+
+  /// Compress → Upload → Return Public URLs
+  /// pathPrefix examples: 'products', 'categories', 'exclusive', 'branding', 'exhibition'
   Future<List<String>> uploadImages({
     required String docId,
     required String pathPrefix,
     required List<Uint8List> files,
   }) async {
+    
+    // 🔐 FIX 2: Remote Config only for Secrets
+    final accountId = RemoteConfigService.r2AccountId;
+    final accessKey = RemoteConfigService.r2AccessKeyId;
+    final secretKey = RemoteConfigService.r2SecretAccessKey;
+
+    if (accountId.isEmpty || accessKey.isEmpty || secretKey.isEmpty) {
+      throw Exception("Cloudflare R2 secrets not configured in Firebase Remote Config.");
+    }
+
+    // 🔴 FIX 3: Validation
+    if (!_publicUrlBase.startsWith('http')) {
+      throw Exception('Invalid R2 public URL configuration');
+    }
+
+    // Initialize Minio for Cloudflare R2
+    final minio = Minio(
+      endPoint: '$accountId.r2.cloudflarestorage.com',
+      accessKey: accessKey,
+      secretKey: secretKey,
+      useSSL: true,
+      region: 'auto',
+    );
+
     List<String> urls = [];
     
     for (int i = 0; i < files.length; i++) {
@@ -21,41 +50,50 @@ class MediaService {
       final compressed = await ImageCompressor.compressImage(files[i]);
       
       // 2. Generate path based on prefix
-      // E.g., branding/logo.png OR products/xyz123/image_1.jpg
       String path;
       if (pathPrefix == 'branding') {
-        // Since we explicitly control the filename for branding
-        // we map it based on docId we pass. Here we pass the specific filename as docId.
-        // e.g., 'logo.png', 'login.png', 'signup.png'
         path = 'branding/$docId';
       } else {
         path = '$pathPrefix/$docId/image_${i + 1}.jpg';
       }
 
-      // 3. Upload
-      final url = await _uploadToR2(path, compressed);
-      urls.add(url);
+      // 🔴 FIX 4: Debug Logging
+      debugPrint('Uploading to: $path');
+
+      // 3. Upload Document to R2
+      await _uploadToR2(minio, path, compressed);
+      
+      // 4. Construct Public URL
+      final imageUrl = '$_publicUrlBase/$path';
+
+      // 🔴 FIX 3: Validation
+      if (!imageUrl.startsWith('http')) {
+        throw Exception('Invalid generated image URL');
+      }
+
+      // 🔴 FIX 4: Debug Logging
+      debugPrint('Generated URL: $imageUrl');
+      
+      urls.add(imageUrl);
     }
     
     return urls;
   }
 
-  /// Internal method to upload bytes to Firebase Storage (or R2 configured bucket)
-  Future<String> _uploadToR2(String path, Uint8List bytes) async {
+  Future<void> _uploadToR2(Minio minio, String path, Uint8List bytes) async {
     try {
-      final ref = _storage.ref().child(path);
-      
-      // Determine content type
       String contentType = 'image/jpeg';
       if (path.endsWith('.png')) contentType = 'image/png';
       
-      final uploadTask = await ref.putData(
-        bytes,
-        SettableMetadata(contentType: contentType),
-      );
+      final stream = Stream<Uint8List>.fromIterable([bytes]);
       
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
-      return downloadUrl;
+      await minio.putObject(
+        _bucket,
+        path,
+        stream,
+        size: bytes.length,
+        metadata: {'Content-Type': contentType},
+      );
     } catch (e) {
       throw Exception('Failed to upload image to $path: $e');
     }

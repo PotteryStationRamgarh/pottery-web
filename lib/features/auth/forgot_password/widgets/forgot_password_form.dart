@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/hover_button.dart';
-import '../../../../core/widgets/logo_placeholder.dart';
+import '../../../../core/widgets/app_logo.dart';
+import '../../../../core/providers/branding_provider.dart';
+import 'package:provider/provider.dart';
 
 class ForgotPasswordForm extends StatelessWidget {
   final TextEditingController emailController;
@@ -26,11 +28,20 @@ class ForgotPasswordForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final branding = context.watch<BrandingProvider>().branding;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Center(child: LogoPlaceholder(size: 80)),
+        // Auth Logo — uses Firestore branding
+        Center(
+          child: AppLogo(
+            logoUrl: branding.logoUrl,
+            appName: branding.appName,
+            size: 80,
+          ),
+        ),
         const SizedBox(height: 28),
         Text(
           'Reset Password',

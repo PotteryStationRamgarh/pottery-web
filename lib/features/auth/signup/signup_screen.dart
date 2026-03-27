@@ -97,7 +97,7 @@ class _SignupScreenState extends State<SignupScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -112,67 +112,82 @@ class _SignupScreenState extends State<SignupScreen>
   // ─────────────────────────────────────────
 
   Widget _buildDesktopLayout() {
-    return Center(
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.50,
-        height: MediaQuery.of(context).size.height * 0.60,
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceWhite,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryBrown.withOpacity(0.08),
-              blurRadius: 40,
-              offset: const Offset(0, 8),
-            ),
-          ],
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.background, Color(0xFFF5F2F0)],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Row(
-            children: [
-
-              // Left — branding image 55%
-              Expanded(
-                flex: 55,
-                child: const BrandingImageWidget(),
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 950,
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryBrown.withOpacity(0.12),
+                blurRadius: 40,
+                offset: const Offset(0, 12),
               ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: IntrinsicHeight(
+              child: Row(
+                children: [
+                  // Left — branding image
+                  const Expanded(
+                    flex: 55,
+                    child: BrandingImageWidget(),
+                  ),
 
-              // Right — signup form 45%
-              Expanded(
-                flex: 45,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 36,
-                          vertical: 24,
-                        ),
-                        child: SignupForm(
-                          emailController: _emailController,
-                          passwordController: _passwordController,
-                          confirmPasswordController:
-                              _confirmPasswordController,
-                          isLoading: _isLoading,
-                          errorMessage: _errorMessage,
-                          onSignup: _handleSignup,
-                          onDismissError: () {
-                            setState(() => _errorMessage = null);
-                          },
-                          onSigninTap: () {
-                            Navigator.pushReplacementNamed(
-                                context, Routes.signin);
-                          },
+                  // Right — signup form
+                  Expanded(
+                    flex: 45,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Center(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40,
+                              vertical: 32,
+                            ),
+                            child: SignupForm(
+                              emailController: _emailController,
+                              passwordController: _passwordController,
+                              confirmPasswordController:
+                                  _confirmPasswordController,
+                              isLoading: _isLoading,
+                              errorMessage: _errorMessage,
+                              onSignup: _handleSignup,
+                              onDismissError: () {
+                                setState(() => _errorMessage = null);
+                              },
+                              onSigninTap: () {
+                                Navigator.pushReplacementNamed(
+                                    context, Routes.signin);
+                              },
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -188,42 +203,44 @@ class _SignupScreenState extends State<SignupScreen>
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
           horizontal: 24,
-          vertical: 48,
+          vertical: 32,
         ),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceWhite,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryBrown.withOpacity(0.08),
-                blurRadius: 32,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 28,
-            vertical: 36,
-          ),
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: SignupForm(
-                emailController: _emailController,
-                passwordController: _passwordController,
-                confirmPasswordController: _confirmPasswordController,
-                isLoading: _isLoading,
-                errorMessage: _errorMessage,
-                onSignup: _handleSignup,
-                onDismissError: () {
-                  setState(() => _errorMessage = null);
-                },
-                onSigninTap: () {
-                  Navigator.pushReplacementNamed(context, Routes.signin);
-                },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 450),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryBrown.withOpacity(0.08),
+                  blurRadius: 32,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 28,
+              vertical: 36,
+            ),
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: SignupForm(
+                  emailController: _emailController,
+                  passwordController: _passwordController,
+                  confirmPasswordController: _confirmPasswordController,
+                  isLoading: _isLoading,
+                  errorMessage: _errorMessage,
+                  onSignup: _handleSignup,
+                  onDismissError: () {
+                    setState(() => _errorMessage = null);
+                  },
+                  onSigninTap: () {
+                    Navigator.pushReplacementNamed(context, Routes.signin);
+                  },
+                ),
               ),
             ),
           ),

@@ -6,18 +6,12 @@ import '../../core/widgets/app_logo.dart';
 
 import 'dashboard/pages/dashboard_page.dart';
 import 'content/branding/admin_branding_page.dart';
-import 'hero_section/admin_hero_section_page.dart';
-import 'content/contact/admin_contact_page.dart';
-import 'content/content_page/admin_content_page.dart';
-import 'content/social/admin_social_page.dart';
-import 'content/features/admin_features_page.dart';
-import 'exhibition/admin_exhibition_page.dart';
-
+import 'content/exhibition/admin_exhibition_page.dart'; // New page
 import 'catalog/categories/admin_categories_page.dart';
 import 'all_products/admin_all_products_page.dart';
 import 'exclusive_products/admin_exclusive_products_page.dart';
-
 import 'settings/admin_settings_page.dart';
+import 'profile/admin_profile_page.dart'; // We'll create this next
 
 class AdminLayout extends StatefulWidget {
   const AdminLayout({super.key});
@@ -28,118 +22,123 @@ class AdminLayout extends StatefulWidget {
 
 class _AdminLayoutState extends State<AdminLayout> {
   int _selectedIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // Define the list of pages
+  final List<Widget> _pages = [
+    const AdminDashboardPage(),
+    const AdminBrandingPage(),
+    const AdminExhibitionPage(),
+    const AdminCategoriesPage(),
+    const AdminAllProductsPage(),
+    const AdminExclusiveProductsPage(),
+    const AdminSettingsPage(), // Using AdminSettingsPage for now
+  ];
 
   void _navigate(int index) {
     setState(() => _selectedIndex = index);
+    
+    // Close drawer if it's open (mobile mode)
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+    }
   }
 
   Widget _buildPage() {
-    switch (_selectedIndex) {
-      case 0:  return AdminDashboardPage(onNavigate: _navigate);
-      case 1:  return const AdminBrandingPage();
-      case 2:  return const AdminHeroSectionPage();
-      case 3:  return const AdminContactPage();
-      case 4:  return const AdminContentPage();
-      case 5:  return const AdminSocialPage();
-      case 6:  return const AdminFeaturesPage();
-      case 7:  return const AdminExhibitionPage();
-      case 8:  return const AdminCategoriesPage();
-      case 9:  return const AdminAllProductsPage();
-      case 10: return const AdminExclusiveProductsPage();
-      case 11: return const AdminSettingsPage();
-      default: return AdminDashboardPage(onNavigate: _navigate);
+    // Use the _pages list directly
+    if (_selectedIndex >= 0 && _selectedIndex < _pages.length) {
+      return _pages[_selectedIndex];
     }
+    return _pages[0]; // Default to dashboard
   }
 
   String get _currentTitle {
     switch (_selectedIndex) {
-      case 0:  return 'Dashboard';
-      case 1:  return 'Branding';
-      case 2:  return 'Hero Section';
-      case 3:  return 'Contact Information';
-      case 4:  return 'Content';
-      case 5:  return 'Social Links';
-      case 6:  return 'Features';
-      case 7:  return 'Exhibition';
-      case 8:  return 'Categories';
-      case 9:  return 'Products';
-      case 10: return 'Exclusive Products';
-      case 11: return 'Settings';
+      case 0: return 'Dashboard';
+      case 1: return 'Branding';
+      case 2: return 'Exhibition'; // New title
+      case 3: return 'Categories';
+      case 4: return 'Products';
+      case 5: return 'Exclusives'; // Renamed title
+      case 6: return 'Settings';
       default: return 'Dashboard';
     }
+  }
+
+  Widget _buildSidebar(BuildContext context, ConfigProvider config) {
+    return Container(
+      width: 250,
+      color: AppTheme.appBackground,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Logo
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+            child: AppLogo(
+              logoUrl: config.branding.logoUrl,
+              appName: config.branding.appName,
+              lightMode: true,
+              size: 32,
+            ),
+          ),
+          const Divider(color: Colors.white12, height: 1),
+          const SizedBox(height: 10),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              children: [
+               const _SidebarGroupLabel('MAIN'),
+          _SidebarItem(icon: Icons.dashboard_outlined, label: 'Dashboard', index: 0, selectedIndex: _selectedIndex, onTap: _navigate),
+          const SizedBox(height: 16),
+
+          const _SidebarGroupLabel('CONTENT'),
+          _SidebarItem(icon: Icons.brush_outlined, label: 'Branding', index: 1, selectedIndex: _selectedIndex, onTap: _navigate),
+          _SidebarItem(icon: Icons.event_outlined, label: 'Exhibition', index: 2, selectedIndex: _selectedIndex, onTap: _navigate),
+          const SizedBox(height: 16),
+
+          const _SidebarGroupLabel('CATALOG'),
+          _SidebarItem(icon: Icons.category_outlined, label: 'Categories', index: 3, selectedIndex: _selectedIndex, onTap: _navigate),
+          _SidebarItem(icon: Icons.inventory_2_outlined, label: 'Products', index: 4, selectedIndex: _selectedIndex, onTap: _navigate),
+          _SidebarItem(icon: Icons.star_outline, label: 'Exclusives', index: 5, selectedIndex: _selectedIndex, onTap: _navigate),
+          const SizedBox(height: 16),
+
+          const _SidebarGroupLabel('SYSTEM'),
+          _SidebarItem(icon: Icons.settings_outlined, label: 'Settings', index: 6, selectedIndex: _selectedIndex, onTap: _navigate),
+                
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+          const Divider(color: Colors.white12, height: 1),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Pottery Station Ramgarh',
+              style: AppTheme.bodySmall
+                  .copyWith(color: Colors.white24, fontSize: 11),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final config = context.watch<ConfigProvider>();
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: AppTheme.background,
+      drawer: isDesktop ? null : Drawer(
+        child: _buildSidebar(context, config),
+      ),
       body: Row(
         children: [
-          // ── SIDEBAR ──────────────────────────────────────────────────────
-          Container(
-            width: 240,
-            color: AppTheme.appBackground,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Logo
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
-                  child: AppLogo(
-                    logoUrl: config.branding.logoUrl,
-                    appName: config.branding.appName,
-                    lightMode: true,
-                    size: 32,
-                  ),
-                ),
-                const Divider(color: Colors.white12, height: 1),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    children: [
-                      _SidebarGroupLabel('MAIN'),
-                      _SidebarItem(icon: Icons.dashboard_outlined, label: 'Dashboard', index: 0, selectedIndex: _selectedIndex, onTap: _navigate),
-                      
-                      const SizedBox(height: 16),
-                      _SidebarGroupLabel('CONTENT'),
-                      _SidebarItem(icon: Icons.brush_outlined, label: 'Branding', index: 1, selectedIndex: _selectedIndex, onTap: _navigate),
-                      _SidebarItem(icon: Icons.text_fields_outlined, label: 'Hero Section', index: 2, selectedIndex: _selectedIndex, onTap: _navigate),
-                      _SidebarItem(icon: Icons.contact_mail_outlined, label: 'Contact', index: 3, selectedIndex: _selectedIndex, onTap: _navigate),
-                      _SidebarItem(icon: Icons.article_outlined, label: 'Content', index: 4, selectedIndex: _selectedIndex, onTap: _navigate),
-                      _SidebarItem(icon: Icons.share_outlined, label: 'Social', index: 5, selectedIndex: _selectedIndex, onTap: _navigate),
-                      _SidebarItem(icon: Icons.toggle_on_outlined, label: 'Features', index: 6, selectedIndex: _selectedIndex, onTap: _navigate),
-                      _SidebarItem(icon: Icons.event_outlined, label: 'Exhibition', index: 7, selectedIndex: _selectedIndex, onTap: _navigate),
-
-                      const SizedBox(height: 16),
-                      _SidebarGroupLabel('CATALOG'),
-                      _SidebarItem(icon: Icons.category_outlined, label: 'Categories', index: 8, selectedIndex: _selectedIndex, onTap: _navigate),
-                      _SidebarItem(icon: Icons.inventory_2_outlined, label: 'Products', index: 9, selectedIndex: _selectedIndex, onTap: _navigate),
-                      _SidebarItem(icon: Icons.star_outline, label: 'Exclusive Products', index: 10, selectedIndex: _selectedIndex, onTap: _navigate),
-
-                      const SizedBox(height: 16),
-                      _SidebarGroupLabel('SYSTEM'),
-                      _SidebarItem(icon: Icons.settings_outlined, label: 'Settings', index: 11, selectedIndex: _selectedIndex, onTap: _navigate),
-                      
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-                const Divider(color: Colors.white12, height: 1),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'Pottery Station Ramgarh',
-                    style: AppTheme.bodySmall
-                        .copyWith(color: Colors.white24, fontSize: 11),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── MAIN CONTENT ─────────────────────────────────────────────────
+          if (isDesktop) _buildSidebar(context, config),
+          
           Expanded(
             child: Column(
               children: [
@@ -154,22 +153,35 @@ class _AdminLayoutState extends State<AdminLayout> {
                   ),
                   child: Row(
                     children: [
+                      if (!isDesktop) ...[
+                        IconButton(
+                          icon: const Icon(Icons.person_outline, color: AppTheme.textDark),
+                          onPressed: () {
+                            // Navigate to profile instead of internal layout set index
+                            Navigator.pushNamed(context, '/profile');
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       Text(
                         _currentTitle,
                         style: AppTheme.headingLarge,
                       ),
                       const Spacer(),
-                      const CircleAvatar(
-                        backgroundColor: AppTheme.primaryBrown,
-                        radius: 16,
-                        child: Icon(Icons.person_outline,
-                            color: Colors.white, size: 18),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Admin',
-                        style: AppTheme.bodyLarge
-                            .copyWith(fontWeight: FontWeight.w600),
+                      
+                      // ✅ FIX 5: Profile Icon Behavior
+                      // Click navigates to settings. Text "Admin" removed.
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () => Navigator.pushNamed(context, '/profile'),
+                          child: const CircleAvatar(
+                            backgroundColor: AppTheme.primaryBrown,
+                            radius: 18,
+                            child: Icon(Icons.person_outline,
+                                color: Colors.white, size: 20),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -195,10 +207,11 @@ class _SidebarGroupLabel extends StatelessWidget {
       padding: const EdgeInsets.only(left: 12, bottom: 8, top: 4),
       child: Text(
         text,
-        style: AppTheme.bodySmall.copyWith(
-          color: AppTheme.textLight,
-          letterSpacing: 1.5,
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.75), // Increased contrast
+          fontSize: 12,
           fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
         ),
       ),
     );

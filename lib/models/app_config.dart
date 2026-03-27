@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AppBranding {
   final String appName;
   final String logoUrl;
+  final String authImageUrl;
   final String heroText;
   final String heroDesc;
   final String storeBannerTitle;
@@ -15,6 +16,7 @@ class AppBranding {
   const AppBranding({
     required this.appName,
     required this.logoUrl,
+    required this.authImageUrl,
     required this.heroText,
     required this.heroDesc,
     required this.storeBannerTitle,
@@ -25,6 +27,7 @@ class AppBranding {
     return AppBranding(
       appName:          map['appName']          as String? ?? 'Pottery Station',
       logoUrl:          map['logoUrl']          as String? ?? '',
+      authImageUrl:     map['authImageUrl']     as String? ?? '',
       heroText:         map['heroText']         as String? ?? '',
       heroDesc:         map['heroDesc']         as String? ?? '',
       storeBannerTitle: map['storeBannerTitle'] as String? ?? '',
@@ -35,6 +38,7 @@ class AppBranding {
   factory AppBranding.empty() => const AppBranding(
         appName:          'Pottery Station',
         logoUrl:          '',
+        authImageUrl:     '',
         heroText:         'The art of intentional form.',
         heroDesc:         '',
         storeBannerTitle: '',
@@ -45,6 +49,7 @@ class AppBranding {
     return {
       'appName':          appName,
       'logoUrl':          logoUrl,
+      'authImageUrl':     authImageUrl,
       'heroText':         heroText,
       'heroDesc':         heroDesc,
       'storeBannerTitle': storeBannerTitle,
@@ -55,6 +60,7 @@ class AppBranding {
   AppBranding copyWith({
     String? appName,
     String? logoUrl,
+    String? authImageUrl,
     String? heroText,
     String? heroDesc,
     String? storeBannerTitle,
@@ -63,6 +69,7 @@ class AppBranding {
     return AppBranding(
       appName:          appName          ?? this.appName,
       logoUrl:          logoUrl          ?? this.logoUrl,
+      authImageUrl:     authImageUrl     ?? this.authImageUrl,
       heroText:         heroText         ?? this.heroText,
       heroDesc:         heroDesc         ?? this.heroDesc,
       storeBannerTitle: storeBannerTitle ?? this.storeBannerTitle,

@@ -65,4 +65,7 @@ class Routes {
   /// Admin dashboard — only accessible to role: 'admin' users
   /// Manages app_config, products, categories, exclusive products
   static const String adminDashboard = '/admin';
+
+  /// Admin Profile — password and user management
+  static const String profile = '/profile';
 }
