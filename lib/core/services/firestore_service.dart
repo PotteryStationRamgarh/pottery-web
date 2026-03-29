@@ -5,30 +5,22 @@ import '../../models/product.dart';
 import '../../models/app_user.dart';
 import '../../models/support_message.dart';
 
-/// FirestoreService — only class that talks directly to Firestore.
+/// FirestoreService — handles app_config, categories, products,
+/// exclusive_products, support_messages, users, and settings collections.
 ///
-/// Collections:
-/// app_config/         → branding, contact, content, social, features, exhibition
-/// users/{uid}         → email, role, createdAt
-/// categories/         → name, imageUrl, order, isActive
-/// products/           → title, description, imageUrls[], categoryId, order, isActive
-/// exclusive_products/ → title, description, imageUrls[], totalPieces, hasCertificate
-/// support_messages/   → userId, name, email, message, status, createdAt
+/// The `exhibition` collection is handled exclusively by ExhibitionRepository.
+/// Do NOT add exhibition calls here.
 class FirestoreService {
   FirestoreService._();
 
   static final _db = FirebaseFirestore.instance;
 
-  // ─────────────────────────────────────────
-  // APP CONFIG — individual fetchers
-  // ─────────────────────────────────────────
+  // ── APP CONFIG — individual fetchers ─────────────────────────────────────
 
   static Future<AppBranding> getBranding() async {
     try {
       final doc = await _db.collection('app_config').doc('branding').get();
-      if (doc.exists && doc.data() != null) {
-        return AppBranding.fromMap(doc.data()!);
-      }
+      if (doc.exists && doc.data() != null) return AppBranding.fromMap(doc.data()!);
       return AppBranding.empty();
     } catch (e) {
       debugPrint('getBranding error: $e');
@@ -39,9 +31,7 @@ class FirestoreService {
   static Future<AppContact> getContact() async {
     try {
       final doc = await _db.collection('app_config').doc('contact').get();
-      if (doc.exists && doc.data() != null) {
-        return AppContact.fromMap(doc.data()!);
-      }
+      if (doc.exists && doc.data() != null) return AppContact.fromMap(doc.data()!);
       return AppContact.empty();
     } catch (e) {
       debugPrint('getContact error: $e');
@@ -52,9 +42,7 @@ class FirestoreService {
   static Future<AppContent> getContent() async {
     try {
       final doc = await _db.collection('app_config').doc('content').get();
-      if (doc.exists && doc.data() != null) {
-        return AppContent.fromMap(doc.data()!);
-      }
+      if (doc.exists && doc.data() != null) return AppContent.fromMap(doc.data()!);
       return AppContent.empty();
     } catch (e) {
       debugPrint('getContent error: $e');
@@ -65,9 +53,7 @@ class FirestoreService {
   static Future<AppSocial> getSocial() async {
     try {
       final doc = await _db.collection('app_config').doc('social').get();
-      if (doc.exists && doc.data() != null) {
-        return AppSocial.fromMap(doc.data()!);
-      }
+      if (doc.exists && doc.data() != null) return AppSocial.fromMap(doc.data()!);
       return AppSocial.empty();
     } catch (e) {
       debugPrint('getSocial error: $e');
@@ -78,9 +64,7 @@ class FirestoreService {
   static Future<AppFeatures> getFeatures() async {
     try {
       final doc = await _db.collection('app_config').doc('features').get();
-      if (doc.exists && doc.data() != null) {
-        return AppFeatures.fromMap(doc.data()!);
-      }
+      if (doc.exists && doc.data() != null) return AppFeatures.fromMap(doc.data()!);
       return AppFeatures.empty();
     } catch (e) {
       debugPrint('getFeatures error: $e');
@@ -88,23 +72,7 @@ class FirestoreService {
     }
   }
 
-  static Future<AppExhibition> getExhibition() async {
-    try {
-      final doc = await _db.collection('app_config').doc('exhibition').get();
-      if (doc.exists && doc.data() != null) {
-        return AppExhibition.fromMap(doc.data()!);
-      }
-      return AppExhibition.empty();
-    } catch (e) {
-      debugPrint('getExhibition error: $e');
-      return AppExhibition.empty();
-    }
-  }
-
-  // ─────────────────────────────────────────
-  // APP CONFIG — fetch all in parallel
-  // Called once by AppConfigProvider on init
-  // ─────────────────────────────────────────
+  // ── APP CONFIG — fetch all in parallel ───────────────────────────────────
 
   static Future<Map<String, dynamic>> getAllConfig() async {
     try {
@@ -114,7 +82,6 @@ class FirestoreService {
         getContent(),
         getSocial(),
         getFeatures(),
-        getExhibition(),
       ]);
       return {
         'branding':   results[0] as AppBranding,
@@ -122,7 +89,7 @@ class FirestoreService {
         'content':    results[2] as AppContent,
         'social':     results[3] as AppSocial,
         'features':   results[4] as AppFeatures,
-        'exhibition': results[5] as AppExhibition,
+        // exhibition removed — now in its own collection via ExhibitionRepository
       };
     } catch (e) {
       debugPrint('getAllConfig error: $e');
@@ -132,21 +99,15 @@ class FirestoreService {
         'content':    AppContent.empty(),
         'social':     AppSocial.empty(),
         'features':   AppFeatures.empty(),
-        'exhibition': AppExhibition.empty(),
       };
     }
   }
 
-  // ─────────────────────────────────────────
-  // CATEGORIES
-  // ─────────────────────────────────────────
+  // ── CATEGORIES ────────────────────────────────────────────────────────────
 
   static Future<List<ProductCategory>> getCategories() async {
     try {
-      final snap = await _db
-          .collection('categories')
-          .orderBy('order')
-          .get();
+      final snap = await _db.collection('categories').orderBy('order').get();
       return snap.docs.map(ProductCategory.fromDoc).toList();
     } catch (e) {
       debugPrint('getCategories error: $e');
@@ -154,12 +115,9 @@ class FirestoreService {
     }
   }
 
-  // ─────────────────────────────────────────
-  // PRODUCTS
-  // ─────────────────────────────────────────
+  // ── PRODUCTS ──────────────────────────────────────────────────────────────
 
-  static Future<List<Product>> getProductsByCategory(
-      String categoryId) async {
+  static Future<List<Product>> getProductsByCategory(String categoryId) async {
     try {
       final snap = await _db
           .collection('products')
@@ -175,10 +133,7 @@ class FirestoreService {
 
   static Future<List<Product>> getAllProducts() async {
     try {
-      final snap = await _db
-          .collection('products')
-          .orderBy('order')
-          .get();
+      final snap = await _db.collection('products').orderBy('order').get();
       return snap.docs.map(Product.fromDoc).toList();
     } catch (e) {
       debugPrint('getAllProducts error: $e');
@@ -186,16 +141,11 @@ class FirestoreService {
     }
   }
 
-  // ─────────────────────────────────────────
-  // EXCLUSIVE PRODUCTS
-  // ─────────────────────────────────────────
+  // ── EXCLUSIVE PRODUCTS ────────────────────────────────────────────────────
 
   static Future<List<ExclusiveProduct>> getExclusiveProducts() async {
     try {
-      final snap = await _db
-          .collection('exclusive_products')
-          .orderBy('order')
-          .get();
+      final snap = await _db.collection('exclusive_products').orderBy('order').get();
       return snap.docs.map(ExclusiveProduct.fromDoc).toList();
     } catch (e) {
       debugPrint('getExclusiveProducts error: $e');
@@ -203,9 +153,7 @@ class FirestoreService {
     }
   }
 
-  // ─────────────────────────────────────────
-  // SUPPORT MESSAGES
-  // ─────────────────────────────────────────
+  // ── SUPPORT MESSAGES ──────────────────────────────────────────────────────
 
   static Future<void> sendSupportMessage({
     required String userId,
@@ -228,16 +176,12 @@ class FirestoreService {
     }
   }
 
-  // ─────────────────────────────────────────
-  // LEGACY — used by auth branding image widget
-  // settings/branding → loginImage, signupImage
-  // ─────────────────────────────────────────
+  // ── LEGACY settings/branding ──────────────────────────────────────────────
 
   static Future<void> setLoginImage(String url) async {
     try {
       await _db.collection('settings').doc('branding').set(
-        {'loginImage': url},
-        SetOptions(merge: true),
+        {'loginImage': url}, SetOptions(merge: true),
       );
     } catch (e) {
       debugPrint('setLoginImage error: $e');
@@ -248,8 +192,7 @@ class FirestoreService {
   static Future<void> setSignupImage(String url) async {
     try {
       await _db.collection('settings').doc('branding').set(
-        {'signupImage': url},
-        SetOptions(merge: true),
+        {'signupImage': url}, SetOptions(merge: true),
       );
     } catch (e) {
       debugPrint('setSignupImage error: $e');
@@ -259,8 +202,7 @@ class FirestoreService {
 
   static Future<Map<String, dynamic>> getBrandingSettings() async {
     try {
-      final doc =
-          await _db.collection('settings').doc('branding').get();
+      final doc = await _db.collection('settings').doc('branding').get();
       if (doc.exists && doc.data() != null) return doc.data()!;
       return {};
     } catch (e) {
@@ -269,22 +211,19 @@ class FirestoreService {
     }
   }
 
-  // ─────────────────────────────────────────
-  // ADMIN — UPDATE CONFIG
-  // ─────────────────────────────────────────
+  // ── ADMIN — UPDATE CONFIG ─────────────────────────────────────────────────
 
+  /// FIXED: uses merge: true so fields not included in [data] are NOT deleted.
   static Future<void> updateConfig(String docId, Map<String, dynamic> data) async {
     try {
-      await _db.collection('app_config').doc(docId).set(data);
+      await _db.collection('app_config').doc(docId).set(data, SetOptions(merge: true));
     } catch (e) {
       debugPrint('updateConfig error: $e');
       rethrow;
     }
   }
 
-  // ─────────────────────────────────────────
-  // ADMIN — CATEGORIES CRUD
-  // ─────────────────────────────────────────
+  // ── ADMIN — CATEGORIES CRUD ───────────────────────────────────────────────
 
   static Future<DocumentReference> addCategory(ProductCategory category) async {
     return await _db.collection('categories').add(category.toMap());
@@ -298,9 +237,7 @@ class FirestoreService {
     await _db.collection('categories').doc(id).delete();
   }
 
-  // ─────────────────────────────────────────
-  // ADMIN — PRODUCTS CRUD
-  // ─────────────────────────────────────────
+  // ── ADMIN — PRODUCTS CRUD ─────────────────────────────────────────────────
 
   static Future<DocumentReference> addProduct(Product product) async {
     return await _db.collection('products').add(product.toMap());
@@ -314,9 +251,7 @@ class FirestoreService {
     await _db.collection('products').doc(id).delete();
   }
 
-  // ─────────────────────────────────────────
-  // ADMIN — EXCLUSIVE PRODUCTS CRUD
-  // ─────────────────────────────────────────
+  // ── ADMIN — EXCLUSIVE PRODUCTS CRUD ──────────────────────────────────────
 
   static Future<DocumentReference> addExclusiveProduct(ExclusiveProduct product) async {
     return await _db.collection('exclusive_products').add(product.toMap());
@@ -330,12 +265,13 @@ class FirestoreService {
     await _db.collection('exclusive_products').doc(id).delete();
   }
 
-  // ─────────────────────────────────────────
-  // ADMIN — SUPPORT MESSAGES
-  // ─────────────────────────────────────────
+  // ── ADMIN — SUPPORT MESSAGES ──────────────────────────────────────────────
 
   static Future<List<SupportMessage>> getSupportMessages() async {
-    final snap = await _db.collection('support_messages').orderBy('createdAt', descending: true).get();
+    final snap = await _db
+        .collection('support_messages')
+        .orderBy('createdAt', descending: true)
+        .get();
     return snap.docs.map(SupportMessage.fromDoc).toList();
   }
 
@@ -343,12 +279,13 @@ class FirestoreService {
     await _db.collection('support_messages').doc(id).update({'status': status});
   }
 
-  // ─────────────────────────────────────────
-  // ADMIN — USERS
-  // ─────────────────────────────────────────
+  // ── ADMIN — USERS ─────────────────────────────────────────────────────────
 
   static Future<List<AppUser>> getUsers() async {
-    final snap = await _db.collection('users').orderBy('createdAt', descending: true).get();
+    final snap = await _db
+        .collection('users')
+        .orderBy('createdAt', descending: true)
+        .get();
     return snap.docs.map(AppUser.fromDoc).toList();
   }
 

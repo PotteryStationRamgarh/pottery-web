@@ -18,7 +18,7 @@ class AdminBrandingPage extends StatefulWidget {
 class _AdminBrandingPageState extends State<AdminBrandingPage> {
   late final AdminBrandingController _ctrl;
   bool _isLoading = true;
-  bool _isSaving = false;
+  bool _isSaving  = false;
 
   @override
   void initState() {
@@ -60,11 +60,9 @@ class _AdminBrandingPageState extends State<AdminBrandingPage> {
       SnackBar(
         content: Text(message,
             style: AppTheme.bodyMedium.copyWith(color: AppTheme.white)),
-        backgroundColor:
-            isError ? AppTheme.errorRed : AppTheme.successGreen,
+        backgroundColor: isError ? AppTheme.errorRed : AppTheme.successGreen,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -108,33 +106,37 @@ class _AdminBrandingPageState extends State<AdminBrandingPage> {
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Branding & Content', style: AppTheme.headingLarge),
-            const SizedBox(height: 4),
-            Text(
-              'Manage visuals, copy, and contact info in one place',
-              style: AppTheme.bodyMedium,
-            ),
-          ],
+        // Flexible prevents overflow when width is constrained
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Branding & Content', style: AppTheme.headingLarge),
+              const SizedBox(height: 4),
+              Text(
+                'Manage visuals, copy, and contact info in one place',
+                style: AppTheme.bodyMedium,
+              ),
+            ],
+          ),
         ),
+        const SizedBox(width: 16),
         ElevatedButton(
           onPressed: _isSaving ? null : _saveAll,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.primaryBrown,
             foregroundColor: AppTheme.white,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12)),
             elevation: 0,
           ),
           child: _isSaving
               ? const SizedBox(
-                  width: 20,
-                  height: 20,
+                  width: 18,
+                  height: 18,
                   child: CircularProgressIndicator(
                       color: Colors.white, strokeWidth: 2),
                 )

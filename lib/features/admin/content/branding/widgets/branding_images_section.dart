@@ -19,31 +19,59 @@ class BrandingImagesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: ImageUploadCard(
-            title: 'App Logo',
-            subtitle: 'Shown in auth screens and header',
-            localBytes: controller.newLogoBytes,
-            networkUrl: controller.currentLogoUrl,
-            isCircular: true,
-            onPick: () => _pick(context, 'logo'),
-          ),
-        ),
-        const SizedBox(width: 24),
-        Expanded(
-          child: ImageUploadCard(
-            title: 'Auth Page Image',
-            subtitle: 'Shown on the left panel of sign in / sign up',
-            localBytes: controller.newAuthBytes,
-            networkUrl: controller.currentAuthUrl,
-            isCircular: false,
-            onPick: () => _pick(context, 'auth'),
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Stack vertically on narrow widths to prevent overflow
+        if (constraints.maxWidth < 700) {
+          return Column(
+            children: [
+              _logoCard(context),
+              const SizedBox(height: 16),
+              _authCard(context),
+              const SizedBox(height: 16),
+              _heroCard(context),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _logoCard(context)),
+            const SizedBox(width: 20),
+            Expanded(child: _authCard(context)),
+            const SizedBox(width: 20),
+            Expanded(child: _heroCard(context)),
+          ],
+        );
+      },
     );
   }
+
+  Widget _logoCard(BuildContext context) => ImageUploadCard(
+        title: 'App Logo',
+        subtitle: 'Shown in auth screens and sidebar header',
+        localBytes: controller.newLogoBytes,
+        networkUrl: controller.currentLogoUrl,
+        isCircular: true,
+        onPick: () => _pick(context, 'logo'),
+      );
+
+  Widget _authCard(BuildContext context) => ImageUploadCard(
+        title: 'Auth Page Image',
+        subtitle: 'Left panel of sign in / sign up screens',
+        localBytes: controller.newAuthBytes,
+        networkUrl: controller.currentAuthUrl,
+        isCircular: false,
+        onPick: () => _pick(context, 'auth'),
+      );
+
+  Widget _heroCard(BuildContext context) => ImageUploadCard(
+        title: 'Hero Section Image',
+        subtitle: 'Right side of the home page hero section',
+        localBytes: controller.newHeroBytes,
+        networkUrl: controller.currentHeroUrl,
+        isCircular: false,
+        onPick: () => _pick(context, 'hero'),
+      );
 }

@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/services/firestore_service.dart';
-import '../../../../core/services/media_service.dart';
-import '../../../../models/app_config.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../../core/repositories/exhibition_repository.dart';
+import '../../../../core/services/media_service.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../models/exhibition.dart';
 
+/// AdminExhibitionPage — manages exhibitions in the top-level `exhibition`
+/// collection (not app_config). Multiple exhibitions can exist; admin manages
+/// the most recent one here. Saving creates the doc if it doesn't exist yet.
 class AdminExhibitionPage extends StatefulWidget {
   const AdminExhibitionPage({super.key});
 
@@ -15,7 +18,11 @@ class AdminExhibitionPage extends StatefulWidget {
 
 class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
   bool _isLoading = true;
-  bool _isSaving = false;
+  bool _isSaving  = false;
+
+  // The Firestore doc id of the exhibition currently being edited.
+  // Empty string means a new doc will be created on first save.
+  String _docId = '';
 
   late TextEditingController _titleCtrl;
   late TextEditingController _locationCtrl;
@@ -29,143 +36,27 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
 
   DateTime? _startDate;
   DateTime? _endDate;
-  bool _isActive = false;
+  bool      _isActive = false;
 
-  String? _currentImageUrl;
+  String?    _currentImageUrl;
   Uint8List? _newImageBytes;
 
-  final ImagePicker _picker = ImagePicker();
+  final ImagePicker  _picker       = ImagePicker();
   final MediaService _mediaService = MediaService();
 
   @override
   void initState() {
     super.initState();
-    _titleCtrl = TextEditingController();
-    _locationCtrl = TextEditingController();
-    _addressCtrl = TextEditingController();
-    _openTimeCtrl = TextEditingController();
-    _closeTimeCtrl = TextEditingController();
-    _displayTimeCtrl = TextEditingController();
-    _upcomingMsgCtrl = TextEditingController();
-    _lastDayMsgCtrl = TextEditingController();
-    _thankYouMsgCtrl = TextEditingController();
+    _titleCtrl        = TextEditingController();
+    _locationCtrl     = TextEditingController();
+    _addressCtrl      = TextEditingController();
+    _openTimeCtrl     = TextEditingController();
+    _closeTimeCtrl    = TextEditingController();
+    _displayTimeCtrl  = TextEditingController();
+    _upcomingMsgCtrl  = TextEditingController();
+    _lastDayMsgCtrl   = TextEditingController();
+    _thankYouMsgCtrl  = TextEditingController();
     _loadExhibition();
-  }
-
-  Future<void> _loadExhibition() async {
-    try {
-      final data = await FirestoreService.getExhibition();
-      if (mounted) {
-        setState(() {
-          _titleCtrl.text = data.title;
-          _locationCtrl.text = data.location;
-          _addressCtrl.text = data.address;
-          _startDate = data.startDate;
-          _endDate = data.endDate;
-          _openTimeCtrl.text = data.openTime;
-          _closeTimeCtrl.text = data.closeTime;
-          _displayTimeCtrl.text = data.displayTime;
-          _upcomingMsgCtrl.text = data.upcomingMessage;
-          _lastDayMsgCtrl.text = data.lastDayMessage;
-          _thankYouMsgCtrl.text = data.thankYouMessage;
-          _isActive = data.isActive;
-          _currentImageUrl = data.imageUrl;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading exhibition: $e')));
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      final bytes = await image.readAsBytes();
-      setState(() => _newImageBytes = bytes);
-    }
-  }
-
-  Future<void> _selectDate(BuildContext context, bool isStart) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: (isStart ? _startDate : _endDate) ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(primary: AppTheme.primaryBrown),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          _startDate = picked;
-        } else {
-          _endDate = picked;
-        }
-      });
-    }
-  }
-
-  Future<void> _saveExhibition() async {
-    if (_titleCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Title is required', style: TextStyle(color: Colors.white)), backgroundColor: AppTheme.errorRed));
-      return;
-    }
-
-    setState(() => _isSaving = true);
-    try {
-      String imageUrl = _currentImageUrl ?? '';
-
-      if (_newImageBytes != null) {
-        final urls = await _mediaService.uploadImages(docId: 'exhibitions', pathPrefix: 'branding', files: [_newImageBytes!]);
-        imageUrl = urls.first;
-      }
-
-      final exhibitionData = {
-        'title': _titleCtrl.text.trim(),
-        'location': _locationCtrl.text.trim(),
-        'address': _addressCtrl.text.trim(),
-        'startDate': _startDate,
-        'endDate': _endDate,
-        'openTime': _openTimeCtrl.text.trim(),
-        'closeTime': _closeTimeCtrl.text.trim(),
-        'displayTime': _displayTimeCtrl.text.trim(),
-        'imageUrl': imageUrl,
-        'isActive': _isActive,
-        'thankYouMessage': _thankYouMsgCtrl.text.trim(),
-        'lastDayMessage': _lastDayMsgCtrl.text.trim(),
-        'upcomingMessage': _upcomingMsgCtrl.text.trim(),
-      };
-
-      await FirestoreService.updateConfig('exhibition', exhibitionData);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Exhibition updated successfully!'), backgroundColor: AppTheme.successGreen),
-        );
-        setState(() {
-          _currentImageUrl = imageUrl;
-          _newImageBytes = null;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update: $e'), backgroundColor: AppTheme.errorRed),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
-    }
   }
 
   @override
@@ -182,18 +73,156 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
     super.dispose();
   }
 
+  // ── LOAD ──────────────────────────────────────────────────────────────────
+
+  Future<void> _loadExhibition() async {
+    try {
+      // Load the most recent exhibition (first in list ordered by startDate desc).
+      // If none exist yet, use an empty Exhibition so the form is blank.
+      final list = await ExhibitionRepository.getAll();
+      final data = list.isNotEmpty ? list.first : Exhibition.empty();
+
+      if (mounted) {
+        setState(() {
+          _docId               = data.id;
+          _titleCtrl.text      = data.title;
+          _locationCtrl.text   = data.location;
+          _addressCtrl.text    = data.address;
+          _startDate           = data.startDate;
+          _endDate             = data.endDate;
+          _openTimeCtrl.text   = data.openTime;
+          _closeTimeCtrl.text  = data.closeTime;
+          _displayTimeCtrl.text  = data.displayTime;
+          _upcomingMsgCtrl.text  = data.upcomingMessage;
+          _lastDayMsgCtrl.text   = data.lastDayMessage;
+          _thankYouMsgCtrl.text  = data.thankYouMessage;
+          _isActive            = data.isActive;
+          _currentImageUrl     = data.imageUrl.isNotEmpty ? data.imageUrl : null;
+          _isLoading           = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading exhibition: $e')),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  // ── SAVE ──────────────────────────────────────────────────────────────────
+
+  Future<void> _saveExhibition() async {
+    setState(() => _isSaving = true);
+    try {
+      String imageUrl = _currentImageUrl ?? '';
+
+      if (_newImageBytes != null) {
+        // Use docId as the storage path segment; fall back to 'new' before first save.
+        final pathSegment = _docId.isNotEmpty ? _docId : 'new';
+        final urls = await _mediaService.uploadImages(
+          docId:      pathSegment,
+          pathPrefix: 'exhibition',
+          files:      [_newImageBytes!],
+        );
+        imageUrl = urls.first;
+      }
+
+      final exhibition = Exhibition(
+        id:              _docId,
+        title:           _titleCtrl.text.trim(),
+        location:        _locationCtrl.text.trim(),
+        address:         _addressCtrl.text.trim(),
+        startDate:       _startDate,
+        endDate:         _endDate,
+        openTime:        _openTimeCtrl.text.trim(),
+        closeTime:       _closeTimeCtrl.text.trim(),
+        displayTime:     _displayTimeCtrl.text.trim(),
+        imageUrl:        imageUrl,
+        isActive:        _isActive,
+        thankYouMessage: _thankYouMsgCtrl.text.trim(),
+        lastDayMessage:  _lastDayMsgCtrl.text.trim(),
+        upcomingMessage: _upcomingMsgCtrl.text.trim(),
+      );
+
+      // ExhibitionRepository.save() creates a new doc if id is empty,
+      // otherwise updates the existing one with merge: true.
+      final savedId = await ExhibitionRepository.save(exhibition);
+
+      if (mounted) {
+        setState(() {
+          _docId           = savedId;
+          _currentImageUrl = imageUrl.isNotEmpty ? imageUrl : null;
+          _newImageBytes   = null;
+          _isSaving        = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Exhibition saved successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving exhibition: $e')),
+        );
+      }
+    }
+  }
+
+  // ── IMAGE ─────────────────────────────────────────────────────────────────
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      setState(() => _newImageBytes = bytes);
+    }
+  }
+
+  // ── DATE PICKER ───────────────────────────────────────────────────────────
+
+  Future<void> _selectDate(BuildContext context, bool isStart) async {
+    final picked = await showDatePicker(
+      context:     context,
+      initialDate: (isStart ? _startDate : _endDate) ?? DateTime.now(),
+      firstDate:   DateTime(2020),
+      lastDate:    DateTime(2030),
+      builder: (context, child) => Theme(
+        data: ThemeData.light().copyWith(
+          colorScheme: ColorScheme.light(primary: AppTheme.primaryBrown),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) _startDate = picked;
+        else         _endDate   = picked;
+      });
+    }
+  }
+
+  // ── BUILD ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return const Center(child: CircularProgressIndicator(color: AppTheme.primaryBrown));
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+        padding: const EdgeInsets.all(32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── HEADER ──
+
+            // ── HEADER ────────────────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -202,7 +231,12 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                   children: [
                     Text('Exhibition Management', style: AppTheme.headingLarge),
                     const SizedBox(height: 4),
-                    Text('Manage the live or upcoming exhibition details', style: AppTheme.bodyMedium),
+                    Text(
+                      _docId.isEmpty
+                          ? 'No exhibition yet — fill in the form and save to create one'
+                          : 'Editing: ${_titleCtrl.text.isNotEmpty ? _titleCtrl.text : _docId}',
+                      style: AppTheme.bodyMedium,
+                    ),
                   ],
                 ),
                 ElevatedButton(
@@ -214,29 +248,28 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: _isSaving
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 20, height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
                       : Text('Save Exhibition', style: AppTheme.labelLarge),
                 ),
               ],
             ),
             const SizedBox(height: 32),
 
-            Row(
-              children: [
-                Expanded(
-                  child: SwitchListTile(
-                    title: Text('Status Toggle (Is Active)', style: AppTheme.headingMedium),
-                    subtitle: Text('Enable this to show the exhibition across the app', style: AppTheme.bodySmall),
-                    activeColor: AppTheme.successGreen,
-                    value: _isActive,
-                    onChanged: (val) => setState(() => _isActive = val),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
+            // ── ACTIVE TOGGLE ─────────────────────────────────────────────
+            SwitchListTile(
+              title:       Text('Is Active', style: AppTheme.headingMedium),
+              subtitle:    Text('Show this exhibition on the customer home screen', style: AppTheme.bodySmall),
+              activeColor: AppTheme.successGreen,
+              value:       _isActive,
+              onChanged:   (val) => setState(() => _isActive = val),
+              contentPadding: EdgeInsets.zero,
             ),
             const SizedBox(height: 24),
 
+            // ── CORE INFO + DATES ─────────────────────────────────────────
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -248,23 +281,23 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                     const SizedBox(height: 16),
                     _buildField('Full Address', _addressCtrl, maxLines: 2),
                     const SizedBox(height: 16),
-                    _buildField('Display Time (e.g. "10am - 6pm")', _displayTimeCtrl),
+                    _buildField('Display Time (e.g. "10am – 6pm")', _displayTimeCtrl),
                   ]),
                 ),
                 const SizedBox(width: 24),
                 Expanded(
-                  child: _buildSection('Dates & Setup', [
+                  child: _buildSection('Dates & Image', [
                     Row(
                       children: [
                         Expanded(child: _buildDateBtn('Start Date', _startDate, () => _selectDate(context, true))),
                         const SizedBox(width: 16),
-                        Expanded(child: _buildDateBtn('End Date', _endDate, () => _selectDate(context, false))),
+                        Expanded(child: _buildDateBtn('End Date',   _endDate,   () => _selectDate(context, false))),
                       ],
                     ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        Expanded(child: _buildField('Open Time', _openTimeCtrl)),
+                        Expanded(child: _buildField('Open Time',  _openTimeCtrl)),
                         const SizedBox(width: 16),
                         Expanded(child: _buildField('Close Time', _closeTimeCtrl)),
                       ],
@@ -277,26 +310,30 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
             ),
             const SizedBox(height: 24),
 
+            // ── MESSAGES ──────────────────────────────────────────────────
             _buildSection('Dynamic Messages', [
-              _buildField('Upcoming Message (e.g. "Coming Soon to Ramgarh")', _upcomingMsgCtrl),
+              _buildField('Upcoming Message (before exhibition starts)', _upcomingMsgCtrl),
               const SizedBox(height: 16),
               _buildField('Last Day Message', _lastDayMsgCtrl),
               const SizedBox(height: 16),
-              _buildField('Thank You Message (Post-exhibition)', _thankYouMsgCtrl),
+              _buildField('Thank You Message (after exhibition ends)', _thankYouMsgCtrl),
             ]),
+
           ],
         ),
       ),
     );
   }
 
+  // ── HELPER WIDGETS ────────────────────────────────────────────────────────
+
   Widget _buildSection(String title, List<Widget> children) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.white,
+        color:        AppTheme.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.divider),
+        border:       Border.all(color: AppTheme.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,8 +354,8 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
-          maxLines: maxLines,
-          style: AppTheme.bodyLarge,
+          maxLines:   maxLines,
+          style:      AppTheme.bodyLarge,
           decoration: AppTheme.inputDecoration(label: label, hint: 'Enter $label'),
         ),
       ],
@@ -332,21 +369,23 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
         Text(label, style: AppTheme.bodySmall.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(10),
+          onTap:         onTap,
+          borderRadius:  BorderRadius.circular(10),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: AppTheme.white,
+              color:        AppTheme.white,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppTheme.divider, width: 1.5),
+              border:       Border.all(color: AppTheme.divider, width: 1.5),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  date != null ? "${date.day}/${date.month}/${date.year}" : 'Select Date',
-                  style: AppTheme.bodyLarge.copyWith(color: date != null ? AppTheme.textDark : AppTheme.greyPlaceholder),
+                  date != null ? '${date.day}/${date.month}/${date.year}' : 'Select Date',
+                  style: AppTheme.bodyLarge.copyWith(
+                    color: date != null ? AppTheme.textDark : AppTheme.greyPlaceholder,
+                  ),
                 ),
                 const Icon(Icons.calendar_today_outlined, size: 20, color: AppTheme.textLight),
               ],
@@ -358,8 +397,7 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
   }
 
   Widget _buildImageCard(String title, Uint8List? localBytes, String? networkUrl, VoidCallback onPick) {
-    bool hasImage = localBytes != null || (networkUrl != null && networkUrl.isNotEmpty);
-
+    final hasImage = localBytes != null || (networkUrl != null && networkUrl.isNotEmpty);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -369,24 +407,30 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
           onTap: onPick,
           child: Container(
             height: 160,
-            width: double.infinity,
+            width:  double.infinity,
             decoration: BoxDecoration(
-              color: AppTheme.background,
+              color:        AppTheme.background,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.divider),
-              image: hasImage ? DecorationImage(
-                image: localBytes != null ? MemoryImage(localBytes) as ImageProvider : NetworkImage(networkUrl!),
-                fit: BoxFit.cover,
-              ) : null,
+              border:       Border.all(color: AppTheme.divider),
+              image: hasImage
+                  ? DecorationImage(
+                      image: localBytes != null
+                          ? MemoryImage(localBytes) as ImageProvider
+                          : NetworkImage(networkUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
-            child: hasImage ? null : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.add_photo_alternate_outlined, size: 40, color: AppTheme.greyPlaceholder),
-                const SizedBox(height: 12),
-                Text('Upload Image', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textLight)),
-              ],
-            ),
+            child: hasImage
+                ? null
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.add_photo_alternate_outlined, size: 40, color: AppTheme.greyPlaceholder),
+                      const SizedBox(height: 12),
+                      Text('Upload Image', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textLight)),
+                    ],
+                  ),
           ),
         ),
       ],

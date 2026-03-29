@@ -5,7 +5,6 @@ import '../../../../core/providers/config_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/remote_config_service.dart';
 import '../dashboard_provider.dart';
-import '../../../../models/app_config.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/quick_action_card.dart';
@@ -17,53 +16,57 @@ class AdminDashboardPage extends StatelessWidget {
 
   const AdminDashboardPage({super.key, this.onNavigate});
 
-  // ✅ FIX 2: Storage Check (Matches MediaService hardcoded values)
-  bool _checkStorage() {
-    const String publicUrlBase = 'https://pub-32b0eccfedfb4b29980313569dfccc15.r2.dev';
-    return publicUrlBase.isNotEmpty &&
-           RemoteConfigService.r2AccessKeyId.isNotEmpty &&
-           RemoteConfigService.r2SecretAccessKey.isNotEmpty;
-  }
-
-  // ✅ FIX 2: Firestore Check
-  Future<bool> _checkFirestore() async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('products')
-          .limit(1)
-          .get();
-      return true;
-    } catch (e) {
-      debugPrint("Firestore error: $e");
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => DashboardProvider(),
-      child: _DashboardView(
-        onNavigate: onNavigate,
-        checkFirestore: _checkFirestore,
-        checkStorage: _checkStorage,
-      ),
+      child: _DashboardView(onNavigate: onNavigate),
     );
   }
 }
 
-class _DashboardView extends StatelessWidget {
+class _DashboardView extends StatefulWidget {
   final void Function(int index)? onNavigate;
-  final Future<bool> Function() checkFirestore;
-  final bool Function() checkStorage;
+  const _DashboardView({this.onNavigate});
 
-  const _DashboardView({
-    this.onNavigate,
-    required this.checkFirestore,
-    required this.checkStorage,
-  });
+  @override
+  State<_DashboardView> createState() => _DashboardViewState();
+}
 
-  void _nav(int i) => onNavigate?.call(i);
+class _DashboardViewState extends State<_DashboardView> {
+  // Cache futures so FutureBuilder doesn't re-fire on every rebuild
+  late final Future<bool> _firestoreFuture;
+  late final bool _storageOk;
+
+  @override
+  void initState() {
+    super.initState();
+    _firestoreFuture = _checkFirestore();
+    _storageOk = _checkStorage();
+  }
+
+  /// Real Firestore ping — checks that the db is reachable
+  Future<bool> _checkFirestore() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('app_config')
+          .limit(1)
+          .get(const GetOptions(source: Source.serverAndCache));
+      return true;
+    } catch (e) {
+      debugPrint('Firestore ping error: $e');
+      return false;
+    }
+  }
+
+  /// Storage is configured when Remote Config has delivered the R2 secrets
+  bool _checkStorage() {
+    return RemoteConfigService.r2AccessKeyId.isNotEmpty &&
+        RemoteConfigService.r2SecretAccessKey.isNotEmpty &&
+        RemoteConfigService.r2AccountId.isNotEmpty;
+  }
+
+  void _nav(int i) => widget.onNavigate?.call(i);
 
   @override
   Widget build(BuildContext context) {
@@ -102,8 +105,8 @@ class _DashboardView extends StatelessWidget {
               config: config,
               dashboard: dashboard,
               onNavigate: _nav,
-              checkFirestore: checkFirestore,
-              checkStorage: checkStorage,
+              firestoreFuture: _firestoreFuture,
+              storageOk: _storageOk,
             ),
           ],
         ),
@@ -111,6 +114,10 @@ class _DashboardView extends StatelessWidget {
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATS ROW
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _StatsRow extends StatelessWidget {
   final DashboardProvider dashboard;
@@ -144,36 +151,42 @@ class _StatsRow extends StatelessWidget {
   Widget _statCard(String title, DashboardProvider d, IconData icon, Color? color) {
     return StatCard(
       title: title,
-      value: d.isLoading ? '—' :
-        title == 'Total Inventory' ? '${d.productCount}' :
-        '${d.exclusiveCount}',
+      value: d.isLoading
+          ? '—'
+          : title == 'Total Inventory'
+              ? '${d.productCount}'
+              : '${d.exclusiveCount}',
       icon: icon,
       accentColor: color,
     );
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BOTTOM SECTION
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _BottomSection extends StatelessWidget {
   final ConfigProvider config;
   final DashboardProvider dashboard;
   final void Function(int) onNavigate;
-  final Future<bool> Function() checkFirestore;
-  final bool Function() checkStorage;
+  final Future<bool> firestoreFuture;
+  final bool storageOk;
 
   const _BottomSection({
     required this.config,
     required this.dashboard,
     required this.onNavigate,
-    required this.checkFirestore,
-    required this.checkStorage,
+    required this.firestoreFuture,
+    required this.storageOk,
   });
 
   static const _actions = [
-    _ActionItem('Add Product',    Icons.inventory_2_outlined,   3), 
-    _ActionItem('Add Category',   Icons.category_outlined,      2), 
-    _ActionItem('Add Exclusive',  Icons.star_border_outlined,   4), 
-    _ActionItem('Add Exhibition', Icons.event_available_outlined, 20), // Exhibition Logic will be integrated
-    _ActionItem('Edit Branding',  Icons.brush_outlined,         1), 
+    _ActionItem('Add Product',    Icons.inventory_2_outlined,      4),
+    _ActionItem('Add Category',   Icons.category_outlined,         3),
+    _ActionItem('Add Exclusive',  Icons.star_border_outlined,      5),
+    _ActionItem('Add Exhibition', Icons.event_available_outlined,  2),
+    _ActionItem('Edit Branding',  Icons.brush_outlined,            1),
   ];
 
   @override
@@ -189,7 +202,6 @@ class _BottomSection extends StatelessWidget {
           ],
         );
       }
-
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -214,34 +226,53 @@ class _BottomSection extends StatelessWidget {
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
           childAspectRatio: 1.25,
-          children: _actions.map((a) => QuickActionCard(
-            label: a.label,
-            icon: a.icon,
-            onTap: () => onNavigate(a.navIndex),
-          )).toList(),
+          children: _actions
+              .map((a) => QuickActionCard(
+                    label: a.label,
+                    icon: a.icon,
+                    onTap: () => onNavigate(a.navIndex),
+                  ))
+              .toList(),
         ),
       ],
     );
   }
 
   Widget _buildRightColumn() {
-    final exhibitionStatusText = dashboard.isLoading ? '—' : dashboard.exhibitionStatus;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('System Overview', style: AppTheme.headingLarge),
         const SizedBox(height: 16),
-        
-        // ✅ FIX 2: REAL STATUS CHECKS
+
+        // ── System Status — future is cached, won't re-fire ──
         FutureBuilder<bool>(
-          future: checkFirestore(),
+          future: firestoreFuture,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
+              return Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppTheme.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppTheme.divider),
+                ),
+                child: const Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.primaryBrown,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Text('Checking system status…'),
+                  ],
+                ),
+              );
             }
-
-            final storageOk = checkStorage();
 
             return SystemStatusCard(
               isFirestoreConnected: snapshot.data!,
@@ -250,8 +281,10 @@ class _BottomSection extends StatelessWidget {
             );
           },
         ),
-        
+
         const SizedBox(height: 16),
+
+        // ── Exhibition status card ──
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -277,18 +310,42 @@ class _BottomSection extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              // ✅ FIX 5: Real Exhibition Data Display
-              if (dashboard.exhibitionStatus == 'None' || dashboard.exhibition.title.isEmpty)
+              if (dashboard.isLoading)
+                const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryBrown),
+                )
+              else if (dashboard.exhibitionStatus == 'None' ||
+                  dashboard.exhibition.title.isEmpty)
                 Text('No active or upcoming exhibitions.', style: AppTheme.bodyMedium)
               else
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(dashboard.exhibition.title, 
-                        style: AppTheme.bodyLarge.copyWith(
-                          color: AppTheme.primaryBrown,
-                          fontWeight: FontWeight.w600,
-                        )),
+                    // Status badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _statusColor(dashboard.exhibitionStatus).withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        dashboard.exhibitionStatus,
+                        style: AppTheme.bodySmall.copyWith(
+                          color: _statusColor(dashboard.exhibitionStatus),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      dashboard.exhibition.title,
+                      style: AppTheme.bodyLarge.copyWith(
+                        color: AppTheme.primaryBrown,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -297,29 +354,30 @@ class _BottomSection extends StatelessWidget {
                         Text(dashboard.exhibition.location, style: AppTheme.bodySmall),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         const Icon(Icons.calendar_today_outlined, size: 14, color: AppTheme.textLight),
                         const SizedBox(width: 4),
                         Text(
-                          dashboard.exhibition.startDate != null && dashboard.exhibition.endDate != null
-                            ? "${dashboard.exhibition.startDate!.day}/${dashboard.exhibition.startDate!.month} - ${dashboard.exhibition.endDate!.day}/${dashboard.exhibition.endDate!.month}"
-                            : "Dates not set",
+                          dashboard.exhibition.startDate != null &&
+                                  dashboard.exhibition.endDate != null
+                              ? '${dashboard.exhibition.startDate!.day}/${dashboard.exhibition.startDate!.month} — ${dashboard.exhibition.endDate!.day}/${dashboard.exhibition.endDate!.month}'
+                              : 'Dates not set',
                           style: AppTheme.bodySmall,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      dashboard.exhibitionStatus == 'Upcoming' 
-                          ? dashboard.exhibition.upcomingMessage 
-                          : dashboard.exhibition.displayTime,
-                      style: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.terracotta,
-                        fontWeight: FontWeight.w600,
+                    if (dashboard.exhibition.displayTime.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.access_time_outlined, size: 14, color: AppTheme.textLight),
+                          const SizedBox(width: 4),
+                          Text(dashboard.exhibition.displayTime, style: AppTheme.bodySmall),
+                        ],
                       ),
-                    ),
+                    ],
                   ],
                 ),
             ],
@@ -327,6 +385,15 @@ class _BottomSection extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'Active':   return AppTheme.successGreen;
+      case 'Upcoming': return AppTheme.primaryBrown;
+      case 'Past':     return AppTheme.textLight;
+      default:         return AppTheme.greyPlaceholder;
+    }
   }
 }
 

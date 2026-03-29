@@ -31,6 +31,9 @@ class Routes {
   /// Password recovery screen
   static const String forgotPassword = '/forgot-password';
 
+  /// Loading screen shown right after sign-in — prefetches all Firestore data
+  static const String customerLoading = '/customer-loading';
+
   // ─────────────────────────────────────────
   // MAINTENANCE
   // ─────────────────────────────────────────

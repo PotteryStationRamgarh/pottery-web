@@ -12,6 +12,7 @@ import '../features/customer/home/customer_home_screen.dart';
 import '../features/customer/gallery/gallery_screen.dart';
 import '../models/product.dart';
 import '../features/admin/profile/admin_profile_page.dart';
+import '../features/customer/loading/customer_loading_screen.dart';
 
 /// Root of the entire app.
 /// All screens are registered here as named routes.
@@ -38,11 +39,12 @@ class MyApp extends StatelessWidget {
         // First screen — checks maintenance, auth, role
         Routes.splash: (context) => const SplashScreen(),
 
-        // Auth flow — sign in, sign up, verify email
+        // Auth flow — sign in, sign up, verify email, loading
         Routes.signin:      (context) => const SigninScreen(),
         Routes.signup:      (context) => const SignupScreen(),
         Routes.verifyEmail: (context) => const VerifyEmailScreen(),
         Routes.forgotPassword: (context) => const ForgotPasswordScreen(),
+        Routes.customerLoading: (_) => const CustomerLoadingScreen(),
 
         // Shown when admin sets maintenanceMode: true in Firestore
         // Admin bypasses this and goes straight to dashboard

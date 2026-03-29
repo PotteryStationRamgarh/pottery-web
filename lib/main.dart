@@ -3,17 +3,14 @@ import 'package:provider/provider.dart';
 import 'core/services/firebase_service.dart';
 import 'core/providers/config_provider.dart';
 import 'core/providers/branding_provider.dart';
-import 'app/app.dart';
-
+import 'core/providers/exhibition_provider.dart';
 import 'core/services/remote_config_service.dart';
+import 'app/app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase before app starts
   await FirebaseService.initialize();
-  
-  // Initialize Remote Config for R2 credentials
   await RemoteConfigService.initialize();
 
   runApp(
@@ -21,6 +18,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ConfigProvider()),
         ChangeNotifierProvider(create: (_) => BrandingProvider()),
+        ChangeNotifierProvider(create: (_) => ExhibitionProvider()),
       ],
       child: const MyApp(),
     ),

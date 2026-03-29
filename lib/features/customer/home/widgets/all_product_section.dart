@@ -96,7 +96,7 @@ class AllProductsSection extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'All Products',
+                'Collections',
                 style: GoogleFonts.playfairDisplay(
                   fontSize: isMobile ? 28 : 40,
                   fontWeight: FontWeight.w600,

@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../models/app_config.dart';
+import '../../../models/exhibition.dart';
+import '../../../core/repositories/exhibition_repository.dart';
 
 /// DashboardProvider — fetches counts and status for the Admin Dashboard.
 /// This is Firestore-ready but does NOT require data to exist yet.
@@ -35,20 +37,34 @@ class DashboardProvider extends ChangeNotifier {
     try {
       final products   = await FirestoreService.getAllProducts();
       final exclusives = await FirestoreService.getExclusiveProducts();
-      final exhibition = await FirestoreService.getExhibition();
-
+      final exhibitionData = await ExhibitionRepository.getActive();
+      
       _productCount   = products.length;
       _exclusiveCount = exclusives.length;
-      _exhibition     = exhibition;
+      _exhibition     = AppExhibition(
+        title: exhibitionData.title,
+        location: exhibitionData.location,
+        address: exhibitionData.address,
+        startDate: exhibitionData.startDate,
+        endDate: exhibitionData.endDate,
+        openTime: exhibitionData.openTime,
+        closeTime: exhibitionData.closeTime,
+        displayTime: exhibitionData.displayTime,
+        imageUrl: exhibitionData.imageUrl,
+        isActive: exhibitionData.isActive,
+        thankYouMessage: exhibitionData.thankYouMessage,
+        lastDayMessage: exhibitionData.lastDayMessage,
+        upcomingMessage: exhibitionData.upcomingMessage,
+      );
 
       final now = DateTime.now();
-      if (exhibition.isActive) {
+      if (exhibitionData.isActive) {
         _exhibitionStatus = 'Active';
-      } else if (exhibition.startDate != null &&
-          exhibition.startDate!.isAfter(now)) {
+      } else if (exhibitionData.startDate != null &&
+          exhibitionData.startDate!.isAfter(now)) {
         _exhibitionStatus = 'Upcoming';
-      } else if (exhibition.endDate != null &&
-          now.isAfter(exhibition.endDate!)) {
+      } else if (exhibitionData.endDate != null &&
+          now.isAfter(exhibitionData.endDate!)) {
         _exhibitionStatus = 'Past';
       } else {
         _exhibitionStatus = 'None';

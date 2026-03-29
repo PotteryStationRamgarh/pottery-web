@@ -20,20 +20,22 @@ class ProductCategory {
   });
 
   factory ProductCategory.fromDoc(DocumentSnapshot doc) {
-    final map = doc.data() as Map<String, dynamic>;
+    final map = doc.data() as Map<String, dynamic>? ?? {};
+
     return ProductCategory(
-      id:       doc.id,
-      name:     map['name']     as String? ?? '',
+      id: doc.id,
+      name: map['name'] as String? ?? '',
       imageUrl: map['imageUrl'] as String? ?? '',
-      order:    map['order']    as int?    ?? 0,
-      isActive: map['isActive'] as bool?   ?? true,
+      order: map['order'] as int? ?? 0,
+      isActive: map['isActive'] as bool? ?? true,
     );
   }
+
   Map<String, dynamic> toMap() {
     return {
-      'name':     name,
+      'name': name,
       'imageUrl': imageUrl,
-      'order':    order,
+      'order': order,
       'isActive': isActive,
     };
   }
@@ -65,30 +67,36 @@ class Product {
   });
 
   factory Product.fromDoc(DocumentSnapshot doc) {
-    final map = doc.data() as Map<String, dynamic>;
+    final map = doc.data() as Map<String, dynamic>? ?? {};
+
     return Product(
-      id:          doc.id,
-      title:       map['title']       as String? ?? '',
+      id: doc.id,
+      title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
-      imageUrls:   List<String>.from(map['imageUrls'] as List? ?? []),
-      categoryId:  map['categoryId']  as String? ?? '',
-      order:       map['order']       as int?    ?? 0,
-      isActive:    map['isActive']    as bool?   ?? true,
-      createdAt:   (map['createdAt']  as Timestamp?)?.toDate(),
+      imageUrls: (map['imageUrls'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      categoryId: map['categoryId'] as String? ?? '',
+      order: map['order'] as int? ?? 0,
+      isActive: map['isActive'] as bool? ?? true,
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 
-  String get primaryImage => imageUrls.isNotEmpty ? imageUrls.first : '';
+  /// Safe primary image (never crashes)
+  String get primaryImage =>
+      imageUrls.isNotEmpty ? imageUrls.first : '';
 
   Map<String, dynamic> toMap() {
     return {
-      'title':       title,
+      'title': title,
       'description': description,
-      'imageUrls':   imageUrls,
-      'categoryId':  categoryId,
-      'order':       order,
-      'isActive':    isActive,
-      'createdAt':   createdAt ?? FieldValue.serverTimestamp(),
+      'imageUrls': imageUrls,
+      'categoryId': categoryId,
+      'order': order,
+      'isActive': isActive,
+      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
     };
   }
 }
@@ -121,32 +129,38 @@ class ExclusiveProduct {
   });
 
   factory ExclusiveProduct.fromDoc(DocumentSnapshot doc) {
-    final map = doc.data() as Map<String, dynamic>;
+    final map = doc.data() as Map<String, dynamic>? ?? {};
+
     return ExclusiveProduct(
-      id:             doc.id,
-      title:          map['title']          as String? ?? '',
-      description:    map['description']    as String? ?? '',
-      imageUrls:      List<String>.from(map['imageUrls'] as List? ?? []),
-      totalPieces:    map['totalPieces']    as int?    ?? 1,
-      hasCertificate: map['hasCertificate'] as bool?   ?? false,
-      order:          map['order']          as int?    ?? 0,
-      isActive:       map['isActive']       as bool?   ?? true,
-      createdAt:      (map['createdAt']     as Timestamp?)?.toDate(),
+      id: doc.id,
+      title: map['title'] as String? ?? '',
+      description: map['description'] as String? ?? '',
+      imageUrls: (map['imageUrls'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      totalPieces: map['totalPieces'] as int? ?? 1,
+      hasCertificate: map['hasCertificate'] as bool? ?? false,
+      order: map['order'] as int? ?? 0,
+      isActive: map['isActive'] as bool? ?? true,
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 
-  String get primaryImage => imageUrls.isNotEmpty ? imageUrls.first : '';
+  /// Safe primary image
+  String get primaryImage =>
+      imageUrls.isNotEmpty ? imageUrls.first : '';
 
   Map<String, dynamic> toMap() {
     return {
-      'title':          title,
-      'description':    description,
-      'imageUrls':      imageUrls,
-      'totalPieces':    totalPieces,
+      'title': title,
+      'description': description,
+      'imageUrls': imageUrls,
+      'totalPieces': totalPieces,
       'hasCertificate': hasCertificate,
-      'order':          order,
-      'isActive':       isActive,
-      'createdAt':      createdAt ?? FieldValue.serverTimestamp(),
+      'order': order,
+      'isActive': isActive,
+      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
     };
   }
-}
+}

@@ -8,6 +8,7 @@ class AppBranding {
   final String appName;
   final String logoUrl;
   final String authImageUrl;
+  final String heroImageUrl; // ← NEW
   final String heroText;
   final String heroDesc;
   final String storeBannerTitle;
@@ -17,6 +18,7 @@ class AppBranding {
     required this.appName,
     required this.logoUrl,
     required this.authImageUrl,
+    required this.heroImageUrl,
     required this.heroText,
     required this.heroDesc,
     required this.storeBannerTitle,
@@ -28,6 +30,7 @@ class AppBranding {
       appName:          map['appName']          as String? ?? 'Pottery Station',
       logoUrl:          map['logoUrl']          as String? ?? '',
       authImageUrl:     map['authImageUrl']     as String? ?? '',
+      heroImageUrl:     map['heroImageUrl']     as String? ?? '', // ← NEW
       heroText:         map['heroText']         as String? ?? '',
       heroDesc:         map['heroDesc']         as String? ?? '',
       storeBannerTitle: map['storeBannerTitle'] as String? ?? '',
@@ -39,6 +42,7 @@ class AppBranding {
         appName:          'Pottery Station',
         logoUrl:          '',
         authImageUrl:     '',
+        heroImageUrl:     '', // ← NEW
         heroText:         'The art of intentional form.',
         heroDesc:         '',
         storeBannerTitle: '',
@@ -50,6 +54,7 @@ class AppBranding {
       'appName':          appName,
       'logoUrl':          logoUrl,
       'authImageUrl':     authImageUrl,
+      'heroImageUrl':     heroImageUrl, // ← NEW
       'heroText':         heroText,
       'heroDesc':         heroDesc,
       'storeBannerTitle': storeBannerTitle,
@@ -61,6 +66,7 @@ class AppBranding {
     String? appName,
     String? logoUrl,
     String? authImageUrl,
+    String? heroImageUrl,
     String? heroText,
     String? heroDesc,
     String? storeBannerTitle,
@@ -70,6 +76,7 @@ class AppBranding {
       appName:          appName          ?? this.appName,
       logoUrl:          logoUrl          ?? this.logoUrl,
       authImageUrl:     authImageUrl     ?? this.authImageUrl,
+      heroImageUrl:     heroImageUrl     ?? this.heroImageUrl, // ← NEW
       heroText:         heroText         ?? this.heroText,
       heroDesc:         heroDesc         ?? this.heroDesc,
       storeBannerTitle: storeBannerTitle ?? this.storeBannerTitle,
@@ -77,7 +84,6 @@ class AppBranding {
     );
   }
 }
-
 // ─────────────────────────────────────────
 // CONTACT
 // ─────────────────────────────────────────

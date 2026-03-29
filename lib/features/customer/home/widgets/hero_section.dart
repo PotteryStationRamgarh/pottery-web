@@ -210,17 +210,16 @@ class HeroSection extends StatelessWidget {
   // ─────────────────────────────────────────
 
   Widget _buildImage(ConfigProvider config, double height) {
+    // Use dedicated heroImageUrl; show placeholder if empty
+    final imageUrl = config.branding.heroImageUrl;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-
-        // Main image container with editorial corner shape
         Container(
           height: height,
           decoration: BoxDecoration(
             color: AppTheme.divider.withOpacity(0.35),
-            // Asymmetric corners — top-left and bottom-right are large,
-            // giving it the editorial feel from the HTML reference
             borderRadius: const BorderRadius.only(
               topLeft:     Radius.circular(80),
               bottomRight: Radius.circular(100),
@@ -229,9 +228,9 @@ class HeroSection extends StatelessWidget {
             ),
           ),
           clipBehavior: Clip.antiAlias,
-          child: config.branding.logoUrl.isNotEmpty
+          child: imageUrl.isNotEmpty
               ? Image.network(
-                  config.branding.logoUrl,
+                  imageUrl,
                   width: double.infinity,
                   height: height,
                   fit: BoxFit.cover,
@@ -240,8 +239,7 @@ class HeroSection extends StatelessWidget {
               : const PotteryPlaceholder(),
         ),
 
-        // Decorative soft blur orb — bottom left of image
-        // Purely decorative, gives depth to the layout
+        // Decorative orb — bottom left
         Positioned(
           bottom: -20,
           left: -20,
@@ -254,7 +252,6 @@ class HeroSection extends StatelessWidget {
             ),
           ),
         ),
-
       ],
     );
   }

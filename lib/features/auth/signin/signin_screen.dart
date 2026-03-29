@@ -87,7 +87,7 @@ class _SigninScreenState extends State<SigninScreen>
           return;
         }
       }
-      Navigator.pushReplacementNamed(context, Routes.customerHome);
+      Navigator.pushReplacementNamed(context, Routes.customerLoading);
     } else if (result == 'email_not_verified') {
       Navigator.pushReplacementNamed(context, Routes.verifyEmail);
     } else {
