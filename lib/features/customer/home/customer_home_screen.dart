@@ -12,6 +12,7 @@ import 'widgets/exclusive_section.dart';
 import 'widgets/exhibition_section.dart';
 import 'widgets/all_product_section.dart';
 import 'widgets/store_banner.dart';
+import 'widgets/categories_section.dart';
 import 'home_footer.dart';
 
 /// CustomerHomeScreen — main screen for logged-in customers.
@@ -26,6 +27,7 @@ class CustomerHomeScreen extends StatefulWidget {
 
 class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _exclusiveSectionKey = GlobalKey();
 
   List<Product>          _products          = [];
   List<ExclusiveProduct> _exclusiveProducts = [];
@@ -87,12 +89,28 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             physics: const BouncingScrollPhysics(),
             slivers: [
               const SliverToBoxAdapter(child: SizedBox(height: 72)),
-              const SliverToBoxAdapter(child: HeroSection()),
               SliverToBoxAdapter(
-                child: ExclusiveSection(
-                  products:     _exclusiveProducts,
-                  onProductTap: _goToExclusiveDetail,
-                  isLoading:    _isLoading,
+                child: HeroSection(
+                  onExploreTap: () {
+                    final context = _exclusiveSectionKey.currentContext;
+                    if (context != null) {
+                      Scrollable.ensureVisible(
+                        context,
+                        duration: const Duration(milliseconds: 800),
+                        curve: Curves.easeInOutQuart,
+                      );
+                    }
+                  },
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: KeyedSubtree(
+                  key: _exclusiveSectionKey,
+                  child: ExclusiveSection(
+                    products:     _exclusiveProducts,
+                    onProductTap: _goToExclusiveDetail,
+                    isLoading:    _isLoading,
+                  ),
                 ),
               ),
               const SliverToBoxAdapter(child: ExhibitionSection()),
@@ -103,6 +121,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   isLoading:           _isLoading,
                 ),
               ),
+              const SliverToBoxAdapter(child: CategoriesSection()),
               const SliverToBoxAdapter(child: StoreBanner()),
               const SliverToBoxAdapter(child: HomeFooter()),
             ],

@@ -34,7 +34,6 @@ class _DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<_DashboardView> {
-  // Cache futures so FutureBuilder doesn't re-fire on every rebuild
   late final Future<bool> _firestoreFuture;
   late final bool _storageOk;
 
@@ -45,7 +44,6 @@ class _DashboardViewState extends State<_DashboardView> {
     _storageOk = _checkStorage();
   }
 
-  /// Real Firestore ping — checks that the db is reachable
   Future<bool> _checkFirestore() async {
     try {
       await FirebaseFirestore.instance
@@ -54,12 +52,10 @@ class _DashboardViewState extends State<_DashboardView> {
           .get(const GetOptions(source: Source.serverAndCache));
       return true;
     } catch (e) {
-      debugPrint('Firestore ping error: $e');
       return false;
     }
   }
 
-  /// Storage is configured when Remote Config has delivered the R2 secrets
   bool _checkStorage() {
     return RemoteConfigService.r2AccessKeyId.isNotEmpty &&
         RemoteConfigService.r2SecretAccessKey.isNotEmpty &&
@@ -72,20 +68,22 @@ class _DashboardViewState extends State<_DashboardView> {
   Widget build(BuildContext context) {
     final config    = context.watch<ConfigProvider>();
     final dashboard = context.watch<DashboardProvider>();
+    final isPageNarrow = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+        padding: EdgeInsets.symmetric(
+          horizontal: isPageNarrow ? 24 : 60,
+          vertical: 40,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // ── HEADER ───────────────────────────────────────────────────────
             const DashboardHeader(),
-            const SizedBox(height: 16),
-
-            // ── MAINTENANCE MODE ─────────────────────────────────────────────
+            const SizedBox(height: 24),
+            
+            // 1. Full-width top cards
             MaintenanceToggleCard(
               isEnabled: config.features.maintenanceMode,
               onChanged: (val) {
@@ -95,19 +93,36 @@ class _DashboardViewState extends State<_DashboardView> {
               },
             ),
             const SizedBox(height: 24),
-
-            // ── STATS ────────────────────────────────────────────────────────
             _StatsRow(dashboard: dashboard),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            // ── LOWER SECTION ────────────────────────────────────────────────
-            _BottomSection(
-              config: config,
-              dashboard: dashboard,
-              onNavigate: _nav,
-              firestoreFuture: _firestoreFuture,
-              storageOk: _storageOk,
-            ),
+            // 2. Main content row (Quick Actions + System Overview)
+            if (isPageNarrow)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   _QuickActionSection(onNavigate: _nav, isNarrow: isPageNarrow),
+                   const SizedBox(height: 48),
+                   _SystemOverviewSection(config: config, dashboard: dashboard, firestoreFuture: _firestoreFuture, storageOk: _storageOk),
+                ],
+              )
+            else
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left: Quick Actions (Larger)
+                  Expanded(
+                    flex: 3,
+                    child: _QuickActionSection(onNavigate: _nav, isNarrow: isPageNarrow),
+                  ),
+                  const SizedBox(width: 48),
+                  // Right: System Overview
+                  Expanded(
+                    flex: 2,
+                    child: _SystemOverviewSection(config: config, dashboard: dashboard, firestoreFuture: _firestoreFuture, storageOk: _storageOk),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -115,9 +130,56 @@ class _DashboardViewState extends State<_DashboardView> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// STATS ROW
-// ─────────────────────────────────────────────────────────────────────────────
+class _QuickActionSection extends StatelessWidget {
+  final void Function(int) onNavigate;
+  final bool isNarrow;
+  const _QuickActionSection({required this.onNavigate, required this.isNarrow});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Quick Actions', style: AppTheme.headingLarge),
+        const SizedBox(height: 16),
+        _QuickActionsGrid(onNavigate: onNavigate, isNarrow: isNarrow),
+      ],
+    );
+  }
+}
+
+class _SystemOverviewSection extends StatelessWidget {
+  final ConfigProvider config;
+  final DashboardProvider dashboard;
+  final Future<bool> firestoreFuture;
+  final bool storageOk;
+
+  const _SystemOverviewSection({
+    required this.config,
+    required this.dashboard,
+    required this.firestoreFuture,
+    required this.storageOk,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('System Overview', style: AppTheme.headingLarge),
+        const SizedBox(height: 16),
+        _SystemStatusWidget(
+          firestoreFuture: firestoreFuture, 
+          storageOk: storageOk, 
+          isMaintenanceMode: config.features.maintenanceMode,
+        ),
+        const SizedBox(height: 24),
+        _ExhibitionWidget(dashboard: dashboard),
+      ],
+    );
+  }
+}
+
 
 class _StatsRow extends StatelessWidget {
   final DashboardProvider dashboard;
@@ -162,238 +224,175 @@ class _StatsRow extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BOTTOM SECTION
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _BottomSection extends StatelessWidget {
-  final ConfigProvider config;
-  final DashboardProvider dashboard;
-  final void Function(int) onNavigate;
+class _SystemStatusWidget extends StatelessWidget {
   final Future<bool> firestoreFuture;
   final bool storageOk;
+  final bool isMaintenanceMode;
 
-  const _BottomSection({
-    required this.config,
-    required this.dashboard,
-    required this.onNavigate,
+  const _SystemStatusWidget({
     required this.firestoreFuture,
     required this.storageOk,
+    required this.isMaintenanceMode,
   });
-
-  static const _actions = [
-    _ActionItem('Add Product',    Icons.inventory_2_outlined,      4),
-    _ActionItem('Add Category',   Icons.category_outlined,         3),
-    _ActionItem('Add Exclusive',  Icons.star_border_outlined,      5),
-    _ActionItem('Add Exhibition', Icons.event_available_outlined,  2),
-    _ActionItem('Edit Branding',  Icons.brush_outlined,            1),
-  ];
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, c) {
-      if (c.maxWidth < 900) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildLeftColumn(isMobile: true),
-            const SizedBox(height: 24),
-            _buildRightColumn(),
-          ],
+    return FutureBuilder<bool>(
+      future: firestoreFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryBrown));
+        }
+        return SystemStatusCard(
+          isFirestoreConnected: snapshot.data!,
+          isStorageConfigured: storageOk,
+          isMaintenanceMode: isMaintenanceMode,
         );
-      }
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(flex: 3, child: _buildLeftColumn(isMobile: false)),
-          const SizedBox(width: 24),
-          Expanded(flex: 2, child: _buildRightColumn()),
-        ],
-      );
-    });
-  }
-
-  Widget _buildLeftColumn({required bool isMobile}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Quick Actions', style: AppTheme.headingLarge),
-        const SizedBox(height: 16),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: isMobile ? 2 : 3,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 1.25,
-          children: _actions
-              .map((a) => QuickActionCard(
-                    label: a.label,
-                    icon: a.icon,
-                    onTap: () => onNavigate(a.navIndex),
-                  ))
-              .toList(),
-        ),
-      ],
+      },
     );
   }
+}
 
-  Widget _buildRightColumn() {
+class _ExhibitionWidget extends StatelessWidget {
+  final DashboardProvider dashboard;
+  const _ExhibitionWidget({required this.dashboard});
+
+  @override
+  Widget build(BuildContext context) {
+    final status = dashboard.exhibitionStatus;
+    final heading = status == 'Upcoming' 
+        ? 'Next Exhibition' 
+        : status == 'Active' 
+            ? 'Current Exhibition' 
+            : 'Past Exhibition';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('System Overview', style: AppTheme.headingLarge),
+        Text(heading, style: AppTheme.headingLarge),
         const SizedBox(height: 16),
-
-        // ── System Status — future is cached, won't re-fire ──
-        FutureBuilder<bool>(
-          future: firestoreFuture,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppTheme.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppTheme.divider),
-                ),
-                child: const Row(
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppTheme.primaryBrown,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Text('Checking system status…'),
-                  ],
-                ),
-              );
-            }
-
-            return SystemStatusCard(
-              isFirestoreConnected: snapshot.data!,
-              isStorageConfigured: storageOk,
-              isMaintenanceMode: config.features.maintenanceMode,
-            );
-          },
-        ),
-
-        const SizedBox(height: 16),
-
-        // ── Exhibition status card ──
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
             color: AppTheme.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: AppTheme.divider),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryBrown.withOpacity(0.04),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Exhibition', style: AppTheme.headingMedium),
-                  const Icon(Icons.event_outlined, color: AppTheme.primaryBrown, size: 24),
-                ],
-              ),
-              const SizedBox(height: 24),
-              if (dashboard.isLoading)
-                const SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryBrown),
-                )
-              else if (dashboard.exhibitionStatus == 'None' ||
-                  dashboard.exhibition.title.isEmpty)
-                Text('No active or upcoming exhibitions.', style: AppTheme.bodyMedium)
-              else
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Status badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _statusColor(dashboard.exhibitionStatus).withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        dashboard.exhibitionStatus,
-                        style: AppTheme.bodySmall.copyWith(
-                          color: _statusColor(dashboard.exhibitionStatus),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      dashboard.exhibition.title,
-                      style: AppTheme.bodyLarge.copyWith(
-                        color: AppTheme.primaryBrown,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_outlined, size: 14, color: AppTheme.terracotta),
-                        const SizedBox(width: 4),
-                        Text(dashboard.exhibition.location, style: AppTheme.bodySmall),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_today_outlined, size: 14, color: AppTheme.textLight),
-                        const SizedBox(width: 4),
-                        Text(
-                          dashboard.exhibition.startDate != null &&
-                                  dashboard.exhibition.endDate != null
-                              ? '${dashboard.exhibition.startDate!.day}/${dashboard.exhibition.startDate!.month} — ${dashboard.exhibition.endDate!.day}/${dashboard.exhibition.endDate!.month}'
-                              : 'Dates not set',
-                          style: AppTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    if (dashboard.exhibition.displayTime.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time_outlined, size: 14, color: AppTheme.textLight),
-                          const SizedBox(width: 4),
-                          Text(dashboard.exhibition.displayTime, style: AppTheme.bodySmall),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-            ],
-          ),
+          child: dashboard.isLoading
+              ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryBrown))
+              : dashboard.exhibition.title.isEmpty
+                  ? Text('No active, upcoming or past exhibitions found.', style: AppTheme.bodyMedium)
+                  : _buildExhibitionDetails(dashboard),
         ),
       ],
     );
   }
 
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'Active':   return AppTheme.successGreen;
-      case 'Upcoming': return AppTheme.primaryBrown;
-      case 'Past':     return AppTheme.textLight;
-      default:         return AppTheme.greyPlaceholder;
+  Widget _buildExhibitionDetails(DashboardProvider d) {
+    String _fmt(DateTime dt) {
+      final dd = dt.day.toString().padLeft(2, '0');
+      final mm = dt.month.toString().padLeft(2, '0');
+      final yy = dt.year.toString().substring(2);
+      return '$dd/$mm/$yy';
     }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                d.exhibition.title,
+                style: AppTheme.headingMedium.copyWith(fontSize: 22, color: AppTheme.primaryBrown),
+              ),
+            ),
+            _StatusBadgeSmall(status: d.exhibitionStatus),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _ExhibitionInfoLine(icon: Icons.location_on_outlined, text: d.exhibition.location),
+        const SizedBox(height: 8),
+        _ExhibitionInfoLine(
+          icon: Icons.calendar_today_outlined, 
+          text: d.exhibition.startDate != null 
+              ? '${_fmt(d.exhibition.startDate!)} – ${_fmt(d.exhibition.endDate!)}'
+              : 'Dates not set',
+        ),
+      ],
+    );
+  }
+}
+
+class _ExhibitionInfoLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _ExhibitionInfoLine({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppTheme.textLight),
+        const SizedBox(width: 12),
+        Text(text, style: AppTheme.bodyMedium),
+      ],
+    );
+  }
+}
+
+class _StatusBadgeSmall extends StatelessWidget {
+  final String status;
+  const _StatusBadgeSmall({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = status == 'Active' ? AppTheme.successGreen : status == 'Upcoming' ? AppTheme.primaryBrown : AppTheme.textLight;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        status,
+        style: AppTheme.bodySmall.copyWith(color: color, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
+
+class _QuickActionsGrid extends StatelessWidget {
+  final void Function(int) onNavigate;
+  final bool isNarrow;
+  const _QuickActionsGrid({required this.onNavigate, required this.isNarrow});
+
+  static const _actions = [
+    _ActionItem('Add Product', Icons.inventory_2_outlined, 4),
+    _ActionItem('Add Category', Icons.category_outlined, 3),
+    _ActionItem('Add Exclusive', Icons.star_border_outlined, 5),
+    _ActionItem('Add Exhibition', Icons.event_outlined, 2),
+    _ActionItem('Edit Branding', Icons.brush_outlined, 1),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: isNarrow ? 2 : 3,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      childAspectRatio: 1.2,
+      children: _actions
+          .map((a) => QuickActionCard(
+                label: a.label,
+                icon: a.icon,
+                onTap: () => onNavigate(a.navIndex),
+              ))
+          .toList(),
+    );
   }
 }
 

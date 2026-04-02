@@ -81,42 +81,52 @@ class _DesktopNav extends StatelessWidget {
 
           const Spacer(),
 
-          _NavItem(
-            label: 'Collections',
-            isActive: true,
-            onTap: () {},
+          Flexible(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _NavItem(
+                    label: 'Collections',
+                    isActive: true,
+                    onTap: () {},
+                  ),
+                  SizedBox(width: itemSpacing),
+
+                  // Workshop — Coming Soon snackbar
+                  _NavItem(
+                    label: 'Workshop',
+                    onTap: () => _showComingSoon(context),
+                  ),
+                  SizedBox(width: itemSpacing),
+
+                  // About — opens a dialog with aboutUs text from Firestore
+                  _NavItem(
+                    label: 'About',
+                    onTap: () => _showAbout(context, config),
+                  ),
+                  SizedBox(width: itemSpacing),
+
+                  // Contact — opens a dialog with contact info from Firestore
+                  _NavItem(
+                    label: 'Contact',
+                    onTap: () => _showContact(context, config),
+                  ),
+
+                  SizedBox(width: width < 1200 ? 16 : 28),
+
+                  // Profile icon — dropdown with email + sign out
+                  const _ProfileButton(),
+
+                  SizedBox(width: width < 1200 ? 12 : 20),
+
+                  // Go to Store — coming soon snackbar for now
+                  const _StoreButton(),
+                ],
+              ),
+            ),
           ),
-          SizedBox(width: itemSpacing),
-
-          // Workshop — Coming Soon snackbar
-          _NavItem(
-            label: 'Workshop',
-            onTap: () => _showComingSoon(context),
-          ),
-          SizedBox(width: itemSpacing),
-
-          // About — opens a dialog with aboutUs text from Firestore
-          _NavItem(
-            label: 'About',
-            onTap: () => _showAbout(context, config),
-          ),
-          SizedBox(width: itemSpacing),
-
-          // Contact — opens a dialog with contact info from Firestore
-          _NavItem(
-            label: 'Contact',
-            onTap: () => _showContact(context, config),
-          ),
-
-          SizedBox(width: width < 1200 ? 16 : 28),
-
-          // Profile icon — dropdown with email + sign out
-          _ProfileButton(),
-
-          SizedBox(width: width < 1200 ? 12 : 20),
-
-          // Go to Store — coming soon snackbar for now
-          _StoreButton(),
 
         ],
       ),

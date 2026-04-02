@@ -175,7 +175,10 @@ class _ImageGalleryState extends State<ImageGallery> {
               top: 20,
               right: 20,
               child: IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  // Dialogs should always pop to close.
+                  Navigator.of(context).pop();
+                },
                 icon: const Icon(
                   Icons.close,
                   color: Colors.white,

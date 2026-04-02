@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import '../../models/app_config.dart';
+import '../../../../models/app_config.dart';
 
 /// Single source of truth for reading/writing branding, contact, content,
 /// and social documents inside the `app_config` Firestore collection.

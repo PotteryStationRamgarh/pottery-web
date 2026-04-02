@@ -54,17 +54,12 @@ class AllProductsSection extends StatelessWidget {
 
             SizedBox(height: isMobile ? 32 : 52),
 
+            // Grid of products
             isLoading
                 ? _buildShimmer(isMobile)
                 : (products.isEmpty)
                     ? _buildFallbackGrid(context, isMobile)
                     : _buildGrid(context, isMobile),
-
-            // Browse by category CTA
-            if (!isLoading && products.isNotEmpty) ...[
-              SizedBox(height: isMobile ? 40 : 64),
-              _buildCTA(context),
-            ],
 
           ],
         ),
@@ -110,9 +105,7 @@ class AllProductsSection extends StatelessWidget {
 
         // Browse by category link — desktop only
         _BrowseLink(onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Collections page coming soon!')),
-          );
+          Navigator.pushNamed(context, Routes.categories);
         }),
 
       ],
@@ -141,11 +134,10 @@ class AllProductsSection extends StatelessWidget {
         return ProductCard(
           product: product,
           onImageTap: () {
-            // Navigate to dedicated gallery page instead of just showing overlay
-            Navigator.pushNamed(
+            ImageGallery.show(
               context,
-              Routes.gallery,
-              arguments: product,
+              images: product.imageUrls.isNotEmpty ? product.imageUrls : (product.primaryImage.isNotEmpty ? [product.primaryImage] : []),
+              title: product.title,
             );
           },
         );
@@ -153,30 +145,6 @@ class AllProductsSection extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────
-  // BROWSE BY CATEGORY CTA
-  // Circular arrow button + label below
-  // ─────────────────────────────────────────
-
-  Widget _buildCTA(BuildContext context) {
-    return Center(
-      child: Column(
-        children: [
-          _CircleArrowButton(onTap: onBrowseCategoryTap),
-          const SizedBox(height: 14),
-          Text(
-            'BROWSE ALL CATEGORIES',
-            style: GoogleFonts.jost(
-              fontSize: 10,
-              fontWeight: FontWeight.w400,
-              color: AppTheme.textLight.withOpacity(0.55),
-              letterSpacing: 3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ─────────────────────────────────────────
   // SHIMMER GRID
@@ -304,59 +272,6 @@ class _BrowseLinkState extends State<_BrowseLink> {
   }
 }
 
-// ─────────────────────────────────────────
-// CIRCLE ARROW BUTTON
-// Rotates 45deg on hover — from HTML reference
-// ─────────────────────────────────────────
-
-class _CircleArrowButton extends StatefulWidget {
-  final VoidCallback onTap;
-  const _CircleArrowButton({required this.onTap});
-
-  @override
-  State<_CircleArrowButton> createState() => _CircleArrowButtonState();
-}
-
-class _CircleArrowButtonState extends State<_CircleArrowButton> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          width:  64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _isHovered
-                ? AppTheme.primaryBrown
-                : AppTheme.primaryBrown.withOpacity(0.08),
-            border: Border.all(
-              color: AppTheme.primaryBrown.withOpacity(0.25),
-              width: 1,
-            ),
-          ),
-          child: AnimatedRotation(
-            // 45deg rotation on hover — same as HTML reference
-            turns:    _isHovered ? 0.125 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: Icon(
-              Icons.arrow_forward,
-              size:  20,
-              color: _isHovered ? Colors.white : AppTheme.primaryBrown,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // ─────────────────────────────────────────
 // SHIMMER CARD

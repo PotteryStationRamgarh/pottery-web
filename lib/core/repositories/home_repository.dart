@@ -11,10 +11,15 @@ class HomeRepository {
   HomeRepository._();
 
   static final _db = FirebaseFirestore.instance;
+  static const _col = 'products';
+  static const _exclusiveCol = 'exclusive_products';
 
   static Future<List<Product>> getProducts() async {
     try {
-      final snap = await _db.collection('products').orderBy('order').get();
+      final snap = await _db
+          .collection(_col)
+          .where('isActive', isEqualTo: true)
+          .get(const GetOptions(source: Source.server));
       return snap.docs.map(Product.fromDoc).toList();
     } catch (e) {
       debugPrint('HomeRepository.getProducts error: $e');
@@ -24,7 +29,7 @@ class HomeRepository {
 
   static Future<List<ExclusiveProduct>> getExclusiveProducts() async {
     try {
-      final snap = await _db.collection('exclusive_products').orderBy('order').get();
+      final snap = await _db.collection('exclusive_products').orderBy('order').get(const GetOptions(source: Source.server));
       return snap.docs.map(ExclusiveProduct.fromDoc).toList();
     } catch (e) {
       debugPrint('HomeRepository.getExclusiveProducts error: $e');
@@ -39,9 +44,17 @@ class HomeRepository {
       getExclusiveProducts(),
       ExhibitionRepository.getActive(),
     ]);
+
+    final products = results[0] as List<Product>;
+    final exclusiveProducts = results[1] as List<ExclusiveProduct>;
+    
+    // Shuffle for random order for customers
+    products.shuffle();
+    exclusiveProducts.shuffle();
+
     return HomeData(
-      products:          results[0] as List<Product>,
-      exclusiveProducts: results[1] as List<ExclusiveProduct>,
+      products:          products,
+      exclusiveProducts: exclusiveProducts,
       activeExhibition:  results[2] as Exhibition,
     );
   }

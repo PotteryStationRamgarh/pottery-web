@@ -19,7 +19,9 @@ import '../../../../core/widgets/pottery_placeholder.dart';
 /// heroText → main headline
 /// heroDesc → supporting paragraph below headline
 class HeroSection extends StatelessWidget {
-  const HeroSection({super.key});
+  final VoidCallback? onExploreTap;
+
+  const HeroSection({super.key, this.onExploreTap});
 
   @override
   Widget build(BuildContext context) {
@@ -184,9 +186,7 @@ class HeroSection extends StatelessWidget {
             // Primary button — solid brown
             _PrimaryButton(
               label: 'Explore Collections',
-              onTap: () {
-                // Scroll happens in CustomerHomeScreen via scroll controller
-              },
+              onTap: () => onExploreTap?.call(),
             ),
 
             // Secondary — text link with underline

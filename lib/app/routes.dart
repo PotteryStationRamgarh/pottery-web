@@ -58,6 +58,9 @@ class Routes {
   /// Full detail page for a single exclusive product
   static const String exclusiveDetail = '/exclusive';
 
+  /// Full listing of all exclusive products
+  static const String exclusiveList = '/exclusive-list';
+
   /// Gallery page for viewing multiple images of a product
   static const String gallery = '/gallery';
 

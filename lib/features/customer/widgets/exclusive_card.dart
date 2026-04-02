@@ -48,7 +48,7 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
             // Image with badges on top
             _buildImage(),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             // Product title — serif font for premium feel
             Text(
@@ -56,16 +56,16 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
                   ? widget.product.title 
                   : 'Item not available',
               style: GoogleFonts.playfairDisplay(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textDark,
-                letterSpacing: 0.2,
+                letterSpacing: 0.1,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
 
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             // Short description
             Text(
@@ -73,16 +73,16 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
                   ? widget.product.description 
                   : 'Description not available',
               style: GoogleFonts.jost(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w400,
                 color: AppTheme.textLight,
-                height: 1.5,
+                height: 1.4,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
             // LIMITED PRODUCT label — from user requirements
             Row(
@@ -96,16 +96,16 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
                 Text(
                   'LIMITED PRODUCT',
                   style: GoogleFonts.jost(
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.terracotta,
-                    letterSpacing: 1.5,
+                    letterSpacing: 1.2,
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
 
             // Total pieces — shown as a subtle info row
             Row(
@@ -120,10 +120,10 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
                   '${widget.product.totalPieces} '
                   '${widget.product.totalPieces == 1 ? 'piece' : 'pieces'} only',
                   style: GoogleFonts.jost(
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w500,
                     color: AppTheme.primaryBrown.withOpacity(0.65),
-                    letterSpacing: 0.5,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ],
@@ -180,12 +180,12 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
 
         // LIMITED EDITION label — top left corner
         Positioned(
-          top: 14,
-          left: 14,
+          top: 10,
+          left: 10,
           child: Container(
             padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 5,
+              horizontal: 8,
+              vertical: 4,
             ),
             decoration: BoxDecoration(
               color: AppTheme.appBackground,
@@ -194,10 +194,10 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
             child: Text(
               'LIMITED EDITION',
               style: GoogleFonts.jost(
-                fontSize: 9,
+                fontSize: 8,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.lightBrown,
-                letterSpacing: 1.8,
+                letterSpacing: 1.5,
               ),
             ),
           ),
@@ -206,12 +206,12 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
         // Certificate badge — bottom right, only if hasCertificate is true
         if (widget.product.hasCertificate)
           Positioned(
-            bottom: 14,
-            right: 14,
+            bottom: 10,
+            right: 10,
             child: Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
+                horizontal: 8,
+                vertical: 4,
               ),
               decoration: BoxDecoration(
                 color: AppTheme.primaryBrown,
@@ -229,10 +229,10 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
                   Text(
                     'Certificate',
                     style: GoogleFonts.jost(
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.w500,
                       color: AppTheme.white,
-                      letterSpacing: 0.3,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ],

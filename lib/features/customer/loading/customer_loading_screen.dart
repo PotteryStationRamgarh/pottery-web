@@ -166,32 +166,12 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
 
             const SizedBox(height: 52),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 56),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value:           _progress,
-                  minHeight:       2,
-                  backgroundColor: AppTheme.lightBrown.withOpacity(0.12),
-                  valueColor:      AlwaysStoppedAnimation<Color>(
-                    AppTheme.lightBrown.withOpacity(0.55),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            FadeTransition(
-              opacity: _pulseAnim,
-              child: Text(
-                _statusText,
-                style: GoogleFonts.jost(
-                  fontSize: 12,
-                  color: AppTheme.lightBrown.withOpacity(0.45),
-                  letterSpacing: 0.5,
-                ),
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppTheme.lightBrown.withOpacity(0.5),
               ),
             ),
           ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../models/product.dart';
+import '../../../../app/routes.dart';
 import '../../widgets/exclusive_card.dart';
 
 /// ExclusiveSection — editorial showcase of limited edition products.
@@ -36,15 +37,17 @@ class ExclusiveSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 768;
 
-    // We NO LONGER hide if products are empty — per user request to always show cards.
-    // if (!isLoading && products.isEmpty) return const SizedBox.shrink();
+    // Hide if products are empty
+    if (!isLoading && products.isEmpty) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
       color: AppTheme.background,
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 24 : 80,
-        vertical:   isMobile ? 56 : 96,
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 24 : 80,
+        isMobile ? 24 : 40,
+        isMobile ? 24 : 80,
+        isMobile ? 56 : 96,
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1400),
@@ -77,50 +80,60 @@ class ExclusiveSection extends StatelessWidget {
   // ─────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context, bool isMobile) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrowHeader = constraints.maxWidth < 450;
+        
+        return isNarrowHeader
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTitleColumn(isMobile),
+                  const SizedBox(height: 16),
+                  _ViewAllLink(onTap: () {
+                    Navigator.pushNamed(context, Routes.exclusiveList);
+                  }),
+                ],
+              )
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(child: _buildTitleColumn(isMobile)),
+                  const SizedBox(width: 16),
+                  _ViewAllLink(onTap: () {
+                    Navigator.pushNamed(context, Routes.exclusiveList);
+                  }),
+                ],
+              );
+      },
+    );
+  }
+
+  Widget _buildTitleColumn(bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              // Small label above title
-              Text(
-                'CURATED SERIES',
-                style: GoogleFonts.jost(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.primaryBrown.withOpacity(0.55),
-                  letterSpacing: 3.5,
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Section title
-              Text(
-                'Exclusive Collection',
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: isMobile ? 28 : 40,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textDark,
-                  letterSpacing: 0.2,
-                ),
-              ),
-
-            ],
+        Text(
+          'CURATED SERIES',
+          style: GoogleFonts.jost(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.primaryBrown.withOpacity(0.55),
+            letterSpacing: 3.5,
           ),
         ),
-
-        // View all link — always visible now to redirect to a dummy page as requested
-        _ViewAllLink(onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Collections page coming soon!')),
-          );
-        }),
-
+        const SizedBox(height: 10),
+        Text(
+          'Exclusive Collection',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.playfairDisplay(
+            fontSize: isMobile ? 28 : 40,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textDark,
+            letterSpacing: 0.2,
+          ),
+        ),
       ],
     );
   }
@@ -138,6 +151,8 @@ class ExclusiveSection extends StatelessWidget {
       imageUrls:      [],
       totalPieces:    0,
       hasCertificate: false,
+      material:       'Premium Clay',
+      craftingTime:   '6-8 Weeks',
       order:          i,
       isActive:       true,
     ));

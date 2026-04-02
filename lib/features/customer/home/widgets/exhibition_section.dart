@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/exhibition_provider.dart';
 import '../../widgets/image_placeholder.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// ExhibitionSection — shows the active exhibition info on the customer home screen.
 /// Data comes from ExhibitionProvider which reads the `exhibition` collection.
@@ -22,7 +23,7 @@ class ExhibitionSection extends StatelessWidget {
     final exhibition = context.watch<ExhibitionProvider>().exhibition;
     final isMobile   = MediaQuery.of(context).size.width < 768;
 
-    if (!exhibition.isActive) return const SizedBox.shrink();
+    if (exhibition.title.isEmpty) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
@@ -96,15 +97,31 @@ class ExhibitionSection extends StatelessWidget {
     final message    = exhibition.contextualMessage as String;
     final hasMessage = message.isNotEmpty;
 
+    final now = DateTime.now();
+    final bool isUpcoming = exhibition.startDate != null && exhibition.startDate!.isAfter(now);
+    final bool isPast = exhibition.endDate != null && exhibition.endDate!.isBefore(now);
+    final bool isActive = !isUpcoming && !isPast;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'EXHIBITION',
-          style: GoogleFonts.jost(
-            fontSize: 10, fontWeight: FontWeight.w500,
-            color: AppTheme.primaryBrown.withOpacity(0.55), letterSpacing: 3.5,
-          ),
+        Row(
+          children: [
+            Text(
+              'EXHIBITION',
+              style: GoogleFonts.jost(
+                fontSize: 10, fontWeight: FontWeight.w500,
+                color: AppTheme.primaryBrown.withOpacity(0.55), letterSpacing: 3.5,
+              ),
+            ),
+            const SizedBox(width: 12),
+            if (isUpcoming)
+              _StatusBadge(text: 'COMING SOON', color: AppTheme.primaryBrown),
+            if (isPast)
+              _StatusBadge(text: 'THANK YOU', color: AppTheme.textLight),
+            if (isActive)
+              _StatusBadge(text: 'LIVE NOW', color: AppTheme.successGreen),
+          ],
         ),
         const SizedBox(height: 12),
         Text(
@@ -163,17 +180,36 @@ class ExhibitionSection extends StatelessWidget {
             subtitle: '${exhibition.openTime} — ${exhibition.closeTime}',
           ),
 
-        const SizedBox(height: 32),
+        if (isActive) ...[
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () async {
+              final address = exhibition.address.isNotEmpty 
+                  ? exhibition.address 
+                  : exhibition.location;
+              if (address.isEmpty) return;
+              final encoded = Uri.encodeComponent(address);
+              final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$encoded');
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryBrown,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Visit Now'),
+          ),
+        ],
       ],
     );
   }
 
   String _formatDateRange(DateTime start, DateTime end) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    if (start.month == end.month && start.year == end.year) {
-      return '${start.day}–${end.day} ${months[start.month - 1]} ${start.year}';
-    }
-    return '${start.day} ${months[start.month - 1]} – ${end.day} ${months[end.month - 1]} ${end.year}';
+    String f(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    return '${f(start)} – ${f(end)}';
   }
 }
 
@@ -218,3 +254,31 @@ class _InfoRow extends StatelessWidget {
     );
   }
 }
+
+class _StatusBadge extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _StatusBadge({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.jost(
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          color: color,
+          letterSpacing: 1,
+        ),
+      ),
+    );
+  }
+}

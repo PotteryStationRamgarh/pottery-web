@@ -112,6 +112,8 @@ class ExclusiveProduct {
   final List<String> imageUrls;
   final int totalPieces;
   final bool hasCertificate;
+  final String material;
+  final String craftingTime;
   final int order;
   final bool isActive;
   final DateTime? createdAt;
@@ -123,6 +125,8 @@ class ExclusiveProduct {
     required this.imageUrls,
     required this.totalPieces,
     required this.hasCertificate,
+    required this.material,
+    required this.craftingTime,
     required this.order,
     required this.isActive,
     this.createdAt,
@@ -141,6 +145,8 @@ class ExclusiveProduct {
           [],
       totalPieces: map['totalPieces'] as int? ?? 1,
       hasCertificate: map['hasCertificate'] as bool? ?? false,
+      material: map['material'] as String? ?? '',
+      craftingTime: map['craftingTime'] as String? ?? '',
       order: map['order'] as int? ?? 0,
       isActive: map['isActive'] as bool? ?? true,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
@@ -158,6 +164,8 @@ class ExclusiveProduct {
       'imageUrls': imageUrls,
       'totalPieces': totalPieces,
       'hasCertificate': hasCertificate,
+      'material': material,
+      'craftingTime': craftingTime,
       'order': order,
       'isActive': isActive,
       'createdAt': createdAt ?? FieldValue.serverTimestamp(),

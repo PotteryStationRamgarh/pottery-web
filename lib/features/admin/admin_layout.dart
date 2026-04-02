@@ -7,11 +7,11 @@ import '../../core/widgets/app_logo.dart';
 import 'dashboard/pages/dashboard_page.dart';
 import 'content/branding/admin_branding_page.dart';
 import 'content/exhibition/admin_exhibition_page.dart';
-import 'catalog/categories/admin_categories_page.dart';
-import 'all_products/admin_all_products_page.dart';
-import 'exclusive_products/admin_exclusive_products_page.dart';
+import 'catalog/categories/admin_categories_list_page.dart';
+import 'catalog/all_products/admin_products_list_page.dart';
+import 'catalog/exclusive_products/admin_exclusive_list_page.dart';
 import 'settings/admin_settings_page.dart';
-import 'profile/admin_profile_page.dart';
+import '../../core/repositories/exhibition_repository.dart';
 
 class AdminLayout extends StatefulWidget {
   const AdminLayout({super.key});
@@ -24,15 +24,22 @@ class _AdminLayoutState extends State<AdminLayout> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final List<Widget> _pages = [
-    const AdminDashboardPage(),
+  List<Widget> get _pages => [
+    AdminDashboardPage(onNavigate: _navigate),
     const AdminBrandingPage(),
     const AdminExhibitionPage(),
-    const AdminCategoriesPage(),
-    const AdminAllProductsPage(),
-    const AdminExclusiveProductsPage(),
+    const AdminCategoriesListPage(),
+    const AdminProductsListPage(),
+    const AdminExclusiveListPage(),
     const AdminSettingsPage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Fire-and-forget: auto-clean exhibitions older than 30 days
+    ExhibitionRepository.deleteOldExhibitions();
+  }
 
   void _navigate(int index) {
     setState(() => _selectedIndex = index);
@@ -123,69 +130,90 @@ class _AdminLayoutState extends State<AdminLayout> {
     final config = context.watch<ConfigProvider>();
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: AppTheme.background,
-      // Sidebar slides in as drawer on mobile
-      drawer: isDesktop
-          ? null
-          : Drawer(child: _buildSidebar(context, config)),
-      body: Row(
-        children: [
-          if (isDesktop) _buildSidebar(context, config),
+    return PopScope(
+      // Allow popping only if on dashboard (index 0)
+      canPop: _selectedIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _selectedIndex > 0) {
+          // Browser back pressed on a sub-page → go to dashboard
+          setState(() => _selectedIndex = 0);
+        }
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: AppTheme.background,
+        // Sidebar slides in as drawer on mobile
+        drawer: isDesktop
+            ? null
+            : Drawer(child: _buildSidebar(context, config)),
+        body: Row(
+          children: [
+            if (isDesktop) _buildSidebar(context, config),
 
-          Expanded(
-            child: Column(
-              children: [
-                // ── Top bar ──
-                Container(
-                  height: 64,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: const BoxDecoration(
-                    color: AppTheme.white,
-                    border: Border(bottom: BorderSide(color: AppTheme.divider)),
-                  ),
-                  child: Row(
-                    children: [
-                      // Hamburger on mobile — LEFT side
-                      if (!isDesktop)
-                        IconButton(
-                          icon: const Icon(Icons.menu, color: AppTheme.textDark),
-                          tooltip: 'Menu',
-                          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-                        ),
+            Expanded(
+              child: Column(
+                children: [
+                  // ── Top bar ──
+                  Container(
+                    height: 64,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.white,
+                      border: Border(bottom: BorderSide(color: AppTheme.divider)),
+                    ),
+                    child: Row(
+                      children: [
+                        // Hamburger on mobile — LEFT side
+                        if (!isDesktop)
+                          IconButton(
+                            icon: const Icon(Icons.menu, color: AppTheme.textDark),
+                            tooltip: 'Menu',
+                            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                          ),
 
-                      if (!isDesktop) const SizedBox(width: 4),
+                        if (!isDesktop) const SizedBox(width: 4),
 
-                      Text(
-                        _currentTitle,
-                        style: AppTheme.headingLarge,
-                      ),
+                        // Back arrow — show on sub-pages (not dashboard)
+                        if (_selectedIndex > 0)
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back, color: AppTheme.textDark, size: 20),
+                            tooltip: 'Back to Dashboard',
+                            onPressed: () => setState(() => _selectedIndex = 0),
+                          ),
 
-                      const Spacer(),
-
-                      // Profile avatar — RIGHT side (always visible)
-                      MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () => Navigator.pushNamed(context, '/profile'),
-                          child: const CircleAvatar(
-                            backgroundColor: AppTheme.primaryBrown,
-                            radius: 18,
-                            child: Icon(Icons.person_outline, color: Colors.white, size: 20),
+                        Expanded(
+                          child: Text(
+                            _currentTitle,
+                            style: AppTheme.headingLarge,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
 
-                // ── Page content ──
-                Expanded(child: _buildPage()),
-              ],
+                        const Spacer(),
+
+                        // Profile avatar — RIGHT side (always visible)
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () => Navigator.pushNamed(context, '/profile'),
+                            child: const CircleAvatar(
+                              backgroundColor: AppTheme.primaryBrown,
+                              radius: 18,
+                              child: Icon(Icons.person_outline, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ── Page content ──
+                  Expanded(child: _buildPage()),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -202,7 +230,7 @@ class _SidebarGroupLabel extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.75),
+          color: Colors.white.withValues(alpha: 0.75),
           fontSize: 12,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,
@@ -233,7 +261,7 @@ class _SidebarItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: selected ? AppTheme.primaryBrown.withOpacity(0.15) : Colors.transparent,
+        color: selected ? AppTheme.primaryBrown.withValues(alpha: 0.15) : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Material(
@@ -254,12 +282,12 @@ class _SidebarItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
-                  Icon(icon, color: selected ? Colors.white : Colors.white.withOpacity(0.7), size: 20),
+                  Icon(icon, color: selected ? Colors.white : Colors.white.withValues(alpha: 0.7), size: 20),
                   const SizedBox(width: 12),
                   Text(
                     label,
                     style: AppTheme.bodyMedium.copyWith(
-                      color: selected ? Colors.white : Colors.white.withOpacity(0.7),
+                      color: selected ? Colors.white : Colors.white.withValues(alpha: 0.7),
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                       fontSize: 13,
                     ),

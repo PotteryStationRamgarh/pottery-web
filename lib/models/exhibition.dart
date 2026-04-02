@@ -70,53 +70,85 @@ class Exhibition {
     'upcomingMessage': upcomingMessage,
   };
 
+  /// Copy with — returns new Exhibition with fields optionally replaced
   Exhibition copyWith({
-    String?   id,
-    String?   title,
-    String?   location,
-    String?   address,
+    String? id,
+    String? title,
+    String? location,
+    String? address,
     DateTime? startDate,
     DateTime? endDate,
-    String?   openTime,
-    String?   closeTime,
-    String?   displayTime,
-    String?   imageUrl,
-    bool?     isActive,
-    String?   thankYouMessage,
-    String?   lastDayMessage,
-    String?   upcomingMessage,
-  }) => Exhibition(
-    id:              id              ?? this.id,
-    title:           title           ?? this.title,
-    location:        location        ?? this.location,
-    address:         address         ?? this.address,
-    startDate:       startDate       ?? this.startDate,
-    endDate:         endDate         ?? this.endDate,
-    openTime:        openTime        ?? this.openTime,
-    closeTime:       closeTime       ?? this.closeTime,
-    displayTime:     displayTime     ?? this.displayTime,
-    imageUrl:        imageUrl        ?? this.imageUrl,
-    isActive:        isActive        ?? this.isActive,
-    thankYouMessage: thankYouMessage ?? this.thankYouMessage,
-    lastDayMessage:  lastDayMessage  ?? this.lastDayMessage,
-    upcomingMessage: upcomingMessage ?? this.upcomingMessage,
-  );
+    String? openTime,
+    String? closeTime,
+    String? displayTime,
+    String? imageUrl,
+    bool? isActive,
+    String? thankYouMessage,
+    String? lastDayMessage,
+    String? upcomingMessage,
+  }) {
+    return Exhibition(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      location: location ?? this.location,
+      address: address ?? this.address,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      openTime: openTime ?? this.openTime,
+      closeTime: closeTime ?? this.closeTime,
+      displayTime: displayTime ?? this.displayTime,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isActive: isActive ?? this.isActive,
+      thankYouMessage: thankYouMessage ?? this.thankYouMessage,
+      lastDayMessage: lastDayMessage ?? this.lastDayMessage,
+      upcomingMessage: upcomingMessage ?? this.upcomingMessage,
+    );
+  }
 
-  /// Returns the right contextual message based on today vs exhibition dates.
-  /// Before start → upcomingMessage
-  /// On end date  → lastDayMessage
-  /// After end    → thankYouMessage
-  /// During       → '' (show normal info)
+  /// Get contextual message based on current date and exhibition state
   String get contextualMessage {
     final now = DateTime.now();
-    if (startDate != null && now.isBefore(startDate!)) return upcomingMessage;
+
+    // Check if still upcoming
+    if (startDate != null && now.isBefore(startDate!)) {
+      return upcomingMessage;
+    }
+
+    // Check if it's the last day
     if (endDate != null) {
       final lastDay = DateTime(endDate!.year, endDate!.month, endDate!.day);
-      final today   = DateTime(now.year, now.month, now.day);
-      if (today.isAtSameMomentAs(lastDay)) return lastDayMessage;
-      if (now.isAfter(endDate!))           return thankYouMessage;
+      final today = DateTime(now.year, now.month, now.day);
+      if (today.isAtSameMomentAs(lastDay)) {
+        return lastDayMessage;
+      }
+      if (now.isAfter(endDate!)) {
+        return thankYouMessage;
+      }
     }
+
+    // During active exhibition
     return '';
+  }
+
+  /// Check if exhibition is currently active (within date range + flag)
+  bool get isCurrentlyActive {
+    if (!isActive) return false;
+    if (startDate == null || endDate == null) return false;
+
+    final now = DateTime.now();
+    return now.isAfter(startDate!) && now.isBefore(endDate!);
+  }
+
+  /// Check if exhibition is upcoming
+  bool get isUpcoming {
+    if (startDate == null) return false;
+    return DateTime.now().isBefore(startDate!);
+  }
+
+  /// Check if exhibition is past
+  bool get isPast {
+    if (endDate == null) return false;
+    return DateTime.now().isAfter(endDate!);
   }
 
   static Exhibition empty() => const Exhibition(

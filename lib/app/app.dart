@@ -10,9 +10,14 @@ import '../features/auth/forgot_password/forgot_password_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
 import '../features/customer/home/customer_home_screen.dart';
 import '../features/customer/gallery/gallery_screen.dart';
+import '../features/customer/categories/customer_categories_screen.dart';
+import '../features/customer/products/customer_products_screen.dart';
 import '../models/product.dart';
 import '../features/admin/profile/admin_profile_page.dart';
 import '../features/customer/loading/customer_loading_screen.dart';
+import '../features/customer/exclusive/exclusive_detail_screen.dart';
+import '../features/customer/exclusive/exclusive_list_screen.dart';
+import '../features/customer/categories/customer_categories_grid_page.dart';
 
 /// Root of the entire app.
 /// All screens are registered here as named routes.
@@ -53,11 +58,32 @@ class MyApp extends StatelessWidget {
         // Main screen for logged-in customers
         Routes.customerHome: (context) => const CustomerHomeScreen(),
 
+        // Browse collections
+        Routes.categories: (context) => const CustomerCategoriesGridPage(),
+
+        // Browse products by category — arguments: {categoryId, categoryName}
+        Routes.products: (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>?;
+          return CustomerProductsScreen(
+            categoryId: args?['categoryId'] ?? '',
+            categoryName: args?['categoryName'] ?? 'Products',
+          );
+        },
+
         // Gallery page — arguments: Product
         Routes.gallery: (context) {
           final product = ModalRoute.of(context)!.settings.arguments as Product;
           return GalleryScreen(product: product);
         },
+
+        // Dedicated Exclusive Detail Page — arguments: ExclusiveProduct
+        Routes.exclusiveDetail: (context) {
+          final product = ModalRoute.of(context)!.settings.arguments as ExclusiveProduct;
+          return ExclusiveDetailScreen(product: product);
+        },
+
+        // New route for all Exclusive products
+        Routes.exclusiveList: (context) => const ExclusiveListScreen(),
 
         // Only accessible to users with role: 'admin' in Firestore
         Routes.adminDashboard: (context) => const AdminLayout(),

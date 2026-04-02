@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pottery_web/firebase_options.dart';
 
@@ -53,6 +54,17 @@ class FirebaseService {
       debugPrint('Error fetching user role: $e');
       // On any error — default to customer for safety
       return 'customer';
+    }
+  }
+
+  /// Signs out the current user.
+  static Future<void> signOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      debugPrint('User signed out successfully');
+    } catch (e) {
+      debugPrint('Sign out failed: $e');
+      rethrow;
     }
   }
 

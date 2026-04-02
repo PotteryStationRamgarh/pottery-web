@@ -46,6 +46,7 @@ dependencies:
   firebase_storage: ^13.2.0
   firebase_remote_config: ^6.3.0
   minio: ^3.5.8
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

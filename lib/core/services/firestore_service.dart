@@ -19,7 +19,7 @@ class FirestoreService {
 
   static Future<AppBranding> getBranding() async {
     try {
-      final doc = await _db.collection('app_config').doc('branding').get();
+      final doc = await _db.collection('app_config').doc('branding').get(const GetOptions(source: Source.server));
       if (doc.exists && doc.data() != null) return AppBranding.fromMap(doc.data()!);
       return AppBranding.empty();
     } catch (e) {
@@ -30,7 +30,7 @@ class FirestoreService {
 
   static Future<AppContact> getContact() async {
     try {
-      final doc = await _db.collection('app_config').doc('contact').get();
+      final doc = await _db.collection('app_config').doc('contact').get(const GetOptions(source: Source.server));
       if (doc.exists && doc.data() != null) return AppContact.fromMap(doc.data()!);
       return AppContact.empty();
     } catch (e) {
@@ -41,7 +41,7 @@ class FirestoreService {
 
   static Future<AppContent> getContent() async {
     try {
-      final doc = await _db.collection('app_config').doc('content').get();
+      final doc = await _db.collection('app_config').doc('content').get(const GetOptions(source: Source.server));
       if (doc.exists && doc.data() != null) return AppContent.fromMap(doc.data()!);
       return AppContent.empty();
     } catch (e) {
@@ -52,7 +52,7 @@ class FirestoreService {
 
   static Future<AppSocial> getSocial() async {
     try {
-      final doc = await _db.collection('app_config').doc('social').get();
+      final doc = await _db.collection('app_config').doc('social').get(const GetOptions(source: Source.server));
       if (doc.exists && doc.data() != null) return AppSocial.fromMap(doc.data()!);
       return AppSocial.empty();
     } catch (e) {
@@ -63,7 +63,7 @@ class FirestoreService {
 
   static Future<AppFeatures> getFeatures() async {
     try {
-      final doc = await _db.collection('app_config').doc('features').get();
+      final doc = await _db.collection('app_config').doc('features').get(const GetOptions(source: Source.server));
       if (doc.exists && doc.data() != null) return AppFeatures.fromMap(doc.data()!);
       return AppFeatures.empty();
     } catch (e) {
@@ -107,7 +107,7 @@ class FirestoreService {
 
   static Future<List<ProductCategory>> getCategories() async {
     try {
-      final snap = await _db.collection('categories').orderBy('order').get();
+      final snap = await _db.collection('categories').orderBy('order').get(const GetOptions(source: Source.server));
       return snap.docs.map(ProductCategory.fromDoc).toList();
     } catch (e) {
       debugPrint('getCategories error: $e');
@@ -123,7 +123,7 @@ class FirestoreService {
           .collection('products')
           .where('categoryId', isEqualTo: categoryId)
           .orderBy('order')
-          .get();
+          .get(const GetOptions(source: Source.server));
       return snap.docs.map(Product.fromDoc).toList();
     } catch (e) {
       debugPrint('getProductsByCategory error: $e');
@@ -133,7 +133,7 @@ class FirestoreService {
 
   static Future<List<Product>> getAllProducts() async {
     try {
-      final snap = await _db.collection('products').orderBy('order').get();
+      final snap = await _db.collection('products').orderBy('order').get(const GetOptions(source: Source.server));
       return snap.docs.map(Product.fromDoc).toList();
     } catch (e) {
       debugPrint('getAllProducts error: $e');
@@ -145,7 +145,7 @@ class FirestoreService {
 
   static Future<List<ExclusiveProduct>> getExclusiveProducts() async {
     try {
-      final snap = await _db.collection('exclusive_products').orderBy('order').get();
+      final snap = await _db.collection('exclusive_products').orderBy('order').get(const GetOptions(source: Source.server));
       return snap.docs.map(ExclusiveProduct.fromDoc).toList();
     } catch (e) {
       debugPrint('getExclusiveProducts error: $e');
@@ -202,7 +202,7 @@ class FirestoreService {
 
   static Future<Map<String, dynamic>> getBrandingSettings() async {
     try {
-      final doc = await _db.collection('settings').doc('branding').get();
+      final doc = await _db.collection('settings').doc('branding').get(const GetOptions(source: Source.server));
       if (doc.exists && doc.data() != null) return doc.data()!;
       return {};
     } catch (e) {
@@ -271,7 +271,7 @@ class FirestoreService {
     final snap = await _db
         .collection('support_messages')
         .orderBy('createdAt', descending: true)
-        .get();
+        .get(const GetOptions(source: Source.server));
     return snap.docs.map(SupportMessage.fromDoc).toList();
   }
 
@@ -285,7 +285,7 @@ class FirestoreService {
     final snap = await _db
         .collection('users')
         .orderBy('createdAt', descending: true)
-        .get();
+        .get(const GetOptions(source: Source.server));
     return snap.docs.map(AppUser.fromDoc).toList();
   }
 

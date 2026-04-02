@@ -30,7 +30,7 @@ class _QuickActionCardState extends State<QuickActionCard> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
           decoration: BoxDecoration(
             color: _hovered ? AppTheme.primaryBrown : AppTheme.white,
             borderRadius: BorderRadius.circular(20),
@@ -69,10 +69,12 @@ class _QuickActionCardState extends State<QuickActionCard> {
               Text(
                 widget.label,
                 textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: AppTheme.bodyMedium.copyWith(
                   color: _hovered ? AppTheme.white : AppTheme.textDark,
                   fontWeight: FontWeight.w600,
-                  fontSize: 12,
+                  fontSize: 11,
                 ),
               ),
             ],

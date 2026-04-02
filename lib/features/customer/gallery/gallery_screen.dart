@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../app/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/product.dart';
 
@@ -22,17 +24,44 @@ class GalleryScreen extends StatefulWidget {
 class _GalleryScreenState extends State<GalleryScreen> {
   late PageController _pageController;
   int _currentPage = 0;
+  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _focusNode = FocusNode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _prev() {
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _next() {
+    final images = widget.product.imageUrls.isNotEmpty 
+        ? widget.product.imageUrls 
+        : [widget.product.primaryImage];
+    if (_currentPage < images.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   @override
@@ -48,37 +77,48 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.appBackground,
-      body: Stack(
+      body: KeyboardListener(
+        focusNode: _focusNode,
+        onKeyEvent: (event) {
+          if (event is KeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.arrowLeft) _prev();
+            if (event.logicalKey == LogicalKeyboardKey.arrowRight) _next();
+            if (event.logicalKey == LogicalKeyboardKey.escape) {
+              Navigator.pop(context);
+            }
+          }
+        },
+        child: Stack(
         children: [
           
           // 1. Immersive Image Carousel
           PageView.builder(
             controller: _pageController,
+            physics: const BouncingScrollPhysics(),
             onPageChanged: (index) => setState(() => _currentPage = index),
             itemCount: images.length,
             itemBuilder: (context, index) {
-              return InteractiveViewer(
-                child: Center(
-                  child: Hero(
-                    tag: 'product_${widget.product.id}_$index',
-                    child: Image.network(
-                      images[index],
-                      fit: BoxFit.contain,
-                      width: double.infinity,
-                      height: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: AppTheme.lightBrown,
-                          ),
-                        );
-                      },
-                      errorBuilder: (_, __, ___) => const Center(
-                        child: Icon(
-                          Icons.broken_image_outlined,
-                          color: AppTheme.greyPlaceholder,
-                          size: 48,
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
+                child: InteractiveViewer(
+                  minScale: 0.8,
+                  maxScale: 2.5,
+                  child: Center(
+                    child: Hero(
+                      tag: 'product_${widget.product.id}_$index',
+                      child: Image.network(
+                        images[index],
+                        fit: BoxFit.contain,
+                        // Ensure image doesn't fill entire screen to allow margin
+                        alignment: Alignment.center,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: CircularProgressIndicator(color: AppTheme.lightBrown),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => const Center(
+                          child: Icon(Icons.broken_image_outlined, color: AppTheme.greyPlaceholder, size: 48),
                         ),
                       ),
                     ),
@@ -110,7 +150,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          // If no history (e.g. direct link), go to Home
+                          Navigator.pushReplacementNamed(context, Routes.customerHome);
+                        }
+                      },
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -142,50 +189,85 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
           ),
 
-          // 3. Page Indicators
+          // 3. Thumbnails — bottom center
           if (images.length > 1)
             Positioned(
               bottom: 40,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(images.length, (index) {
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width:  _currentPage == index ? 24 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: _currentPage == index 
-                          ? AppTheme.lightBrown 
-                          : Colors.white.withOpacity(0.3),
+              left: 24,
+              right: 24,
+              child: Center(
+                child: SizedBox(
+                  height: 60,
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: images.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (context, index) => GestureDetector(
+                      onTap: () {
+                        _pageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 350),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        width: 60,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _currentPage == index ? Colors.white : Colors.white.withOpacity(0.3),
+                            width: 2,
+                          ),
+                          image: DecorationImage(
+                            image: NetworkImage(images[index]),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                     ),
-                  );
-                }),
+                  ),
+                ),
               ),
             ),
 
-          // 4. Instructions Hint
-          if (images.length > 1)
+          // 5. Left/Right Arrows
+          if (images.length > 1 && _currentPage > 0)
             Positioned(
-              bottom: 80,
-              left: 0,
-              right: 0,
+              left: 16,
+              top: 0,
+              bottom: 0,
               child: Center(
-                child: Text(
-                  'Swipe to explore',
-                  style: GoogleFonts.jost(
-                    color: Colors.white.withOpacity(0.4),
-                    fontSize: 11,
-                    letterSpacing: 1.5,
+                child: IconButton(
+                  onPressed: _prev,
+                  icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                    shape: const CircleBorder(),
+                  ),
+                ),
+              ),
+            ),
+          if (images.length > 1 && _currentPage < images.length - 1)
+            Positioned(
+              right: 16,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: IconButton(
+                  onPressed: _next,
+                  icon: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 20),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                    shape: const CircleBorder(),
                   ),
                 ),
               ),
             ),
         ],
       ),
+    ),
     );
   }
 
