@@ -5,6 +5,7 @@ import '../../widgets/hover_button.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/providers/branding_provider.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/utils/validation_utils.dart';
 
 /// signinForm — contains all form fields, error banner and button.
 /// Kept separate from SigninScreen so screen file stays clean.
@@ -54,7 +55,6 @@ class _SigninFormState extends State<SigninForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-
           // Auth Logo — uses Firestore branding
           Center(
             child: AppLogo(
@@ -104,9 +104,7 @@ class _SigninFormState extends State<SigninForm> {
               hint: 'you@example.com',
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter your email';
-              if (!value.contains('@')) return 'Please enter a valid email';
-              return null;
+              return ValidationUtils.validateEmail(value);
             },
           ),
 
@@ -136,8 +134,9 @@ class _SigninFormState extends State<SigninForm> {
               ),
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter your password';
-              if (value.length < 6) return 'Password must be at least 6 characters';
+              if (value == null || value.trim().isEmpty) {
+                return 'Password is required.';
+              }
               return null;
             },
           ),

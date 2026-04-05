@@ -41,7 +41,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
           widget.onImagesSelected(_imageBytes);
         }
       } else {
-        final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+        final XFile? image = await _picker.pickImage(
+          source: ImageSource.gallery,
+        );
         if (image != null) {
           final bytes = await image.readAsBytes();
           setState(() {
@@ -53,9 +55,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
       }
     }
   }
@@ -85,8 +87,14 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
             ),
             TextButton.icon(
               onPressed: _pickImages,
-              icon: const Icon(Icons.add_photo_alternate_outlined, color: AppTheme.primaryBrown),
-              label: const Text('Add', style: TextStyle(color: AppTheme.primaryBrown)),
+              icon: const Icon(
+                Icons.add_photo_alternate_outlined,
+                color: AppTheme.primaryBrown,
+              ),
+              label: const Text(
+                'Add',
+                style: TextStyle(color: AppTheme.primaryBrown),
+              ),
             ),
           ],
         ),
@@ -124,7 +132,11 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.add_photo_alternate_outlined, size: 48, color: AppTheme.greyPlaceholder),
+            const Icon(
+              Icons.add_photo_alternate_outlined,
+              size: 48,
+              color: AppTheme.greyPlaceholder,
+            ),
             const SizedBox(height: 12),
             Text(
               'Click to ${widget.multiple ? 'select images' : 'upload image'}',

@@ -57,10 +57,7 @@ class ForgotPasswordForm extends StatelessWidget {
         const SizedBox(height: 36),
 
         if (errorMessage != null) ...[
-          ErrorBanner(
-            message: errorMessage!,
-            onDismiss: onDismissMessage,
-          ),
+          ErrorBanner(message: errorMessage!, onDismiss: onDismissMessage),
           const SizedBox(height: 20),
         ],
 
@@ -74,12 +71,18 @@ class ForgotPasswordForm extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.green,
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     successMessage!,
-                    style: AppTheme.bodyMedium.copyWith(color: Colors.green[800]),
+                    style: AppTheme.bodyMedium.copyWith(
+                      color: Colors.green[800],
+                    ),
                   ),
                 ),
                 IconButton(

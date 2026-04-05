@@ -12,34 +12,29 @@ import '../../../auth/widgets/hover_button.dart';
 /// Shows:
 /// - Logo + animated email icon
 /// - Masked email address
-/// - Spam + iPhone hints
+/// - Spam hint
 /// - Feedback message banner (success or error)
-/// - "I've Verified" primary button
 /// - "Resend" secondary button with live countdown
 /// - "Sign out" text link
 class VerifyEmailForm extends StatelessWidget {
   // State values from controller
-  final String  maskedEmail;
-  final bool    isChecking;
-  final bool    resendCooldown;
-  final int     cooldownSeconds;
+  final String maskedEmail;
+  final bool resendCooldown;
+  final int cooldownSeconds;
   final String? message;
-  final bool    isSuccess;
+  final bool isSuccess;
 
   // Callbacks to controller methods
-  final VoidCallback onManualCheck;
   final VoidCallback onResend;
   final VoidCallback onLogout;
 
   const VerifyEmailForm({
     super.key,
     required this.maskedEmail,
-    required this.isChecking,
     required this.resendCooldown,
     required this.cooldownSeconds,
     required this.message,
     required this.isSuccess,
-    required this.onManualCheck,
     required this.onResend,
     required this.onLogout,
   });
@@ -52,7 +47,6 @@ class VerifyEmailForm extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-
         // Auth Logo — uses Firestore branding
         Center(
           child: AppLogo(
@@ -93,7 +87,7 @@ class VerifyEmailForm extends StatelessWidget {
         Text(
           maskedEmail,
           style: AppTheme.bodyLarge.copyWith(
-            color:      AppTheme.primaryBrown,
+            color: AppTheme.primaryBrown,
             fontWeight: FontWeight.w600,
           ),
           textAlign: TextAlign.center,
@@ -118,14 +112,6 @@ class VerifyEmailForm extends StatelessWidget {
           text: "Can't find it? Check your spam or junk folder.",
         ),
 
-        const SizedBox(height: 6),
-
-        // iPhone specific hint — very important for mobile users
-        _buildHintRow(
-          icon: Icons.phone_iphone,
-          text: 'On iPhone? After clicking the link tap "I\'ve Verified" below.',
-        ),
-
         const SizedBox(height: 24),
 
         // Feedback banner — only shown after resend or failed check
@@ -134,22 +120,12 @@ class VerifyEmailForm extends StatelessWidget {
           const SizedBox(height: 16),
         ],
 
-        // Primary button — "I've Verified"
-        // This is the most important button for iPhone users
-        HoverButton(
-          onTap:     isChecking ? null : onManualCheck,
-          isLoading: isChecking,
-          label:     "I've Verified — Continue",
-        ),
-
-        const SizedBox(height: 12),
-
         // Secondary button — resend with live countdown on label
         HoverButton(
-          onTap:       resendCooldown ? null : onResend,
-          isLoading:   false,
+          onTap: resendCooldown ? null : onResend,
+          isLoading: false,
           isSecondary: true,
-          label:       resendCooldown
+          label: resendCooldown
               ? 'Resend in ${cooldownSeconds}s'
               : 'Resend Verification Email',
         ),
@@ -160,7 +136,6 @@ class VerifyEmailForm extends StatelessWidget {
         _buildSignOutLink(),
 
         const SizedBox(height: 24),
-
       ],
     );
   }
@@ -177,18 +152,11 @@ class VerifyEmailForm extends StatelessWidget {
   // HINT ROW — icon + text side by side
   // ─────────────────────────────────────────
 
-  Widget _buildHintRow({
-    required IconData icon,
-    required String text,
-  }) {
+  Widget _buildHintRow({required IconData icon, required String text}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          icon,
-          size: 13,
-          color: AppTheme.primaryBrown,
-        ),
+        Icon(icon, size: 13, color: AppTheme.primaryBrown),
         const SizedBox(width: 6),
         Flexible(
           child: Text(
@@ -209,10 +177,7 @@ class VerifyEmailForm extends StatelessWidget {
 
   Widget _buildMessageBanner() {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical:   12,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isSuccess
             ? AppTheme.successGreen.withOpacity(0.08)
@@ -220,23 +185,18 @@ class VerifyEmailForm extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border(
           left: BorderSide(
-            color: isSuccess
-                ? AppTheme.successGreen
-                : AppTheme.errorRed,
+            color: isSuccess ? AppTheme.successGreen : AppTheme.errorRed,
             width: 4,
           ),
         ),
       ),
       child: Row(
         children: [
-
           Icon(
             isSuccess
                 ? Icons.check_circle_outline_rounded
                 : Icons.error_outline_rounded,
-            color: isSuccess
-                ? AppTheme.successGreen
-                : AppTheme.errorRed,
+            color: isSuccess ? AppTheme.successGreen : AppTheme.errorRed,
             size: 18,
           ),
 
@@ -247,13 +207,10 @@ class VerifyEmailForm extends StatelessWidget {
               message!,
               style: AppTheme.bodyMedium.copyWith(
                 fontSize: 13,
-                color: isSuccess
-                    ? AppTheme.successGreen
-                    : AppTheme.errorRed,
+                color: isSuccess ? AppTheme.successGreen : AppTheme.errorRed,
               ),
             ),
           ),
-
         ],
       ),
     );
@@ -278,10 +235,10 @@ class VerifyEmailForm extends StatelessWidget {
             TextSpan(
               text: 'Sign out',
               style: AppTheme.bodyMedium.copyWith(
-                fontSize:        14,
-                color:           AppTheme.primaryBrown,
-                fontWeight:      FontWeight.w600,
-                decoration:      TextDecoration.underline,
+                fontSize: 14,
+                color: AppTheme.primaryBrown,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
                 decorationColor: AppTheme.primaryBrown,
               ),
             ),
@@ -330,12 +287,10 @@ class _AnimatedEmailIconState extends State<_AnimatedEmailIcon>
             turns: _rotationController,
             child: CustomPaint(
               size: const Size(76, 76),
-              painter: _SpinnerPainter(
-                color: AppTheme.primaryBrown,
-              ),
+              painter: _SpinnerPainter(color: AppTheme.primaryBrown),
             ),
           ),
-          
+
           // Outer static circle border
           Container(
             width: 76,
@@ -395,7 +350,7 @@ class _SpinnerPainter extends CustomPainter {
       false,
       paint,
     );
-    
+
     // Draw a second, very subtle trailing arc
     paint.color = color.withOpacity(0.3);
     canvas.drawArc(

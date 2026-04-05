@@ -22,23 +22,23 @@ class SupportMessage {
   factory SupportMessage.fromDoc(DocumentSnapshot doc) {
     final map = doc.data() as Map<String, dynamic>;
     return SupportMessage(
-      id:        doc.id,
-      userId:    map['userId']    as String? ?? '',
-      name:      map['name']      as String? ?? '',
-      email:     map['email']     as String? ?? '',
-      message:   map['message']   as String? ?? '',
-      status:    map['status']    as String? ?? 'unread',
+      id: doc.id,
+      userId: map['userId'] as String? ?? '',
+      name: map['name'] as String? ?? '',
+      email: map['email'] as String? ?? '',
+      message: map['message'] as String? ?? '',
+      status: map['status'] as String? ?? 'unread',
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'userId':    userId,
-      'name':      name,
-      'email':     email,
-      'message':   message,
-      'status':    status,
+      'userId': userId,
+      'name': name,
+      'email': email,
+      'message': message,
+      'status': status,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }

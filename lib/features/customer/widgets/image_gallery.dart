@@ -114,7 +114,7 @@ class _ImageGalleryState extends State<ImageGallery> {
       // Handle keyboard events — arrow keys and escape
       onKeyEvent: (event) {
         if (event is KeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.arrowLeft)  _prev();
+          if (event.logicalKey == LogicalKeyboardKey.arrowLeft) _prev();
           if (event.logicalKey == LogicalKeyboardKey.arrowRight) _next();
           if (event.logicalKey == LogicalKeyboardKey.escape) {
             Navigator.pop(context);
@@ -125,7 +125,6 @@ class _ImageGalleryState extends State<ImageGallery> {
         color: Colors.transparent,
         child: Stack(
           children: [
-
             // ── Main swipeable image pages ──
             PageView.builder(
               controller: _pageController,
@@ -179,11 +178,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                   // Dialogs should always pop to close.
                   Navigator.of(context).pop();
                 },
-                icon: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                icon: const Icon(Icons.close, color: Colors.white, size: 24),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.white.withOpacity(0.1),
                   shape: const CircleBorder(),
@@ -281,7 +276,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                       duration: const Duration(milliseconds: 250),
                       margin: const EdgeInsets.symmetric(horizontal: 3),
                       // Active dot is wider — pill shape
-                      width:  index == _currentIndex ? 20 : 6,
+                      width: index == _currentIndex ? 20 : 6,
                       height: 6,
                       decoration: BoxDecoration(
                         color: index == _currentIndex
@@ -293,7 +288,6 @@ class _ImageGalleryState extends State<ImageGallery> {
                   ),
                 ),
               ),
-
           ],
         ),
       ),

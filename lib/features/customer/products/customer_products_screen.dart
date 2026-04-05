@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../../core/providers/app_refresh_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/admin/catalog/repositories/product_repository.dart';
 import '../../../models/product.dart';
-import '../../../app/routes.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../widgets/product_card.dart';
 import '../widgets/image_gallery.dart';
 
@@ -25,6 +27,7 @@ class CustomerProductsScreen extends StatefulWidget {
 class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
   bool _isLoading = true;
   List<Product> _products = [];
+  int _refreshVersion = 0;
 
   @override
   void initState() {
@@ -32,9 +35,30 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
     _loadProducts();
   }
 
-  Future<void> _loadProducts() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final version = context.watch<AppRefreshProvider>().dataVersion;
+    if (_refreshVersion == 0) {
+      _refreshVersion = version;
+      return;
+    }
+    if (version != _refreshVersion) {
+      _refreshVersion = version;
+      _loadProducts(forceRefresh: true);
+    }
+  }
+
+  Future<void> _loadProducts({bool forceRefresh = false}) async {
     try {
-      final prods = await ProductRepository.getProductsByCategory(widget.categoryId);
+      if (forceRefresh && mounted) {
+        setState(() => _isLoading = true);
+      }
+
+      final prods = await ProductRepository.getProductsByCategory(
+        widget.categoryId,
+        forceRefresh: forceRefresh,
+      );
       if (mounted) {
         setState(() {
           final activeProds = prods.where((p) => p.isActive).toList();
@@ -45,9 +69,9 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading products: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading products: $e')));
         setState(() => _isLoading = false);
       }
     }
@@ -55,7 +79,8 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+    final isTablet = ResponsiveBreakpoints.isTablet(context);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -82,68 +107,68 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
               child: CircularProgressIndicator(color: AppTheme.primaryBrown),
             )
           : _products.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.inbox_outlined,
-                        size: 64,
-                        color: AppTheme.divider,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No products in this collection',
-                        style: AppTheme.bodyMedium,
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox_outlined, size: 64, color: AppTheme.divider),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No products in this collection',
+                    style: AppTheme.bodyMedium,
                   ),
-                )
-              : SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isMobile ? 20 : 60,
-                    vertical: isMobile ? 32 : 48,
+                ],
+              ),
+            )
+          : SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 20 : 60,
+                vertical: isMobile ? 32 : 48,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${_products.length} Products',
+                    style: GoogleFonts.jost(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textLight,
+                      letterSpacing: 2,
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${_products.length} Products',
-                        style: GoogleFonts.jost(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppTheme.textLight,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: isMobile ? 2 : 4,
-                          crossAxisSpacing: isMobile ? 14 : 24,
-                          mainAxisSpacing: isMobile ? 28 : 40,
-                          childAspectRatio: 0.72,
-                        ),
-                        itemCount: _products.length,
-                        itemBuilder: (context, index) {
-                          final product = _products[index];
-                          return ProductCard(
-                            product: product,
-                            onImageTap: () {
-                              ImageGallery.show(
-                                context,
-                                images: product.imageUrls.isNotEmpty ? product.imageUrls : (product.primaryImage.isNotEmpty ? [product.primaryImage] : []),
-                                title: product.title,
-                              );
-                            },
+                  const SizedBox(height: 24),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: isMobile ? 2 : (isTablet ? 3 : 4),
+                      crossAxisSpacing: isMobile ? 14 : 24,
+                      mainAxisSpacing: isMobile ? 28 : 40,
+                      childAspectRatio: 0.72,
+                    ),
+                    itemCount: _products.length,
+                    itemBuilder: (context, index) {
+                      final product = _products[index];
+                      return ProductCard(
+                        product: product,
+                        onImageTap: () {
+                          ImageGallery.show(
+                            context,
+                            images: product.imageUrls.isNotEmpty
+                                ? product.imageUrls
+                                : (product.primaryImage.isNotEmpty
+                                      ? [product.primaryImage]
+                                      : []),
+                            title: product.title,
                           );
                         },
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ),
+                ],
+              ),
+            ),
     );
   }
 }

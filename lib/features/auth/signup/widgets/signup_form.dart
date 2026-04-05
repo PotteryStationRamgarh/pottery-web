@@ -5,6 +5,7 @@ import '../../widgets/hover_button.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/providers/branding_provider.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/utils/validation_utils.dart';
 
 /// SignupForm — contains all form fields, error banner and button.
 /// Mirrors LoginForm structure for consistency.
@@ -36,6 +37,7 @@ class SignupForm extends StatefulWidget {
 
 class _SignupFormState extends State<SignupForm> {
   final _formKey = GlobalKey<FormState>();
+  final _passwordFieldKey = GlobalKey<FormFieldState<String>>();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -55,7 +57,6 @@ class _SignupFormState extends State<SignupForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-
           // Auth Logo — uses Firestore branding
           Center(
             child: AppLogo(
@@ -105,9 +106,7 @@ class _SignupFormState extends State<SignupForm> {
               hint: 'you@example.com',
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter your email';
-              if (!value.contains('@')) return 'Please enter a valid email';
-              return null;
+              return ValidationUtils.validateEmail(value);
             },
           ),
 
@@ -115,9 +114,11 @@ class _SignupFormState extends State<SignupForm> {
 
           // Password field
           TextFormField(
+            key: _passwordFieldKey,
             controller: widget.passwordController,
             obscureText: _obscurePassword,
             textInputAction: TextInputAction.next,
+            onTapOutside: (_) => _passwordFieldKey.currentState?.validate(),
             style: AppTheme.bodyLarge,
             decoration: AppTheme.inputDecoration(
               label: 'Password',
@@ -136,9 +137,7 @@ class _SignupFormState extends State<SignupForm> {
               ),
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter your password';
-              if (value.length < 6) return 'Password must be at least 6 characters';
-              return null;
+              return ValidationUtils.validatePassword(value);
             },
           ),
 
@@ -164,13 +163,16 @@ class _SignupFormState extends State<SignupForm> {
                 ),
                 onPressed: () {
                   setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword);
+                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                  );
                 },
               ),
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) return 'Please confirm your password';
-              if (value != widget.passwordController.text) return 'Passwords do not match';
+              if (value == null || value.isEmpty)
+                return 'Please confirm your password';
+              if (value != widget.passwordController.text)
+                return 'Passwords do not match';
               return null;
             },
           ),

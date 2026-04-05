@@ -7,10 +7,10 @@ import 'remote_config_service.dart';
 /// MediaService — Handles compression and R2 uploads using MinIO (S3 compatible client)
 /// Strict rule: DocId MUST exist before calling this.
 class MediaService {
-
   // ✅ FIX 2: Hardcoded Public Config (Public data is safe)
   static const String _bucket = 'pottery-station-ramgarh-assets';
-  static const String _publicUrlBase = 'https://pub-32b0eccfedfb4b29980313569dfccc15.r2.dev';
+  static const String _publicUrlBase =
+      'https://pub-32b0eccfedfb4b29980313569dfccc15.r2.dev';
 
   /// Compress → Upload → Return Public URLs
   /// pathPrefix examples: 'products', 'categories', 'exclusive', 'branding', 'exhibition'
@@ -19,14 +19,15 @@ class MediaService {
     required String pathPrefix,
     required List<Uint8List> files,
   }) async {
-    
     // 🔐 FIX 2: Remote Config only for Secrets
     final accountId = RemoteConfigService.r2AccountId;
     final accessKey = RemoteConfigService.r2AccessKeyId;
     final secretKey = RemoteConfigService.r2SecretAccessKey;
 
     if (accountId.isEmpty || accessKey.isEmpty || secretKey.isEmpty) {
-      throw Exception("Cloudflare R2 secrets not configured in Firebase Remote Config.");
+      throw Exception(
+        "Cloudflare R2 secrets not configured in Firebase Remote Config.",
+      );
     }
 
     // 🔴 FIX 3: Validation
@@ -44,11 +45,11 @@ class MediaService {
     );
 
     List<String> urls = [];
-    
+
     for (int i = 0; i < files.length; i++) {
       // 1. Compress
       final compressed = await ImageCompressor.compressImage(files[i]);
-      
+
       // 2. Generate path based on prefix
       String path;
       if (pathPrefix == 'branding') {
@@ -62,7 +63,7 @@ class MediaService {
 
       // 3. Upload Document to R2
       await _uploadToR2(minio, path, compressed);
-      
+
       // 4. Construct Public URL
       final imageUrl = '$_publicUrlBase/$path';
 
@@ -73,10 +74,10 @@ class MediaService {
 
       // 🔴 FIX 4: Debug Logging
       debugPrint('Generated URL: $imageUrl');
-      
+
       urls.add(imageUrl);
     }
-    
+
     return urls;
   }
 
@@ -84,9 +85,9 @@ class MediaService {
     try {
       String contentType = 'image/jpeg';
       if (path.endsWith('.png')) contentType = 'image/png';
-      
+
       final stream = Stream<Uint8List>.fromIterable([bytes]);
-      
+
       await minio.putObject(
         _bucket,
         path,

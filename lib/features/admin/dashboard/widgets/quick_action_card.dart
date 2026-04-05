@@ -25,7 +25,7 @@ class _QuickActionCardState extends State<QuickActionCard> {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
-      onExit:  (_) => setState(() => _hovered = false),
+      onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
@@ -43,7 +43,7 @@ class _QuickActionCardState extends State<QuickActionCard> {
                       color: AppTheme.primaryBrown.withOpacity(0.25),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
-                    )
+                    ),
                   ]
                 : [],
           ),

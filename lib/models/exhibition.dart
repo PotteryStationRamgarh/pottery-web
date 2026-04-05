@@ -36,37 +36,38 @@ class Exhibition {
   factory Exhibition.fromDoc(DocumentSnapshot doc) {
     final map = doc.data() as Map<String, dynamic>? ?? {};
     return Exhibition(
-      id:              doc.id,
-      title:           map['title']           as String? ?? '',
-      location:        map['location']        as String? ?? '',
-      address:         map['address']         as String? ?? '',
-      startDate:       (map['startDate']  as Timestamp?)?.toDate(),
-      endDate:         (map['endDate']    as Timestamp?)?.toDate(),
-      openTime:        map['openTime']        as String? ?? '',
-      closeTime:       map['closeTime']       as String? ?? '',
-      displayTime:     map['displayTime']     as String? ?? '',
-      imageUrl:        map['imageUrl']        as String? ?? '',
-      isActive:        map['isActive']        as bool?   ?? false,
+      id: doc.id,
+      title: map['title'] as String? ?? '',
+      location: map['location'] as String? ?? '',
+      address: map['address'] as String? ?? '',
+      startDate: (map['startDate'] as Timestamp?)?.toDate(),
+      endDate: (map['endDate'] as Timestamp?)?.toDate(),
+      openTime: map['openTime'] as String? ?? '',
+      closeTime: map['closeTime'] as String? ?? '',
+      displayTime: map['displayTime'] as String? ?? '',
+      imageUrl: map['imageUrl'] as String? ?? '',
+      isActive: map['isActive'] as bool? ?? false,
       thankYouMessage: map['thankYouMessage'] as String? ?? '',
-      lastDayMessage:  map['lastDayMessage']  as String? ?? '',
+      lastDayMessage: map['lastDayMessage'] as String? ?? '',
       // handles both correct spelling and the Firestore typo 'upcommingMessage'
-      upcomingMessage: (map['upcomingMessage'] ?? map['upcommingMessage']) as String? ?? '',
+      upcomingMessage:
+          (map['upcomingMessage'] ?? map['upcommingMessage']) as String? ?? '',
     );
   }
 
   Map<String, dynamic> toMap() => {
-    'title':           title,
-    'location':        location,
-    'address':         address,
-    'startDate':       startDate != null ? Timestamp.fromDate(startDate!) : null,
-    'endDate':         endDate   != null ? Timestamp.fromDate(endDate!)   : null,
-    'openTime':        openTime,
-    'closeTime':       closeTime,
-    'displayTime':     displayTime,
-    'imageUrl':        imageUrl,
-    'isActive':        isActive,
+    'title': title,
+    'location': location,
+    'address': address,
+    'startDate': startDate != null ? Timestamp.fromDate(startDate!) : null,
+    'endDate': endDate != null ? Timestamp.fromDate(endDate!) : null,
+    'openTime': openTime,
+    'closeTime': closeTime,
+    'displayTime': displayTime,
+    'imageUrl': imageUrl,
+    'isActive': isActive,
     'thankYouMessage': thankYouMessage,
-    'lastDayMessage':  lastDayMessage,
+    'lastDayMessage': lastDayMessage,
     'upcomingMessage': upcomingMessage,
   };
 
@@ -152,8 +153,17 @@ class Exhibition {
   }
 
   static Exhibition empty() => const Exhibition(
-    id: '', title: '', location: '', address: '',
-    openTime: '', closeTime: '', displayTime: '', imageUrl: '',
-    isActive: false, thankYouMessage: '', lastDayMessage: '', upcomingMessage: '',
+    id: '',
+    title: '',
+    location: '',
+    address: '',
+    openTime: '',
+    closeTime: '',
+    displayTime: '',
+    imageUrl: '',
+    isActive: false,
+    thankYouMessage: '',
+    lastDayMessage: '',
+    upcomingMessage: '',
   );
 }

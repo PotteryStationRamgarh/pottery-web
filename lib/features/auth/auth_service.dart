@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 /// All controllers and screens call methods from here.
 /// Never use FirebaseAuth directly anywhere else in the app.
 class AuthService {
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -46,7 +45,7 @@ class AuthService {
     final actionCodeSettings = ActionCodeSettings(
       url: 'https://pottery-station-ramgarh.web.app', // Update with real domain
       handleCodeInApp: true,
-      iOSBundleId:     'com.potterystation.app',
+      iOSBundleId: 'com.potterystation.app',
       androidPackageName: 'com.potterystation.app',
       androidInstallApp: true,
       androidMinimumVersion: '1',
@@ -93,7 +92,7 @@ class AuthService {
     final actionCodeSettings = ActionCodeSettings(
       url: 'https://pottery-station-ramgarh.web.app',
       handleCodeInApp: true,
-      iOSBundleId:     'com.potterystation.app',
+      iOSBundleId: 'com.potterystation.app',
       androidPackageName: 'com.potterystation.app',
       androidInstallApp: true,
       androidMinimumVersion: '1',

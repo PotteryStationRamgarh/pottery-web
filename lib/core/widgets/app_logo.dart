@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_refresh_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/cache_busted_url.dart';
 
 /// AppLogo — used everywhere across the app.
 /// Auth screens, nav bar, splash, admin dashboard etc.
@@ -12,7 +15,8 @@ import '../theme/app_theme.dart';
 /// [lightMode] — true = light colors (use on dark backgrounds like splash)
 class AppLogo extends StatelessWidget {
   final String logoUrl;
-  final String appName; // Kept for compatibility, but no longer used for fallback text
+  final String
+  appName; // Kept for compatibility, but no longer used for fallback text
   final double size;
   final bool lightMode;
 
@@ -28,8 +32,11 @@ class AppLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     // If we have a logo image URL — show it
     if (logoUrl.isNotEmpty) {
+      final imageVersion = context.select<AppRefreshProvider, int>(
+        (value) => value.imageVersion,
+      );
       return Image.network(
-        logoUrl,
+        CacheBustedUrl.withVersion(logoUrl, imageVersion),
         height: size,
         fit: BoxFit.contain,
         // If image fails to load — fall back to icon placeholder
@@ -50,7 +57,9 @@ class AppLogo extends StatelessWidget {
       height: size,
       padding: EdgeInsets.all(size * 0.1),
       decoration: BoxDecoration(
-        color: lightMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+        color: lightMode
+            ? Colors.white.withOpacity(0.1)
+            : Colors.black.withOpacity(0.05),
         shape: BoxShape.circle,
       ),
       child: Center(

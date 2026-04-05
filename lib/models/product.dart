@@ -73,10 +73,8 @@ class Product {
       id: doc.id,
       title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
-      imageUrls: (map['imageUrls'] as List?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+      imageUrls:
+          (map['imageUrls'] as List?)?.map((e) => e.toString()).toList() ?? [],
       categoryId: map['categoryId'] as String? ?? '',
       order: map['order'] as int? ?? 0,
       isActive: map['isActive'] as bool? ?? true,
@@ -85,8 +83,7 @@ class Product {
   }
 
   /// Safe primary image (never crashes)
-  String get primaryImage =>
-      imageUrls.isNotEmpty ? imageUrls.first : '';
+  String get primaryImage => imageUrls.isNotEmpty ? imageUrls.first : '';
 
   Map<String, dynamic> toMap() {
     return {
@@ -139,10 +136,8 @@ class ExclusiveProduct {
       id: doc.id,
       title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
-      imageUrls: (map['imageUrls'] as List?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+      imageUrls:
+          (map['imageUrls'] as List?)?.map((e) => e.toString()).toList() ?? [],
       totalPieces: map['totalPieces'] as int? ?? 1,
       hasCertificate: map['hasCertificate'] as bool? ?? false,
       material: map['material'] as String? ?? '',
@@ -154,8 +149,7 @@ class ExclusiveProduct {
   }
 
   /// Safe primary image
-  String get primaryImage =>
-      imageUrls.isNotEmpty ? imageUrls.first : '';
+  String get primaryImage => imageUrls.isNotEmpty ? imageUrls.first : '';
 
   Map<String, dynamic> toMap() {
     return {

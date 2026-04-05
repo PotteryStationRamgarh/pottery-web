@@ -29,7 +29,7 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 1000;
-    final config   = context.watch<ConfigProvider>();
+    final config = context.watch<ConfigProvider>();
 
     return Container(
       height: 72,
@@ -61,17 +61,16 @@ class _DesktopNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    
+
     // Dynamic spacing and padding based on available width
     // Helps prevent "Overflow" errors on smaller desktop screens
     final double horizontalPadding = width < 1200 ? 24 : 48;
-    final double itemSpacing      = width < 1200 ? 20 : 36;
+    final double itemSpacing = width < 1200 ? 20 : 36;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Row(
         children: [
-
           // Brand logo — text fallback if no logoUrl in Firestore
           AppLogo(
             logoUrl: config.branding.logoUrl,
@@ -87,11 +86,7 @@ class _DesktopNav extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _NavItem(
-                    label: 'Collections',
-                    isActive: true,
-                    onTap: () {},
-                  ),
+                  _NavItem(label: 'Collections', isActive: true, onTap: () {}),
                   SizedBox(width: itemSpacing),
 
                   // Workshop — Coming Soon snackbar
@@ -127,7 +122,6 @@ class _DesktopNav extends StatelessWidget {
               ),
             ),
           ),
-
         ],
       ),
     );
@@ -148,7 +142,6 @@ class _MobileNav extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-
           // Brand logo
           AppLogo(
             logoUrl: config.branding.logoUrl,
@@ -164,7 +157,6 @@ class _MobileNav extends StatelessWidget {
             color: AppTheme.textDark,
             onPressed: () => Scaffold.of(context).openEndDrawer(),
           ),
-
         ],
       ),
     );
@@ -191,7 +183,6 @@ class NavDrawer extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               // Logo at top of drawer
               AppLogo(
                 logoUrl: config.branding.logoUrl,
@@ -250,7 +241,6 @@ class NavDrawer extends StatelessWidget {
                   }
                 },
               ),
-
             ],
           ),
         ),
@@ -287,7 +277,7 @@ class _NavItemState extends State<_NavItem> {
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
@@ -297,9 +287,7 @@ class _NavItemState extends State<_NavItem> {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: highlight
-                    ? AppTheme.primaryBrown
-                    : Colors.transparent,
+                color: highlight ? AppTheme.primaryBrown : Colors.transparent,
                 width: 1.5,
               ),
             ),
@@ -310,9 +298,7 @@ class _NavItemState extends State<_NavItem> {
               fontSize: 11,
               fontWeight: FontWeight.w500,
               letterSpacing: 2,
-              color: highlight
-                  ? AppTheme.primaryBrown
-                  : AppTheme.textLight,
+              color: highlight ? AppTheme.primaryBrown : AppTheme.textLight,
             ),
           ),
         ),
@@ -356,9 +342,7 @@ class _DrawerItem extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                 letterSpacing: 2.5,
-                color: isActive
-                    ? AppTheme.primaryBrown
-                    : AppTheme.textLight,
+                color: isActive ? AppTheme.primaryBrown : AppTheme.textLight,
               ),
             ),
           ],
@@ -386,16 +370,12 @@ class _ProfileButton extends StatelessWidget {
         side: BorderSide(color: AppTheme.divider, width: 1),
       ),
       itemBuilder: (_) => [
-
         // User email — not clickable, just for info
         PopupMenuItem(
           enabled: false,
           child: Text(
             FirebaseAuth.instance.currentUser?.email ?? '',
-            style: GoogleFonts.jost(
-              fontSize: 12,
-              color: AppTheme.textLight,
-            ),
+            style: GoogleFonts.jost(fontSize: 12, color: AppTheme.textLight),
           ),
         ),
 
@@ -410,15 +390,11 @@ class _ProfileButton extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 'Sign Out',
-                style: GoogleFonts.jost(
-                  fontSize: 13,
-                  color: AppTheme.textDark,
-                ),
+                style: GoogleFonts.jost(fontSize: 13, color: AppTheme.textDark),
               ),
             ],
           ),
         ),
-
       ],
       onSelected: (value) async {
         if (value == 'logout') {
@@ -433,16 +409,9 @@ class _ProfileButton extends StatelessWidget {
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(
-            color: AppTheme.divider,
-            width: 1,
-          ),
+          border: Border.all(color: AppTheme.divider, width: 1),
         ),
-        child: Icon(
-          Icons.person_outline,
-          size: 18,
-          color: AppTheme.textLight,
-        ),
+        child: Icon(Icons.person_outline, size: 18, color: AppTheme.textLight),
       ),
     );
   }
@@ -467,10 +436,7 @@ class _StoreButton extends StatelessWidget {
             SnackBar(
               content: Text(
                 'Online store coming soon!',
-                style: GoogleFonts.jost(
-                  fontSize: 13,
-                  color: Colors.white,
-                ),
+                style: GoogleFonts.jost(fontSize: 13, color: Colors.white),
               ),
               backgroundColor: AppTheme.primaryBrown,
               behavior: SnackBarBehavior.floating,
@@ -483,13 +449,8 @@ class _StoreButton extends StatelessWidget {
         },
         style: TextButton.styleFrom(
           backgroundColor: AppTheme.primaryBrown,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 12,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: Text(
           'GO TO STORE',
@@ -525,7 +486,7 @@ void _showContact(BuildContext context, ConfigProvider config) {
     context,
     title: 'Contact Us',
     content: [
-      if (c.address.isNotEmpty)      '📍  ${c.address}',
+      if (c.address.isNotEmpty) '📍  ${c.address}',
       if (c.supportEmail.isNotEmpty) '✉️  ${c.supportEmail}',
       if (c.supportPhone.isNotEmpty) '📞  ${c.supportPhone}',
     ].join('\n\n'),
@@ -537,16 +498,11 @@ void _showComingSoon(BuildContext context) {
     SnackBar(
       content: Text(
         'Workshop section coming soon!',
-        style: GoogleFonts.jost(
-          fontSize: 13,
-          color: AppTheme.white,
-        ),
+        style: GoogleFonts.jost(fontSize: 13, color: AppTheme.white),
       ),
       backgroundColor: AppTheme.primaryBrown,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       duration: const Duration(seconds: 2),
     ),
   );
@@ -561,9 +517,7 @@ void _showInfoDialog(
     context: context,
     builder: (_) => Dialog(
       backgroundColor: AppTheme.background,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
         child: Padding(
@@ -572,7 +526,6 @@ void _showInfoDialog(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               // Dialog title
               Text(
                 title,
@@ -619,7 +572,6 @@ void _showInfoDialog(
                   ),
                 ),
               ),
-
             ],
           ),
         ),

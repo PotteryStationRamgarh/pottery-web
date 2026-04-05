@@ -5,11 +5,7 @@ class SectionCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const SectionCard({
-    super.key,
-    required this.title,
-    required this.children,
-  });
+  const SectionCard({super.key, required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +21,7 @@ class SectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: AppTheme.headingMedium
-                .copyWith(color: AppTheme.textDark),
+            style: AppTheme.headingMedium.copyWith(color: AppTheme.textDark),
           ),
           const SizedBox(height: 20),
           ...children,

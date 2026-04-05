@@ -17,7 +17,6 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
@@ -40,18 +39,14 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _handleNavigation() async {
-    // Minimum splash visibility
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 350));
     if (!mounted) return;
 
     final config = context.read<ConfigProvider>();
     final branding = context.read<BrandingProvider>();
 
     // Load config + branding in parallel
-    await Future.wait([
-      config.load(),
-      branding.loadBranding(),
-    ]);
+    await Future.wait([config.load(), branding.loadBranding()]);
 
     if (!mounted) return;
 
@@ -90,10 +85,12 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
 
-    await user.reload();
-    if (!mounted) return;
-
-    final refreshedUser = FirebaseAuth.instance.currentUser;
+    User? refreshedUser = user;
+    if (!user.emailVerified) {
+      await user.reload();
+      if (!mounted) return;
+      refreshedUser = FirebaseAuth.instance.currentUser;
+    }
 
     if (refreshedUser == null || !refreshedUser.emailVerified) {
       Navigator.pushReplacementNamed(context, Routes.verifyEmail);

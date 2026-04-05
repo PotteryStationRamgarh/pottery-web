@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../../core/providers/app_refresh_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../models/product.dart';
 import '../home/widgets/nav_bar.dart';
 import '../../../app/routes.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 class CustomerCategoriesGridPage extends StatefulWidget {
   const CustomerCategoriesGridPage({super.key});
 
   @override
-  State<CustomerCategoriesGridPage> createState() => _CustomerCategoriesGridPageState();
+  State<CustomerCategoriesGridPage> createState() =>
+      _CustomerCategoriesGridPageState();
 }
 
-class _CustomerCategoriesGridPageState extends State<CustomerCategoriesGridPage> {
+class _CustomerCategoriesGridPageState
+    extends State<CustomerCategoriesGridPage> {
   final TextEditingController _searchCtrl = TextEditingController();
   List<ProductCategory> _allCategories = [];
   List<ProductCategory> _filteredCategories = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  int _refreshVersion = 0;
 
   @override
   void initState() {
@@ -26,9 +32,28 @@ class _CustomerCategoriesGridPageState extends State<CustomerCategoriesGridPage>
     _loadCategories();
   }
 
-  Future<void> _loadCategories() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final version = context.watch<AppRefreshProvider>().dataVersion;
+    if (_refreshVersion == 0) {
+      _refreshVersion = version;
+      return;
+    }
+    if (version != _refreshVersion) {
+      _refreshVersion = version;
+      _loadCategories(forceRefresh: true);
+    }
+  }
+
+  Future<void> _loadCategories({bool forceRefresh = false}) async {
     try {
-      final categories = await FirestoreService.getCategories();
+      if (forceRefresh && mounted) {
+        setState(() => _isLoading = true);
+      }
+      final categories = await FirestoreService.getCategories(
+        forceRefresh: forceRefresh,
+      );
       // Shuffle categories randomly per user request
       categories.shuffle();
       setState(() {
@@ -52,7 +77,8 @@ class _CustomerCategoriesGridPageState extends State<CustomerCategoriesGridPage>
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+    final isTablet = ResponsiveBreakpoints.isTablet(context);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -62,7 +88,7 @@ class _CustomerCategoriesGridPageState extends State<CustomerCategoriesGridPage>
           CustomScrollView(
             slivers: [
               const SliverToBoxAdapter(child: SizedBox(height: 120)),
-              
+
               // Header & Search
               SliverToBoxAdapter(
                 child: Padding(
@@ -75,7 +101,12 @@ class _CustomerCategoriesGridPageState extends State<CustomerCategoriesGridPage>
                         TextButton.icon(
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.arrow_back, size: 16),
-                          label: Text('Back', style: GoogleFonts.jost(fontWeight: FontWeight.w500)),
+                          label: Text(
+                            'Back',
+                            style: GoogleFonts.jost(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           style: TextButton.styleFrom(
                             foregroundColor: AppTheme.textDark,
                             padding: EdgeInsets.zero,
@@ -94,12 +125,16 @@ class _CustomerCategoriesGridPageState extends State<CustomerCategoriesGridPage>
                       TextField(
                         controller: _searchCtrl,
                         onChanged: _filterCategories,
-                        decoration: AppTheme.inputDecoration(
-                          label: 'Search categories',
-                          hint: 'Search by name...',
-                        ).copyWith(
-                          prefixIcon: const Icon(Icons.search, color: AppTheme.textLight),
-                        ),
+                        decoration:
+                            AppTheme.inputDecoration(
+                              label: 'Search categories',
+                              hint: 'Search by name...',
+                            ).copyWith(
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: AppTheme.textLight,
+                              ),
+                            ),
                       ),
                       const SizedBox(height: 48),
                     ],
@@ -110,7 +145,11 @@ class _CustomerCategoriesGridPageState extends State<CustomerCategoriesGridPage>
               // Categories Grid
               if (_isLoading)
                 const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator(color: AppTheme.primaryBrown)),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryBrown,
+                    ),
+                  ),
                 )
               else if (_filteredCategories.isEmpty)
                 SliverFillRemaining(
@@ -126,21 +165,18 @@ class _CustomerCategoriesGridPageState extends State<CustomerCategoriesGridPage>
                   padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 80),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isMobile ? 2 : 4,
+                      crossAxisCount: isMobile ? 2 : (isTablet ? 3 : 4),
                       crossAxisSpacing: 24,
                       mainAxisSpacing: 24,
                       childAspectRatio: 0.85,
                     ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final category = _filteredCategories[index];
-                        return _CategoryGridCard(category: category);
-                      },
-                      childCount: _filteredCategories.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final category = _filteredCategories[index];
+                      return _CategoryGridCard(category: category);
+                    }, childCount: _filteredCategories.length),
                   ),
                 ),
-              
+
               const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           ),

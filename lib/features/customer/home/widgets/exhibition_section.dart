@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/exhibition_provider.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../widgets/image_placeholder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -21,7 +22,7 @@ class ExhibitionSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final exhibition = context.watch<ExhibitionProvider>().exhibition;
-    final isMobile   = MediaQuery.of(context).size.width < 768;
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
 
     if (exhibition.title.isEmpty) return const SizedBox.shrink();
 
@@ -30,7 +31,7 @@ class ExhibitionSection extends StatelessWidget {
       color: const Color(0xFFF7F3EE),
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 80,
-        vertical:   isMobile ? 56 : 96,
+        vertical: isMobile ? 56 : 96,
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1400),
@@ -68,9 +69,9 @@ class ExhibitionSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.divider.withOpacity(0.3),
         borderRadius: const BorderRadius.only(
-          topRight:    Radius.circular(64),
-          bottomLeft:  Radius.circular(64),
-          topLeft:     Radius.circular(12),
+          topRight: Radius.circular(64),
+          bottomLeft: Radius.circular(64),
+          topLeft: Radius.circular(12),
           bottomRight: Radius.circular(12),
         ),
       ),
@@ -88,18 +89,23 @@ class ExhibitionSection extends StatelessWidget {
                   icon: Icons.photo_outlined,
                 ),
               )
-            : const ImagePlaceholder(aspectRatio: 1.0, icon: Icons.photo_outlined),
+            : const ImagePlaceholder(
+                aspectRatio: 1.0,
+                icon: Icons.photo_outlined,
+              ),
       ),
     );
   }
 
   Widget _buildDetails(dynamic exhibition, {required bool isMobile}) {
-    final message    = exhibition.contextualMessage as String;
+    final message = exhibition.contextualMessage as String;
     final hasMessage = message.isNotEmpty;
 
     final now = DateTime.now();
-    final bool isUpcoming = exhibition.startDate != null && exhibition.startDate!.isAfter(now);
-    final bool isPast = exhibition.endDate != null && exhibition.endDate!.isBefore(now);
+    final bool isUpcoming =
+        exhibition.startDate != null && exhibition.startDate!.isAfter(now);
+    final bool isPast =
+        exhibition.endDate != null && exhibition.endDate!.isBefore(now);
     final bool isActive = !isUpcoming && !isPast;
 
     return Column(
@@ -110,8 +116,10 @@ class ExhibitionSection extends StatelessWidget {
             Text(
               'EXHIBITION',
               style: GoogleFonts.jost(
-                fontSize: 10, fontWeight: FontWeight.w500,
-                color: AppTheme.primaryBrown.withOpacity(0.55), letterSpacing: 3.5,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.primaryBrown.withOpacity(0.55),
+                letterSpacing: 3.5,
               ),
             ),
             const SizedBox(width: 12),
@@ -125,7 +133,9 @@ class ExhibitionSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          exhibition.title.isNotEmpty ? exhibition.title : 'Upcoming Exhibition',
+          exhibition.title.isNotEmpty
+              ? exhibition.title
+              : 'Upcoming Exhibition',
           style: GoogleFonts.playfairDisplay(
             fontSize: isMobile ? 28 : 38,
             fontWeight: FontWeight.w600,
@@ -139,18 +149,29 @@ class ExhibitionSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
-              color:        AppTheme.primaryBrown.withOpacity(0.07),
+              color: AppTheme.primaryBrown.withOpacity(0.07),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppTheme.primaryBrown.withOpacity(0.18)),
+              border: Border.all(
+                color: AppTheme.primaryBrown.withOpacity(0.18),
+              ),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, size: 15, color: AppTheme.primaryBrown),
+                Icon(
+                  Icons.info_outline,
+                  size: 15,
+                  color: AppTheme.primaryBrown,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(message, style: GoogleFonts.jost(
-                    fontSize: 13, color: AppTheme.primaryBrown, height: 1.5,
-                  )),
+                  child: Text(
+                    message,
+                    style: GoogleFonts.jost(
+                      fontSize: 13,
+                      color: AppTheme.primaryBrown,
+                      height: 1.5,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -159,15 +180,17 @@ class ExhibitionSection extends StatelessWidget {
         ],
 
         _InfoRow(
-          icon:     Icons.location_on_outlined,
-          title:    exhibition.location.isNotEmpty ? exhibition.location : 'Location TBA',
-          subtitle: exhibition.address.isNotEmpty  ? exhibition.address  : null,
+          icon: Icons.location_on_outlined,
+          title: exhibition.location.isNotEmpty
+              ? exhibition.location
+              : 'Location TBA',
+          subtitle: exhibition.address.isNotEmpty ? exhibition.address : null,
         ),
         const SizedBox(height: 16),
 
         if (exhibition.startDate != null && exhibition.endDate != null) ...[
           _InfoRow(
-            icon:  Icons.calendar_today_outlined,
+            icon: Icons.calendar_today_outlined,
             title: _formatDateRange(exhibition.startDate!, exhibition.endDate!),
           ),
           const SizedBox(height: 16),
@@ -175,8 +198,8 @@ class ExhibitionSection extends StatelessWidget {
 
         if (exhibition.displayTime.isNotEmpty)
           _InfoRow(
-            icon:     Icons.access_time_outlined,
-            title:    exhibition.displayTime,
+            icon: Icons.access_time_outlined,
+            title: exhibition.displayTime,
             subtitle: '${exhibition.openTime} — ${exhibition.closeTime}',
           ),
 
@@ -184,12 +207,14 @@ class ExhibitionSection extends StatelessWidget {
           const SizedBox(height: 32),
           ElevatedButton(
             onPressed: () async {
-              final address = exhibition.address.isNotEmpty 
-                  ? exhibition.address 
+              final address = exhibition.address.isNotEmpty
+                  ? exhibition.address
                   : exhibition.location;
               if (address.isEmpty) return;
               final encoded = Uri.encodeComponent(address);
-              final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$encoded');
+              final uri = Uri.parse(
+                'https://www.google.com/maps/search/?api=1&query=$encoded',
+              );
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
               }
@@ -198,7 +223,9 @@ class ExhibitionSection extends StatelessWidget {
               backgroundColor: AppTheme.primaryBrown,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Visit Now'),
           ),
@@ -208,15 +235,16 @@ class ExhibitionSection extends StatelessWidget {
   }
 
   String _formatDateRange(DateTime start, DateTime end) {
-    String f(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    String f(DateTime d) =>
+        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
     return '${f(start)} – ${f(end)}';
   }
 }
 
 class _InfoRow extends StatelessWidget {
   final IconData icon;
-  final String   title;
-  final String?  subtitle;
+  final String title;
+  final String? subtitle;
 
   const _InfoRow({required this.icon, required this.title, this.subtitle});
 
@@ -226,7 +254,8 @@ class _InfoRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 36, height: 36,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: AppTheme.primaryBrown.withOpacity(0.07),
@@ -238,14 +267,24 @@ class _InfoRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: GoogleFonts.jost(
-                fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textDark,
-              )),
+              Text(
+                title,
+                style: GoogleFonts.jost(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textDark,
+                ),
+              ),
               if (subtitle != null && subtitle!.isNotEmpty) ...[
                 const SizedBox(height: 2),
-                Text(subtitle!, style: GoogleFonts.jost(
-                  fontSize: 12, fontWeight: FontWeight.w300, color: AppTheme.textLight,
-                )),
+                Text(
+                  subtitle!,
+                  style: GoogleFonts.jost(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                    color: AppTheme.textLight,
+                  ),
+                ),
               ],
             ],
           ),
@@ -281,4 +320,4 @@ class _StatusBadge extends StatelessWidget {
       ),
     );
   }
-}
+}

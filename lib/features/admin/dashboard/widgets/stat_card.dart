@@ -5,6 +5,7 @@ class StatCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
+
   /// If provided, renders as a filled coloured card; otherwise white card.
   final Color? accentColor;
 
@@ -20,8 +21,8 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg    = accentColor ?? AppTheme.white;
-    final fg    = _isDark ? AppTheme.white : AppTheme.textDark;
+    final bg = accentColor ?? AppTheme.white;
+    final fg = _isDark ? AppTheme.white : AppTheme.textDark;
     final fgSub = _isDark
         ? AppTheme.white.withOpacity(0.75)
         : AppTheme.textLight;
@@ -58,7 +59,11 @@ class StatCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(icon, color: _isDark ? AppTheme.white : AppTheme.primaryBrown, size: 20),
+              Icon(
+                icon,
+                color: _isDark ? AppTheme.white : AppTheme.primaryBrown,
+                size: 20,
+              ),
             ],
           ),
           const SizedBox(height: 12),

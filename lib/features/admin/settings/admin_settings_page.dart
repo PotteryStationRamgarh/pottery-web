@@ -12,7 +12,11 @@ class AdminSettingsPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.settings_outlined, size: 64, color: AppTheme.greyPlaceholder),
+            const Icon(
+              Icons.settings_outlined,
+              size: 64,
+              color: AppTheme.greyPlaceholder,
+            ),
             const SizedBox(height: 16),
             Text(
               'Settings have been migrated.',

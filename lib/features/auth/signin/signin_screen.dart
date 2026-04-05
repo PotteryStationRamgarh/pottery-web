@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../app/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/firebase_service.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../widgets/branding_image_widget.dart';
 import 'signin_controller.dart';
 import 'widgets/signin_form.dart';
@@ -18,7 +19,6 @@ class SigninScreen extends StatefulWidget {
 
 class _SigninScreenState extends State<SigninScreen>
     with SingleTickerProviderStateMixin {
-
   final SigninController _controller = SigninController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -39,21 +39,14 @@ class _SigninScreenState extends State<SigninScreen>
       duration: const Duration(milliseconds: 600),
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.08),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _animationController.forward();
@@ -87,7 +80,7 @@ class _SigninScreenState extends State<SigninScreen>
           return;
         }
       }
-      Navigator.pushReplacementNamed(context, Routes.customerLoading);
+      Navigator.pushReplacementNamed(context, Routes.customerHome);
     } else if (result == 'email_not_verified') {
       Navigator.pushReplacementNamed(context, Routes.verifyEmail);
     } else {
@@ -105,13 +98,11 @@ class _SigninScreenState extends State<SigninScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900; // Increased threshold for better web experience
+    final isMobile = !ResponsiveBreakpoints.isDesktop(context);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: isMobile
-          ? _buildMobileLayout()
-          : _buildDesktopLayout(),
+      body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
     );
   }
 
@@ -155,10 +146,7 @@ class _SigninScreenState extends State<SigninScreen>
               child: Row(
                 children: [
                   // Left — branding image
-                  const Expanded(
-                    flex: 55,
-                    child: BrandingImageWidget(),
-                  ),
+                  const Expanded(flex: 55, child: BrandingImageWidget()),
 
                   // Right — signin form
                   Expanded(
@@ -184,10 +172,15 @@ class _SigninScreenState extends State<SigninScreen>
                               },
                               onSignupTap: () {
                                 Navigator.pushReplacementNamed(
-                                    context, Routes.signup);
+                                  context,
+                                  Routes.signup,
+                                );
                               },
                               onForgotPasswordTap: () {
-                                Navigator.pushNamed(context, Routes.forgotPassword);
+                                Navigator.pushNamed(
+                                  context,
+                                  Routes.forgotPassword,
+                                );
                               },
                             ),
                           ),
@@ -211,10 +204,7 @@ class _SigninScreenState extends State<SigninScreen>
   Widget _buildMobileLayout() {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 32,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 450),
           child: Container(
@@ -229,10 +219,7 @@ class _SigninScreenState extends State<SigninScreen>
                 ),
               ],
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 28,
-              vertical: 36,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: SlideTransition(

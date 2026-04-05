@@ -39,8 +39,14 @@ class AdminImageGrid extends StatelessWidget {
             ),
             TextButton.icon(
               onPressed: onAddImages,
-              icon: const Icon(Icons.add_photo_alternate_outlined, color: AppTheme.primaryBrown),
-              label: const Text('Add Images', style: TextStyle(color: AppTheme.primaryBrown)),
+              icon: const Icon(
+                Icons.add_photo_alternate_outlined,
+                color: AppTheme.primaryBrown,
+              ),
+              label: const Text(
+                'Add Images',
+                style: TextStyle(color: AppTheme.primaryBrown),
+              ),
             ),
           ],
         ),
@@ -75,7 +81,11 @@ class AdminImageGrid extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.photo_library_outlined, size: 48, color: AppTheme.greyPlaceholder),
+          const Icon(
+            Icons.photo_library_outlined,
+            size: 48,
+            color: AppTheme.greyPlaceholder,
+          ),
           const SizedBox(height: 12),
           Text(
             'No images selected',

@@ -8,23 +8,27 @@ import '../repositories/exhibition_repository.dart';
 class ExhibitionProvider extends ChangeNotifier {
   Exhibition _exhibition = Exhibition.empty();
   bool _isLoading = false;
-  bool _isLoaded  = false;
+  bool _isLoaded = false;
   String? _error;
 
   Exhibition get exhibition => _exhibition;
-  bool    get isLoading    => _isLoading;
-  bool    get isLoaded     => _isLoaded;
-  String? get error        => _error;
+  bool get isLoading => _isLoading;
+  bool get isLoaded => _isLoaded;
+  String? get error => _error;
 
-  Future<void> load() async {
+  Future<void> load({bool forceRefresh = false}) async {
     if (_isLoading) return; // Don't load multiple times simultaneously
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      _exhibition = await ExhibitionRepository.getActive();
-      _isLoaded   = true;
-      debugPrint('ExhibitionProvider loaded — isActive: ${_exhibition.isActive}, isCurrentlyActive: ${_exhibition.isCurrentlyActive}');
+      _exhibition = await ExhibitionRepository.getActive(
+        forceRefresh: forceRefresh,
+      );
+      _isLoaded = true;
+      debugPrint(
+        'ExhibitionProvider loaded — isActive: ${_exhibition.isActive}, isCurrentlyActive: ${_exhibition.isCurrentlyActive}',
+      );
     } catch (e) {
       _error = e.toString();
       debugPrint('ExhibitionProvider error: $e');
@@ -34,17 +38,17 @@ class ExhibitionProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> reload() async {
+  Future<void> reload({bool forceRefresh = true}) async {
     _isLoaded = false;
     _isLoading = false;
-    await load();
+    await load(forceRefresh: forceRefresh);
   }
 
   Future<void> refreshNow() async {
     _isLoading = true;
     notifyListeners();
     try {
-      _exhibition = await ExhibitionRepository.getActive();
+      _exhibition = await ExhibitionRepository.getActive(forceRefresh: true);
       debugPrint('ExhibitionProvider refreshed');
     } catch (e) {
       _error = e.toString();

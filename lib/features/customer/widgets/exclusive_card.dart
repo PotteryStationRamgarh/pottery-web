@@ -19,11 +19,7 @@ class ExclusiveCard extends StatefulWidget {
   final ExclusiveProduct product;
   final VoidCallback onTap;
 
-  const ExclusiveCard({
-    super.key,
-    required this.product,
-    required this.onTap,
-  });
+  const ExclusiveCard({super.key, required this.product, required this.onTap});
 
   @override
   State<ExclusiveCard> createState() => _ExclusiveCardState();
@@ -35,16 +31,18 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 420;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // Image with badges on top
             _buildImage(),
 
@@ -52,11 +50,11 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
 
             // Product title — serif font for premium feel
             Text(
-              widget.product.title.isNotEmpty 
-                  ? widget.product.title 
+              widget.product.title.isNotEmpty
+                  ? widget.product.title
                   : 'Item not available',
               style: GoogleFonts.playfairDisplay(
-                fontSize: 16,
+                fontSize: isCompact ? 15 : 16,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textDark,
                 letterSpacing: 0.1,
@@ -69,11 +67,11 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
 
             // Short description
             Text(
-              widget.product.description.isNotEmpty 
-                  ? widget.product.description 
+              widget.product.description.isNotEmpty
+                  ? widget.product.description
                   : 'Description not available',
               style: GoogleFonts.jost(
-                fontSize: 12,
+                fontSize: isCompact ? 11 : 12,
                 fontWeight: FontWeight.w400,
                 color: AppTheme.textLight,
                 height: 1.4,
@@ -85,14 +83,12 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
             const SizedBox(height: 8),
 
             // LIMITED PRODUCT label — from user requirements
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 4,
               children: [
-                Icon(
-                  Icons.auto_awesome,
-                  size: 11,
-                  color: AppTheme.terracotta,
-                ),
-                const SizedBox(width: 6),
+                Icon(Icons.auto_awesome, size: 11, color: AppTheme.terracotta),
                 Text(
                   'LIMITED PRODUCT',
                   style: GoogleFonts.jost(
@@ -108,14 +104,16 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
             const SizedBox(height: 6),
 
             // Total pieces — shown as a subtle info row
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 5,
+              runSpacing: 4,
               children: [
                 Icon(
                   Icons.inventory_2_outlined,
                   size: 13,
                   color: AppTheme.primaryBrown.withOpacity(0.55),
                 ),
-                const SizedBox(width: 5),
                 Text(
                   '${widget.product.totalPieces} '
                   '${widget.product.totalPieces == 1 ? 'piece' : 'pieces'} only',
@@ -128,7 +126,6 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
                 ),
               ],
             ),
-
           ],
         ),
       ),
@@ -140,9 +137,11 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
   // ─────────────────────────────────────────
 
   Widget _buildImage() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 420;
+
     return Stack(
       children: [
-
         // Main image container — 4:5 portrait ratio
         AnimatedContainer(
           duration: const Duration(milliseconds: 400),
@@ -152,14 +151,14 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
             color: AppTheme.divider.withOpacity(0.35),
             // Corner shape animates slightly on hover
             borderRadius: BorderRadius.only(
-              topLeft:     const Radius.circular(32),
+              topLeft: const Radius.circular(32),
               bottomRight: Radius.circular(_isHovered ? 16 : 32),
-              topRight:    const Radius.circular(8),
-              bottomLeft:  const Radius.circular(8),
+              topRight: const Radius.circular(8),
+              bottomLeft: const Radius.circular(8),
             ),
           ),
           child: AspectRatio(
-            aspectRatio: 4 / 5,
+            aspectRatio: isCompact ? 1 / 1.18 : 4 / 5,
             child: widget.product.primaryImage.isNotEmpty
                 ? AnimatedScale(
                     // Subtle zoom on hover
@@ -180,12 +179,12 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
 
         // LIMITED EDITION label — top left corner
         Positioned(
-          top: 10,
-          left: 10,
+          top: isCompact ? 8 : 10,
+          left: isCompact ? 8 : 10,
           child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 4,
+            padding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 7 : 8,
+              vertical: isCompact ? 3 : 4,
             ),
             decoration: BoxDecoration(
               color: AppTheme.appBackground,
@@ -194,10 +193,10 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
             child: Text(
               'LIMITED EDITION',
               style: GoogleFonts.jost(
-                fontSize: 8,
+                fontSize: isCompact ? 7 : 8,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.lightBrown,
-                letterSpacing: 1.5,
+                letterSpacing: isCompact ? 1.1 : 1.5,
               ),
             ),
           ),
@@ -206,12 +205,12 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
         // Certificate badge — bottom right, only if hasCertificate is true
         if (widget.product.hasCertificate)
           Positioned(
-            bottom: 10,
-            right: 10,
+            bottom: isCompact ? 8 : 10,
+            right: isCompact ? 8 : 10,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 4,
+              padding: EdgeInsets.symmetric(
+                horizontal: isCompact ? 7 : 8,
+                vertical: isCompact ? 3 : 4,
               ),
               decoration: BoxDecoration(
                 color: AppTheme.primaryBrown,
@@ -222,14 +221,14 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
                 children: [
                   const Icon(
                     Icons.workspace_premium_outlined,
-                    size: 12,
+                    size: 11,
                     color: AppTheme.white,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: isCompact ? 3 : 4),
                   Text(
                     'Certificate',
                     style: GoogleFonts.jost(
-                      fontSize: 9,
+                      fontSize: isCompact ? 8 : 9,
                       fontWeight: FontWeight.w500,
                       color: AppTheme.white,
                       letterSpacing: 0.2,
@@ -239,7 +238,6 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
               ),
             ),
           ),
-
       ],
     );
   }

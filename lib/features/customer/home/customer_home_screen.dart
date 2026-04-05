@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/providers/app_refresh_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../app/routes.dart';
 import '../../../core/providers/config_provider.dart';
@@ -29,10 +30,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _exclusiveSectionKey = GlobalKey();
 
-  List<Product>          _products          = [];
+  List<Product> _products = [];
   List<ExclusiveProduct> _exclusiveProducts = [];
 
   bool _isLoading = true;
+  int _refreshVersion = 0;
 
   @override
   void initState() {
@@ -46,23 +48,41 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     super.dispose();
   }
 
-  Future<void> _loadData() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final version = context.watch<AppRefreshProvider>().dataVersion;
+    if (_refreshVersion == 0) {
+      _refreshVersion = version;
+      return;
+    }
+    if (version != _refreshVersion) {
+      _refreshVersion = version;
+      _loadData(forceRefresh: true);
+    }
+  }
+
+  Future<void> _loadData({bool forceRefresh = false}) async {
     try {
-      final data = await HomeRepository.fetchAll();
+      if (forceRefresh && mounted) {
+        setState(() => _isLoading = true);
+      }
+
+      final data = await HomeRepository.fetchAll(forceRefresh: forceRefresh);
       if (!mounted) return;
 
       // If exhibition wasn't pre-loaded by CustomerLoadingScreen, update provider now.
       final exhibitionProvider = context.read<ExhibitionProvider>();
-      if (!exhibitionProvider.isLoaded) {
+      if (forceRefresh || !exhibitionProvider.isLoaded) {
         // HomeRepository already fetched it — push it into the provider indirectly
         // by triggering a load (will skip if already loaded by loading screen).
-        await exhibitionProvider.load();
+        await exhibitionProvider.load(forceRefresh: forceRefresh);
       }
 
       setState(() {
-        _products          = data.products;
+        _products = data.products;
         _exclusiveProducts = data.exclusiveProducts;
-        _isLoading         = false;
+        _isLoading = false;
       });
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
@@ -107,18 +127,18 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 child: KeyedSubtree(
                   key: _exclusiveSectionKey,
                   child: ExclusiveSection(
-                    products:     _exclusiveProducts,
+                    products: _exclusiveProducts,
                     onProductTap: _goToExclusiveDetail,
-                    isLoading:    _isLoading,
+                    isLoading: _isLoading,
                   ),
                 ),
               ),
               const SliverToBoxAdapter(child: ExhibitionSection()),
               SliverToBoxAdapter(
                 child: AllProductsSection(
-                  products:            _products,
+                  products: _products,
                   onBrowseCategoryTap: _goToCategories,
-                  isLoading:           _isLoading,
+                  isLoading: _isLoading,
                 ),
               ),
               const SliverToBoxAdapter(child: CategoriesSection()),

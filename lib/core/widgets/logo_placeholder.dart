@@ -6,10 +6,7 @@ import '../theme/app_theme.dart';
 class LogoPlaceholder extends StatelessWidget {
   final double size;
 
-  const LogoPlaceholder({
-    super.key,
-    this.size = 80,
-  });
+  const LogoPlaceholder({super.key, this.size = 80});
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +16,7 @@ class LogoPlaceholder extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.greyPlaceholder,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: AppTheme.divider,
-          width: 2,
-        ),
+        border: Border.all(color: AppTheme.divider, width: 2),
       ),
       child: Icon(
         Icons.question_mark_rounded,

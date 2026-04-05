@@ -12,15 +12,18 @@ import '../../../../models/product.dart';
 class ExclusiveProductRepository {
   ExclusiveProductRepository._();
 
-
   static final _media = MediaService();
 
   // ── READ ──────────────────────────────────────────────────────────────────
 
   /// Get all exclusive products, sorted by order.
-  static Future<List<ExclusiveProduct>> getExclusiveProducts() async {
+  static Future<List<ExclusiveProduct>> getExclusiveProducts({
+    bool forceRefresh = false,
+  }) async {
     try {
-      return await FirestoreService.getExclusiveProducts();
+      return await FirestoreService.getExclusiveProducts(
+        forceRefresh: forceRefresh,
+      );
     } catch (e) {
       debugPrint('ExclusiveProductRepository.getExclusiveProducts error: $e');
       rethrow;
@@ -105,7 +108,9 @@ class ExclusiveProductRepository {
 
       // 3. Update with actual URLs
       if (urls.isNotEmpty) {
-        await FirestoreService.updateExclusiveProduct(docId, {'imageUrls': urls});
+        await FirestoreService.updateExclusiveProduct(docId, {
+          'imageUrls': urls,
+        });
       }
 
       return docId;
@@ -206,7 +211,9 @@ class ExclusiveProductRepository {
 
       await FirestoreService.updateExclusiveProduct(id, updateData);
     } catch (e) {
-      debugPrint('ExclusiveProductRepository.updateExclusiveProductWithImages error: $e');
+      debugPrint(
+        'ExclusiveProductRepository.updateExclusiveProductWithImages error: $e',
+      );
       rethrow;
     }
   }
@@ -230,12 +237,17 @@ class ExclusiveProductRepository {
   // ── HELPERS ───────────────────────────────────────────────────────────────
 
   /// Check if product title is unique.
-  static Future<bool> isProductTitleUnique(String title, {String? excludeId}) async {
+  static Future<bool> isProductTitleUnique(
+    String title, {
+    String? excludeId,
+  }) async {
     try {
       final products = await FirestoreService.getExclusiveProducts();
-      return !products.any((p) =>
-          p.title.toLowerCase() == title.toLowerCase() &&
-          (excludeId == null || p.id != excludeId));
+      return !products.any(
+        (p) =>
+            p.title.toLowerCase() == title.toLowerCase() &&
+            (excludeId == null || p.id != excludeId),
+      );
     } catch (e) {
       debugPrint('ExclusiveProductRepository.isProductTitleUnique error: $e');
       return false;

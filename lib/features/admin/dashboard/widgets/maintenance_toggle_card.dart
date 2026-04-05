@@ -21,7 +21,9 @@ class MaintenanceToggleCard extends StatelessWidget {
             : AppTheme.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isEnabled ? AppTheme.terracotta.withOpacity(0.3) : AppTheme.divider,
+          color: isEnabled
+              ? AppTheme.terracotta.withOpacity(0.3)
+              : AppTheme.divider,
         ),
       ),
       child: Row(

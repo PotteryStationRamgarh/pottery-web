@@ -28,11 +28,7 @@ class PotteryPlaceholder extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 32,
-              color: AppTheme.lightBrown.withOpacity(0.4),
-            ),
+            Icon(icon, size: 32, color: AppTheme.lightBrown.withOpacity(0.4)),
             const SizedBox(height: 8),
             Text(
               'Image Not Available',
@@ -48,10 +44,7 @@ class PotteryPlaceholder extends StatelessWidget {
     );
 
     if (aspectRatio != null) {
-      return AspectRatio(
-        aspectRatio: aspectRatio!,
-        child: content,
-      );
+      return AspectRatio(aspectRatio: aspectRatio!, child: content);
     }
 
     return content;

@@ -5,7 +5,6 @@ import '../../../core/providers/config_provider.dart';
 import '../../../core/providers/exhibition_provider.dart';
 import '../../../core/repositories/home_repository.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../models/product.dart';
 import '../../../app/routes.dart';
 
 /// Shown immediately after sign-in for customer users.
@@ -20,23 +19,15 @@ class CustomerLoadingScreen extends StatefulWidget {
 
 class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _pulse;
-  late Animation<double>   _pulseAnim;
-
-  String _statusText = 'Getting things ready…';
-  double _progress   = 0;
 
   @override
   void initState() {
     super.initState();
     _pulse = AnimationController(
-      vsync:    this,
+      vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
-    _pulseAnim = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
-    );
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadEverything());
   }
 
@@ -50,33 +41,24 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
     try {
       // Step 1: Config (skips if already loaded from splash)
       _setStatus('Loading app config…', 0.1);
-      final config     = context.read<ConfigProvider>();
+      final config = context.read<ConfigProvider>();
       final exhibition = context.read<ExhibitionProvider>();
 
       await Future.wait([
-        if (!config.isLoaded)     config.load(),
+        if (!config.isLoaded) config.load(),
         if (!exhibition.isLoaded) exhibition.load(),
       ]);
 
       // Step 2: Fetch products + exclusives in parallel via HomeRepository
       _setStatus('Fetching products…', 0.3);
-      final data = await HomeRepository.fetchAll();
+      await HomeRepository.fetchAll();
 
-      final products   = data.products;
-      final exclusives = data.exclusiveProducts;
-      // data.activeExhibition is already loaded above via exhibition.load()
-
-      // Step 3: Precache all images in parallel
-      _setStatus('Caching images…', 0.55);
+      // Step 3: Precache only key above-the-fold images. The rest lazy-load.
+      _setStatus('Caching key visuals…', 0.55);
       final imageUrls = <String>[
-        if (config.branding.logoUrl.isNotEmpty)      config.branding.logoUrl,
-        if (config.branding.heroImageUrl.isNotEmpty) config.branding.heroImageUrl,
-        for (final p in products)
-          if (p.primaryImage.isNotEmpty) p.primaryImage,
-        for (final e in exclusives) ...[
-          if (e.primaryImage.isNotEmpty) e.primaryImage,
-          ...e.imageUrls.where((u) => u.isNotEmpty),
-        ],
+        if (config.branding.logoUrl.isNotEmpty) config.branding.logoUrl,
+        if (config.branding.heroImageUrl.isNotEmpty)
+          config.branding.heroImageUrl,
         if (exhibition.exhibition.imageUrl.isNotEmpty)
           exhibition.exhibition.imageUrl,
       ];
@@ -85,7 +67,7 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
 
       // Step 4: Navigate
       _setStatus('All set!', 1.0);
-      await Future.delayed(const Duration(milliseconds: 350));
+      await Future.delayed(const Duration(milliseconds: 120));
 
       if (mounted) {
         Navigator.pushReplacementNamed(context, Routes.customerHome);
@@ -112,14 +94,19 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
         } catch (_) {}
         done++;
         if (mounted) {
-          _setStatus('Caching images… ($done/$total)', 0.55 + (done / total) * 0.35);
+          _setStatus(
+            'Caching key visuals… ($done/$total)',
+            0.55 + (done / total) * 0.35,
+          );
         }
       }),
     );
   }
 
   void _setStatus(String text, double progress) {
-    if (mounted) setState(() { _statusText = text; _progress = progress; });
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -138,7 +125,8 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
                 borderRadius: BorderRadius.circular(16),
                 child: Image.network(
                   logoUrl,
-                  width: 80, height: 80,
+                  width: 80,
+                  height: 80,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => _textLogo(),
                 ),
@@ -149,18 +137,24 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
             const SizedBox(height: 40),
 
             Text(
-              config.branding.appName.isNotEmpty ? config.branding.appName : 'Pottery Station',
+              config.branding.appName.isNotEmpty
+                  ? config.branding.appName
+                  : 'Pottery Station',
               style: GoogleFonts.playfairDisplay(
-                fontSize: 28, fontWeight: FontWeight.w600,
-                color: AppTheme.lightBrown, letterSpacing: 1.0,
+                fontSize: 28,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.lightBrown,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: 6),
             Text(
               'RAMGARH',
               style: GoogleFonts.jost(
-                fontSize: 11, fontWeight: FontWeight.w300,
-                color: AppTheme.lightBrown.withOpacity(0.45), letterSpacing: 6,
+                fontSize: 11,
+                fontWeight: FontWeight.w300,
+                color: AppTheme.lightBrown.withOpacity(0.45),
+                letterSpacing: 6,
               ),
             ),
 
@@ -183,7 +177,9 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
   Widget _textLogo() => Text(
     'PS',
     style: GoogleFonts.playfairDisplay(
-      fontSize: 42, fontWeight: FontWeight.w600, color: AppTheme.lightBrown,
+      fontSize: 42,
+      fontWeight: FontWeight.w600,
+      color: AppTheme.lightBrown,
     ),
   );
 }

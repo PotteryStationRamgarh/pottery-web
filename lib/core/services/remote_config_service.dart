@@ -7,10 +7,12 @@ class RemoteConfigService {
 
   static Future<void> initialize() async {
     try {
-      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: const Duration(hours: 1),
-      ));
+      await _remoteConfig.setConfigSettings(
+        RemoteConfigSettings(
+          fetchTimeout: const Duration(minutes: 1),
+          minimumFetchInterval: const Duration(hours: 1),
+        ),
+      );
 
       // Define default values in case network fails
       await _remoteConfig.setDefaults(const {
@@ -27,6 +29,8 @@ class RemoteConfigService {
   }
 
   static String get r2AccountId => _remoteConfig.getString('r2_account_id');
-  static String get r2AccessKeyId => _remoteConfig.getString('r2_access_key_id');
-  static String get r2SecretAccessKey => _remoteConfig.getString('r2_secret_access_key');
+  static String get r2AccessKeyId =>
+      _remoteConfig.getString('r2_access_key_id');
+  static String get r2SecretAccessKey =>
+      _remoteConfig.getString('r2_secret_access_key');
 }

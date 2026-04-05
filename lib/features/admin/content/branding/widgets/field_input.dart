@@ -31,7 +31,9 @@ class FieldInput extends StatelessWidget {
           maxLines: maxLines,
           style: AppTheme.bodyLarge,
           decoration: AppTheme.inputDecoration(
-              label: label, hint: 'Enter $label'),
+            label: label,
+            hint: 'Enter $label',
+          ),
         ),
       ],
     );

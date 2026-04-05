@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../../../models/product.dart';
 import '../../../../app/routes.dart';
 import '../../widgets/exclusive_card.dart';
@@ -35,7 +36,7 @@ class ExclusiveSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
 
     // Hide if products are empty
     if (!isLoading && products.isEmpty) return const SizedBox.shrink();
@@ -54,7 +55,6 @@ class ExclusiveSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // Section header
             _buildHeader(context, isMobile),
 
@@ -64,11 +64,10 @@ class ExclusiveSection extends StatelessWidget {
             isLoading
                 ? _buildShimmer(isMobile)
                 : (products.isEmpty)
-                    ? _buildFallbackGrid(isMobile)
-                    : isMobile
-                        ? _buildMobileScroll()
-                        : _buildDesktopGrid(),
-
+                ? _buildFallbackGrid(isMobile)
+                : isMobile
+                ? _buildMobileScroll()
+                : _buildDesktopGrid(),
           ],
         ),
       ),
@@ -82,17 +81,21 @@ class ExclusiveSection extends StatelessWidget {
   Widget _buildHeader(BuildContext context, bool isMobile) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isNarrowHeader = constraints.maxWidth < 450;
-        
+        final isNarrowHeader = ResponsiveBreakpoints.isMobileWidth(
+          constraints.maxWidth,
+        );
+
         return isNarrowHeader
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildTitleColumn(isMobile),
                   const SizedBox(height: 16),
-                  _ViewAllLink(onTap: () {
-                    Navigator.pushNamed(context, Routes.exclusiveList);
-                  }),
+                  _ViewAllLink(
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.exclusiveList);
+                    },
+                  ),
                 ],
               )
             : Row(
@@ -100,9 +103,11 @@ class ExclusiveSection extends StatelessWidget {
                 children: [
                   Expanded(child: _buildTitleColumn(isMobile)),
                   const SizedBox(width: 16),
-                  _ViewAllLink(onTap: () {
-                    Navigator.pushNamed(context, Routes.exclusiveList);
-                  }),
+                  _ViewAllLink(
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.exclusiveList);
+                    },
+                  ),
                 ],
               );
       },
@@ -144,22 +149,26 @@ class ExclusiveSection extends StatelessWidget {
 
   Widget _buildFallbackGrid(bool isMobile) {
     // Generate 3 dummy products to satisfy the "Always render cards" requirement
-    final fallbacks = List.generate(3, (i) => ExclusiveProduct(
-      id:             'fallback_$i',
-      title:          'Item not available',
-      description:    'Description not available',
-      imageUrls:      [],
-      totalPieces:    0,
-      hasCertificate: false,
-      material:       'Premium Clay',
-      craftingTime:   '6-8 Weeks',
-      order:          i,
-      isActive:       true,
-    ));
+    final fallbacks = List.generate(
+      3,
+      (i) => ExclusiveProduct(
+        id: 'fallback_$i',
+        title: 'Item not available',
+        description: 'Description not available',
+        imageUrls: [],
+        totalPieces: 0,
+        hasCertificate: false,
+        material: 'Premium Clay',
+        craftingTime: '6-8 Weeks',
+        order: i,
+        isActive: true,
+      ),
+    );
 
     if (isMobile) {
       return SizedBox(
-        height: 500, // Increased from 420 to prevent "LIMITED PRODUCT" badge overflow
+        height:
+            500, // Increased from 420 to prevent "LIMITED PRODUCT" badge overflow
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: 3,
@@ -168,10 +177,7 @@ class ExclusiveSection extends StatelessWidget {
               width: 260,
               child: Padding(
                 padding: EdgeInsets.only(right: index < 2 ? 16 : 0),
-                child: ExclusiveCard(
-                  product: fallbacks[index],
-                  onTap: () {},
-                ),
+                child: ExclusiveCard(product: fallbacks[index], onTap: () {}),
               ),
             );
           },
@@ -185,14 +191,11 @@ class ExclusiveSection extends StatelessWidget {
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(
-              top:   index == 1 ? 64.0 : 0.0, // Staggered look
-              left:  index == 0 ? 0.0  : 20.0,
+              top: index == 1 ? 64.0 : 0.0, // Staggered look
+              left: index == 0 ? 0.0 : 20.0,
               right: index == 2 ? 0.0 : 20.0,
             ),
-            child: ExclusiveCard(
-              product: fallbacks[index],
-              onTap: () {},
-            ),
+            child: ExclusiveCard(product: fallbacks[index], onTap: () {}),
           ),
         );
       }),
@@ -214,13 +217,13 @@ class ExclusiveSection extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.only(
               // Middle card pushed down for editorial stagger effect
-              top:   index == 1 ? 64.0 : 0.0,
-              left:  index == 0 ? 0.0  : 20.0,
+              top: index == 1 ? 64.0 : 0.0,
+              left: index == 0 ? 0.0 : 20.0,
               right: index == items.length - 1 ? 0.0 : 20.0,
             ),
             child: ExclusiveCard(
               product: items[index],
-              onTap:   () => onProductTap(items[index]),
+              onTap: () => onProductTap(items[index]),
             ),
           ),
         );
@@ -234,7 +237,8 @@ class ExclusiveSection extends StatelessWidget {
 
   Widget _buildMobileScroll() {
     return SizedBox(
-      height: 500, // Increased from 420 to prevent "LIMITED PRODUCT" badge overflow
+      height:
+          500, // Increased from 420 to prevent "LIMITED PRODUCT" badge overflow
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: products.length,
@@ -247,7 +251,7 @@ class ExclusiveSection extends StatelessWidget {
               ),
               child: ExclusiveCard(
                 product: products[index],
-                onTap:   () => onProductTap(products[index]),
+                onTap: () => onProductTap(products[index]),
               ),
             ),
           );
@@ -269,10 +273,7 @@ class ExclusiveSection extends StatelessWidget {
           itemCount: 3,
           itemBuilder: (_, index) => Padding(
             padding: EdgeInsets.only(right: index < 2 ? 16 : 0),
-            child: SizedBox(
-              width: 260,
-              child: _ShimmerCard(),
-            ),
+            child: SizedBox(width: 260, child: _ShimmerCard()),
           ),
         ),
       );
@@ -284,9 +285,9 @@ class ExclusiveSection extends StatelessWidget {
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(
-              top:   index == 1 ? 64.0 : 0.0,
-              left:  index == 0 ? 0.0  : 20.0,
-              right: index == 2 ? 0.0  : 20.0,
+              top: index == 1 ? 64.0 : 0.0,
+              left: index == 0 ? 0.0 : 20.0,
+              right: index == 2 ? 0.0 : 20.0,
             ),
             child: _ShimmerCard(),
           ),
@@ -315,7 +316,7 @@ class _ViewAllLinkState extends State<_ViewAllLink> {
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
@@ -348,16 +349,12 @@ class _ViewAllLinkState extends State<_ViewAllLink> {
             ),
             const SizedBox(width: 6),
             AnimatedSlide(
-              offset: _isHovered
-                  ? const Offset(0.2, 0)
-                  : Offset.zero,
+              offset: _isHovered ? const Offset(0.2, 0) : Offset.zero,
               duration: const Duration(milliseconds: 200),
               child: Icon(
                 Icons.north_east,
                 size: 13,
-                color: _isHovered
-                    ? AppTheme.primaryBrown
-                    : AppTheme.textLight,
+                color: _isHovered ? AppTheme.primaryBrown : AppTheme.textLight,
               ),
             ),
           ],
@@ -389,9 +386,10 @@ class _ShimmerCardState extends State<_ShimmerCard>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _anim = Tween<double>(begin: 0.3, end: 0.7).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
+    _anim = Tween<double>(
+      begin: 0.3,
+      end: 0.7,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -407,7 +405,6 @@ class _ShimmerCardState extends State<_ShimmerCard>
       builder: (_, __) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // Image placeholder — same 4:5 ratio as real card
           AspectRatio(
             aspectRatio: 4 / 5,
@@ -415,10 +412,10 @@ class _ShimmerCardState extends State<_ShimmerCard>
               decoration: BoxDecoration(
                 color: AppTheme.divider.withOpacity(_anim.value),
                 borderRadius: const BorderRadius.only(
-                  topLeft:     Radius.circular(32),
+                  topLeft: Radius.circular(32),
                   bottomRight: Radius.circular(32),
-                  topRight:    Radius.circular(8),
-                  bottomLeft:  Radius.circular(8),
+                  topRight: Radius.circular(8),
+                  bottomLeft: Radius.circular(8),
                 ),
               ),
             ),
@@ -447,7 +444,6 @@ class _ShimmerCardState extends State<_ShimmerCard>
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-
         ],
       ),
     );

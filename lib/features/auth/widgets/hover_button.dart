@@ -17,8 +17,8 @@ class HoverButton extends StatefulWidget {
     super.key,
     required this.onTap,
     required this.label,
-    this.isLoading    = false,
-    this.isSecondary  = false,
+    this.isLoading = false,
+    this.isSecondary = false,
   });
 
   @override
@@ -35,7 +35,7 @@ class _HoverButtonState extends State<HoverButton> {
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         height: 52,
@@ -58,26 +58,26 @@ class _HoverButtonState extends State<HoverButton> {
                 color: isDisabled
                     ? AppTheme.divider
                     : _isHovered
-                        ? AppTheme.primaryBrown.withOpacity(0.85)
-                        : AppTheme.primaryBrown,
+                    ? AppTheme.primaryBrown.withOpacity(0.85)
+                    : AppTheme.primaryBrown,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: isDisabled
                     ? []
                     : _isHovered
-                        ? [
-                            BoxShadow(
-                              color:      AppTheme.primaryBrown.withOpacity(0.3),
-                              blurRadius: 16,
-                              offset:     const Offset(0, 6),
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color:      AppTheme.primaryBrown.withOpacity(0.15),
-                              blurRadius: 8,
-                              offset:     const Offset(0, 3),
-                            ),
-                          ],
+                    ? [
+                        BoxShadow(
+                          color: AppTheme.primaryBrown.withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: AppTheme.primaryBrown.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
               ),
         child: Material(
           color: Colors.transparent,
@@ -88,7 +88,7 @@ class _HoverButtonState extends State<HoverButton> {
               child: widget.isLoading
                   ? SizedBox(
                       height: 22,
-                      width:  22,
+                      width: 22,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: widget.isSecondary
@@ -102,11 +102,11 @@ class _HoverButtonState extends State<HoverButton> {
                         letterSpacing: _isHovered ? 1.8 : 1.2,
                         color: widget.isSecondary
                             ? isDisabled
-                                ? AppTheme.greyPlaceholder
-                                : AppTheme.primaryBrown
+                                  ? AppTheme.greyPlaceholder
+                                  : AppTheme.primaryBrown
                             : isDisabled
-                                ? AppTheme.greyPlaceholder
-                                : AppTheme.white,
+                            ? AppTheme.greyPlaceholder
+                            : AppTheme.white,
                       ),
                       child: Text(widget.label.toUpperCase()),
                     ),

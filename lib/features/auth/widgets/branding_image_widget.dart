@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/providers/app_refresh_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/branding_provider.dart';
+import '../../../core/utils/cache_busted_url.dart';
 
 /// BrandingImageWidget — shows auth image on signin/signup screens.
 ///
@@ -15,6 +17,9 @@ class BrandingImageWidget extends StatelessWidget {
     final branding = context.watch<BrandingProvider>().branding;
     final imageUrl = branding.authImageUrl.trim();
     final hasImage = imageUrl.isNotEmpty;
+    final imageVersion = context.select<AppRefreshProvider, int>(
+      (value) => value.imageVersion,
+    );
 
     return Container(
       width: double.infinity,
@@ -25,14 +30,16 @@ class BrandingImageWidget extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: hasImage ? _networkImage(imageUrl) : _placeholder(),
+        child: hasImage
+            ? _networkImage(imageUrl, imageVersion)
+            : _placeholder(),
       ),
     );
   }
 
-  Widget _networkImage(String url) {
+  Widget _networkImage(String url, int imageVersion) {
     return Image.network(
-      url,
+      CacheBustedUrl.withVersion(url, imageVersion),
       fit: BoxFit.cover,
       // Since splash precached this, wasSynchronouslyLoaded = true
       // → renders immediately with no fade or placeholder flash

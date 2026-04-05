@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/config_provider.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 /// HomeFooter — bottom section of the customer home screen.
 /// Shows brand name, nav links, social links, copyright.
@@ -17,19 +18,18 @@ class HomeFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config   = context.watch<ConfigProvider>();
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final config = context.watch<ConfigProvider>();
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
 
     return Container(
       width: double.infinity,
       color: AppTheme.footerBackground,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 80,
-        vertical:   isMobile ? 48 : 64,
+        vertical: isMobile ? 48 : 64,
       ),
       child: Column(
         children: [
-
           // Brand name — italic serif
           Text(
             config.branding.appName.isNotEmpty
@@ -47,11 +47,10 @@ class HomeFooter extends StatelessWidget {
 
           // Footer links — wraps on mobile
           Wrap(
-            spacing:    isMobile ? 20 : 48,
+            spacing: isMobile ? 20 : 48,
             runSpacing: 16,
-            alignment:  WrapAlignment.center,
+            alignment: WrapAlignment.center,
             children: [
-
               _FooterLink(
                 label: 'Instagram',
                 onTap: () => _openSocial(context, config.social.instagramUrl),
@@ -68,7 +67,7 @@ class HomeFooter extends StatelessWidget {
                 label: 'About Us',
                 onTap: () => _showTextDialog(
                   context,
-                  title:   'About Us',
+                  title: 'About Us',
                   content: config.content.aboutUs,
                 ),
               ),
@@ -76,7 +75,7 @@ class HomeFooter extends StatelessWidget {
                 label: 'Privacy Policy',
                 onTap: () => _showTextDialog(
                   context,
-                  title:   'Privacy Policy',
+                  title: 'Privacy Policy',
                   content: config.content.privacyPolicy,
                 ),
               ),
@@ -84,11 +83,10 @@ class HomeFooter extends StatelessWidget {
                 label: 'Terms',
                 onTap: () => _showTextDialog(
                   context,
-                  title:   'Terms & Conditions',
+                  title: 'Terms & Conditions',
                   content: config.content.termsConditions,
                 ),
               ),
-
             ],
           ),
 
@@ -112,7 +110,6 @@ class HomeFooter extends StatelessWidget {
               height: 1.6,
             ),
           ),
-
         ],
       ),
     );
@@ -131,9 +128,7 @@ class HomeFooter extends StatelessWidget {
         ),
         backgroundColor: AppTheme.primaryBrown,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -165,7 +160,7 @@ class HomeFooter extends StatelessWidget {
       context,
       title: 'Contact Us',
       content: [
-        if (c.address.isNotEmpty)      '📍  ${c.address}',
+        if (c.address.isNotEmpty) '📍  ${c.address}',
         if (c.supportEmail.isNotEmpty) '✉️  ${c.supportEmail}',
         if (c.supportPhone.isNotEmpty) '📞  ${c.supportPhone}',
       ].join('\n\n'),
@@ -181,21 +176,15 @@ class HomeFooter extends StatelessWidget {
       context: context,
       builder: (_) => Dialog(
         backgroundColor: AppTheme.background,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth:  520,
-            maxHeight: 520,
-          ),
+          constraints: const BoxConstraints(maxWidth: 520, maxHeight: 520),
           child: Padding(
             padding: const EdgeInsets.all(36),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 Text(
                   title,
                   style: GoogleFonts.playfairDisplay(
@@ -239,7 +228,6 @@ class HomeFooter extends StatelessWidget {
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
@@ -270,7 +258,7 @@ class _FooterLinkState extends State<_FooterLink> {
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,

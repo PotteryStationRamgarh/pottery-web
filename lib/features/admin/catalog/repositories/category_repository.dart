@@ -17,9 +17,11 @@ class CategoryRepository {
   // ── READ ──────────────────────────────────────────────────────────────────
 
   /// Get all categories, sorted by order.
-  static Future<List<ProductCategory>> getCategories() async {
+  static Future<List<ProductCategory>> getCategories({
+    bool forceRefresh = false,
+  }) async {
     try {
-      return await FirestoreService.getCategories();
+      return await FirestoreService.getCategories(forceRefresh: forceRefresh);
     } catch (e) {
       debugPrint('CategoryRepository.getCategories error: $e');
       rethrow;
@@ -40,7 +42,7 @@ class CategoryRepository {
   // ── CREATE ────────────────────────────────────────────────────────────────
 
   /// Add new category with single image upload.
-  /// 
+  ///
   /// Flow:
   /// 1. Create Firestore document (returns docId)
   /// 2. Upload image using docId
@@ -177,12 +179,17 @@ class CategoryRepository {
   // ── HELPERS ───────────────────────────────────────────────────────────────
 
   /// Check if category name is unique (for validation).
-  static Future<bool> isCategoryNameUnique(String name, {String? excludeId}) async {
+  static Future<bool> isCategoryNameUnique(
+    String name, {
+    String? excludeId,
+  }) async {
     try {
       final categories = await FirestoreService.getCategories();
-      return !categories.any((c) =>
-          c.name.toLowerCase() == name.toLowerCase() &&
-          (excludeId == null || c.id != excludeId));
+      return !categories.any(
+        (c) =>
+            c.name.toLowerCase() == name.toLowerCase() &&
+            (excludeId == null || c.id != excludeId),
+      );
     } catch (e) {
       debugPrint('CategoryRepository.isCategoryNameUnique error: $e');
       return false;

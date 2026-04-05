@@ -25,7 +25,6 @@ class MaintenanceScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-
               // Icon inside a soft circle border
               // Keeps it minimal — no heavy graphics needed
               Container(
@@ -88,7 +87,6 @@ class MaintenanceScreen extends StatelessWidget {
                   letterSpacing: 4,
                 ),
               ),
-
             ],
           ),
         ),

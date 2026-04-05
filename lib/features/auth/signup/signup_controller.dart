@@ -1,12 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/utils/validation_utils.dart';
-import '../../../core/services/firebase_service.dart';
 import '../auth_service.dart';
 
 /// SignupController handles all business logic for the signup screen.
 /// After successful signup it also creates a Firestore user document.
 class SignupController {
-
   final AuthService _authService = AuthService();
 
   /// Attempts to create a new account with given credentials.
@@ -19,7 +17,6 @@ class SignupController {
     required String password,
     required String confirmPassword,
   }) async {
-
     // Enhanced validation using ValidationUtils
     final emailError = ValidationUtils.validateEmail(email);
     if (emailError != null) return emailError;
@@ -34,10 +31,7 @@ class SignupController {
 
     try {
       // Create account — auth_service also sends verification email automatically
-      await _authService.signUp(
-        email: email.trim(),
-        password: password,
-      );
+      await _authService.signUp(email: email.trim(), password: password);
 
       // null = signup successful, verification email sent
       // Document creation is now moved to VerifyEmailController after success

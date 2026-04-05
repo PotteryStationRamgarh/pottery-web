@@ -2,9 +2,12 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/providers/app_refresh_provider.dart';
 import '../../../../core/repositories/exhibition_repository.dart';
 import '../../../../core/services/media_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../../../models/exhibition.dart';
 
 class AdminExhibitionPage extends StatefulWidget {
@@ -82,7 +85,7 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
   Future<void> _loadExhibitions() async {
     setState(() => _isLoading = true);
     try {
-      final list = await ExhibitionRepository.getAll();
+      final list = await ExhibitionRepository.getAll(forceRefresh: true);
       // Filter: Show only exhibitions where endDate is within last 30 days OR in future
       final cutoff = DateTime.now().subtract(const Duration(days: 30));
       _allExhibitions = list.where((e) {
@@ -105,7 +108,7 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
         _filteredExhibitions = _allExhibitions.where((e) {
           final query = _searchQuery.toLowerCase();
           return e.title.toLowerCase().contains(query) ||
-                 e.location.toLowerCase().contains(query);
+              e.location.toLowerCase().contains(query);
         }).toList();
       }
     });
@@ -120,7 +123,10 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
         title: const Text('Delete Exhibition?'),
         content: const Text('This cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -132,6 +138,7 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
     if (confirmed == true) {
       try {
         await ExhibitionRepository.deleteExhibition(exhibition.id);
+        if (mounted) context.read<AppRefreshProvider>().invalidateAll();
         _showSnackbar('Exhibition deleted');
         _loadExhibitions();
       } catch (e) {
@@ -157,7 +164,9 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
       _lastDayMsgCtrl.text = exhibition.lastDayMessage;
       _thankYouMsgCtrl.text = exhibition.thankYouMessage;
       _isActive = exhibition.isActive;
-      _currentImageUrl = exhibition.imageUrl.isNotEmpty ? exhibition.imageUrl : null;
+      _currentImageUrl = exhibition.imageUrl.isNotEmpty
+          ? exhibition.imageUrl
+          : null;
     } else {
       _titleCtrl.clear();
       _locationCtrl.clear();
@@ -196,7 +205,9 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
       final docId = _editingExhibition?.id ?? '';
 
       if (_newImageBytes != null) {
-        final pathSegment = docId.isNotEmpty ? docId : 'new_${DateTime.now().millisecondsSinceEpoch}';
+        final pathSegment = docId.isNotEmpty
+            ? docId
+            : 'new_${DateTime.now().millisecondsSinceEpoch}';
         final urls = await _mediaService.uploadImages(
           docId: pathSegment,
           pathPrefix: 'exhibition',
@@ -223,6 +234,7 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
       );
 
       await ExhibitionRepository.save(exhibition);
+      if (mounted) context.read<AppRefreshProvider>().invalidateAll();
       _showSnackbar('Exhibition saved successfully');
       _showList();
     } catch (e) {
@@ -259,8 +271,10 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) _startDate = picked;
-        else _endDate = picked;
+        if (isStart)
+          _startDate = picked;
+        else
+          _endDate = picked;
       });
     }
   }
@@ -300,12 +314,17 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
           padding: const EdgeInsets.all(32),
           child: LayoutBuilder(
             builder: (context, headerConstraints) {
-              final isNarrowHeader = headerConstraints.maxWidth < 650;
+              final isNarrowHeader = ResponsiveBreakpoints.isMobileWidth(
+                headerConstraints.maxWidth,
+              );
               return isNarrowHeader
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Exhibition Management', style: AppTheme.headingLarge),
+                        Text(
+                          'Exhibition Management',
+                          style: AppTheme.headingLarge,
+                        ),
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
@@ -316,7 +335,12 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(child: Text('Exhibition Management', style: AppTheme.headingLarge)),
+                        Expanded(
+                          child: Text(
+                            'Exhibition Management',
+                            style: AppTheme.headingLarge,
+                          ),
+                        ),
                         _buildAddButton(),
                       ],
                     );
@@ -333,12 +357,16 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
               _searchQuery = val;
               _applyFilter();
             },
-            decoration: AppTheme.inputDecoration(
-              label: 'Search exhibitions...',
-              hint: 'Search by title or location',
-            ).copyWith(
-              prefixIcon: const Icon(Icons.search, color: AppTheme.textLight),
-            ),
+            decoration:
+                AppTheme.inputDecoration(
+                  label: 'Search exhibitions...',
+                  hint: 'Search by title or location',
+                ).copyWith(
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppTheme.textLight,
+                  ),
+                ),
           ),
         ),
 
@@ -349,13 +377,15 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _filteredExhibitions.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                      itemCount: _filteredExhibitions.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 16),
-                      itemBuilder: (context, index) => _buildExhibitionCard(_filteredExhibitions[index]),
-                    ),
+              ? _buildEmptyState()
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
+                  itemCount: _filteredExhibitions.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
+                  itemBuilder: (context, index) =>
+                      _buildExhibitionCard(_filteredExhibitions[index]),
+                ),
         ),
       ],
     );
@@ -368,12 +398,20 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
         children: [
           const Icon(Icons.event_note, size: 64, color: AppTheme.textLight),
           const SizedBox(height: 16),
-          Text(_searchQuery.isEmpty ? 'No exhibitions yet. Add your first exhibition.' : 'No exhibitions match your search.', style: AppTheme.bodyLarge),
+          Text(
+            _searchQuery.isEmpty
+                ? 'No exhibitions yet. Add your first exhibition.'
+                : 'No exhibitions match your search.',
+            style: AppTheme.bodyLarge,
+          ),
           const SizedBox(height: 24),
           if (_searchQuery.isEmpty)
             ElevatedButton(
               onPressed: () => _showForm(),
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBrown, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryBrown,
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Add Exhibition'),
             ),
         ],
@@ -384,7 +422,10 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
   Widget _buildExhibitionCard(Exhibition exhibition) {
     final status = _determineStatus(exhibition);
     final statusColor = _getStatusColor(status);
-    final dateRange = _formatDateRange(exhibition.startDate, exhibition.endDate);
+    final dateRange = _formatDateRange(
+      exhibition.startDate,
+      exhibition.endDate,
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -394,8 +435,10 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isNarrow = constraints.maxWidth < 600;
-          
+          final isNarrow = ResponsiveBreakpoints.isMobileWidth(
+            constraints.maxWidth,
+          );
+
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -408,57 +451,77 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                     color: AppTheme.background,
                     borderRadius: BorderRadius.circular(8),
                     image: exhibition.imageUrl.isNotEmpty
-                        ? DecorationImage(image: NetworkImage(exhibition.imageUrl), fit: BoxFit.cover)
+                        ? DecorationImage(
+                            image: NetworkImage(exhibition.imageUrl),
+                            fit: BoxFit.cover,
+                          )
                         : null,
                   ),
-                  child: exhibition.imageUrl.isEmpty ? const Icon(Icons.image, color: AppTheme.greyPlaceholder) : null,
+                  child: exhibition.imageUrl.isEmpty
+                      ? const Icon(Icons.image, color: AppTheme.greyPlaceholder)
+                      : null,
                 ),
                 const SizedBox(width: 16),
-    
+
                 // Info
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        exhibition.title, 
+                        exhibition.title,
                         style: AppTheme.headingMedium.copyWith(fontSize: 16),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        exhibition.location, 
+                        exhibition.location,
                         style: AppTheme.bodySmall,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (!isNarrow) ...[
                         const SizedBox(height: 4),
-                        Text(dateRange, style: AppTheme.bodySmall.copyWith(color: AppTheme.textLight)),
+                        Text(
+                          dateRange,
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.textLight,
+                          ),
+                        ),
                       ],
                     ],
                   ),
                 ),
-    
+
                 const SizedBox(width: 8),
-                
+
                 // Status Badge (Hide text if very narrow)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     status,
-                    style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                
+
                 if (!isNarrow) ...[
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: AppTheme.primaryBrown),
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      color: AppTheme.primaryBrown,
+                    ),
                     onPressed: () => _showForm(exhibition),
                     tooltip: 'Edit',
                   ),
@@ -470,12 +533,20 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                 ] else ...[
                   PopupMenuButton<String>(
                     onSelected: (val) {
-                      if (val == 'edit') _showForm(exhibition);
-                      else if (val == 'delete') _deleteExhibition(exhibition);
+                      if (val == 'edit')
+                        _showForm(exhibition);
+                      else if (val == 'delete')
+                        _deleteExhibition(exhibition);
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -497,10 +568,14 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Active': return AppTheme.successGreen;
-      case 'Upcoming': return AppTheme.primaryBrown;
-      case 'Past': return AppTheme.textLight;
-      default: return Colors.grey;
+      case 'Active':
+        return AppTheme.successGreen;
+      case 'Upcoming':
+        return AppTheme.primaryBrown;
+      case 'Past':
+        return AppTheme.textLight;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -522,7 +597,9 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
           // Header
           LayoutBuilder(
             builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 600;
+              final isNarrow = ResponsiveBreakpoints.isMobileWidth(
+                constraints.maxWidth,
+              );
               return isNarrow
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,13 +610,17 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                               onPressed: _showList,
                               icon: const Icon(Icons.arrow_back),
                               label: const Text('Back to List'),
-                              style: TextButton.styleFrom(foregroundColor: AppTheme.primaryBrown),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppTheme.primaryBrown,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          _editingExhibition == null ? 'Add Exhibition' : 'Edit: ${_editingExhibition!.title}',
+                          _editingExhibition == null
+                              ? 'Add Exhibition'
+                              : 'Edit: ${_editingExhibition!.title}',
                           style: AppTheme.headingLarge,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -552,11 +633,23 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryBrown,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                             child: _isSaving
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
                                 : const Text('Save Exhibition'),
                           ),
                         ),
@@ -568,12 +661,16 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                           onPressed: _showList,
                           icon: const Icon(Icons.arrow_back),
                           label: const Text('Back to List'),
-                          style: TextButton.styleFrom(foregroundColor: AppTheme.primaryBrown),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.primaryBrown,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Text(
-                            _editingExhibition == null ? 'Add Exhibition' : 'Edit: ${_editingExhibition!.title}',
+                            _editingExhibition == null
+                                ? 'Add Exhibition'
+                                : 'Edit: ${_editingExhibition!.title}',
                             style: AppTheme.headingLarge,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -584,11 +681,23 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.primaryBrown,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           child: _isSaving
-                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : const Text('Save Exhibition'),
                         ),
                       ],
@@ -601,7 +710,10 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
           // Active Toggle
           SwitchListTile(
             title: Text('Is Active', style: AppTheme.headingMedium),
-            subtitle: Text('Show this exhibition on the customer home screen', style: AppTheme.bodySmall),
+            subtitle: Text(
+              'Show this exhibition on the customer home screen',
+              style: AppTheme.bodySmall,
+            ),
             activeColor: AppTheme.successGreen,
             value: _isActive,
             onChanged: (val) => setState(() => _isActive = val),
@@ -612,100 +724,201 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
           // Core Info + Dates
           LayoutBuilder(
             builder: (context, c) {
-              final isNarrow = c.maxWidth < 700;
+              final isNarrow = !ResponsiveBreakpoints.isDesktopWidth(
+                c.maxWidth,
+              );
               return isNarrow
-                ? Column(children: [
-                    _buildSection('Core Info', [
-                      _buildField('Title', _titleCtrl),
-                      const SizedBox(height: 16),
-                      _buildField('Location (Short)', _locationCtrl),
-                      const SizedBox(height: 16),
-                      _buildField('Full Address', _addressCtrl, maxLines: 2),
-                      const SizedBox(height: 16),
-                      _buildField('Display Time (e.g. "10am – 6pm")', _displayTimeCtrl),
-                    ]),
-                    const SizedBox(height: 24),
-                    _buildSection('Dates & Image', [
-                      LayoutBuilder(builder: (context, c2) {
-                        return c2.maxWidth < 400
-                          ? Column(children: [
-                              _buildDateBtn('Start Date', _startDate, () => _selectDate(context, true)),
-                              const SizedBox(height: 16),
-                              _buildDateBtn('End Date', _endDate, () => _selectDate(context, false)),
-                            ])
-                          : Row(children: [
-                              Expanded(child: _buildDateBtn('Start Date', _startDate, () => _selectDate(context, true))),
-                              const SizedBox(width: 16),
-                              Expanded(child: _buildDateBtn('End Date', _endDate, () => _selectDate(context, false))),
-                            ]);
-                      }),
-                      const SizedBox(height: 16),
-                      LayoutBuilder(builder: (context, c2) {
-                        return c2.maxWidth < 400
-                          ? Column(children: [
-                              _buildField('Open Time', _openTimeCtrl),
-                              const SizedBox(height: 16),
-                              _buildField('Close Time', _closeTimeCtrl),
-                            ])
-                          : Row(children: [
-                              Expanded(child: _buildField('Open Time', _openTimeCtrl)),
-                              const SizedBox(width: 16),
-                              Expanded(child: _buildField('Close Time', _closeTimeCtrl)),
-                            ]);
-                      }),
-                      const SizedBox(height: 16),
-                      _buildImageCard('Exhibition Image', _newImageBytes, _currentImageUrl, _pickImage),
-                    ]),
-                  ])
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: _buildSection('Core Info', [
+                  ? Column(
+                      children: [
+                        _buildSection('Core Info', [
                           _buildField('Title', _titleCtrl),
                           const SizedBox(height: 16),
                           _buildField('Location (Short)', _locationCtrl),
                           const SizedBox(height: 16),
-                          _buildField('Full Address', _addressCtrl, maxLines: 2),
-                          const SizedBox(height: 16),
-                          _buildField('Display Time (e.g. "10am – 6pm")', _displayTimeCtrl),
-                        ]),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: _buildSection('Dates & Image', [
-                          Row(
-                            children: [
-                              Expanded(child: _buildDateBtn('Start Date', _startDate, () => _selectDate(context, true))),
-                              const SizedBox(width: 16),
-                              Expanded(child: _buildDateBtn('End Date', _endDate, () => _selectDate(context, false))),
-                            ],
+                          _buildField(
+                            'Full Address',
+                            _addressCtrl,
+                            maxLines: 2,
                           ),
                           const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(child: _buildField('Open Time', _openTimeCtrl)),
-                              const SizedBox(width: 16),
-                              Expanded(child: _buildField('Close Time', _closeTimeCtrl)),
-                            ],
+                          _buildField(
+                            'Display Time (e.g. "10am – 6pm")',
+                            _displayTimeCtrl,
+                          ),
+                        ]),
+                        const SizedBox(height: 24),
+                        _buildSection('Dates & Image', [
+                          LayoutBuilder(
+                            builder: (context, c2) {
+                              return c2.maxWidth < 400
+                                  ? Column(
+                                      children: [
+                                        _buildDateBtn(
+                                          'Start Date',
+                                          _startDate,
+                                          () => _selectDate(context, true),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildDateBtn(
+                                          'End Date',
+                                          _endDate,
+                                          () => _selectDate(context, false),
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      children: [
+                                        Expanded(
+                                          child: _buildDateBtn(
+                                            'Start Date',
+                                            _startDate,
+                                            () => _selectDate(context, true),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _buildDateBtn(
+                                            'End Date',
+                                            _endDate,
+                                            () => _selectDate(context, false),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                            },
                           ),
                           const SizedBox(height: 16),
-                          _buildImageCard('Exhibition Image', _newImageBytes, _currentImageUrl, _pickImage),
+                          LayoutBuilder(
+                            builder: (context, c2) {
+                              return c2.maxWidth < 400
+                                  ? Column(
+                                      children: [
+                                        _buildField('Open Time', _openTimeCtrl),
+                                        const SizedBox(height: 16),
+                                        _buildField(
+                                          'Close Time',
+                                          _closeTimeCtrl,
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      children: [
+                                        Expanded(
+                                          child: _buildField(
+                                            'Open Time',
+                                            _openTimeCtrl,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _buildField(
+                                            'Close Time',
+                                            _closeTimeCtrl,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          _buildImageCard(
+                            'Exhibition Image',
+                            _newImageBytes,
+                            _currentImageUrl,
+                            _pickImage,
+                          ),
                         ]),
-                      ),
-                    ],
-                  );
-            }
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _buildSection('Core Info', [
+                            _buildField('Title', _titleCtrl),
+                            const SizedBox(height: 16),
+                            _buildField('Location (Short)', _locationCtrl),
+                            const SizedBox(height: 16),
+                            _buildField(
+                              'Full Address',
+                              _addressCtrl,
+                              maxLines: 2,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildField(
+                              'Display Time (e.g. "10am – 6pm")',
+                              _displayTimeCtrl,
+                            ),
+                          ]),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          child: _buildSection('Dates & Image', [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDateBtn(
+                                    'Start Date',
+                                    _startDate,
+                                    () => _selectDate(context, true),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildDateBtn(
+                                    'End Date',
+                                    _endDate,
+                                    () => _selectDate(context, false),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildField(
+                                    'Open Time',
+                                    _openTimeCtrl,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildField(
+                                    'Close Time',
+                                    _closeTimeCtrl,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildImageCard(
+                              'Exhibition Image',
+                              _newImageBytes,
+                              _currentImageUrl,
+                              _pickImage,
+                            ),
+                          ]),
+                        ),
+                      ],
+                    );
+            },
           ),
           const SizedBox(height: 24),
 
           // Messages
           _buildSection('Dynamic Messages', [
-            _buildField('Upcoming Message (before exhibition starts)', _upcomingMsgCtrl),
+            _buildField(
+              'Upcoming Message (before exhibition starts)',
+              _upcomingMsgCtrl,
+            ),
             const SizedBox(height: 16),
             _buildField('Last Day Message', _lastDayMsgCtrl),
             const SizedBox(height: 16),
-            _buildField('Thank You Message (after exhibition ends)', _thankYouMsgCtrl),
+            _buildField(
+              'Thank You Message (after exhibition ends)',
+              _thankYouMsgCtrl,
+            ),
           ]),
         ],
       ),
@@ -733,17 +946,30 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, {int maxLines = 1}) {
+  Widget _buildField(
+    String label,
+    TextEditingController controller, {
+    int maxLines = 1,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTheme.bodySmall.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: AppTheme.bodySmall.copyWith(
+            color: AppTheme.textDark,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           maxLines: maxLines,
           style: AppTheme.bodyLarge,
-          decoration: AppTheme.inputDecoration(label: label, hint: 'Enter $label'),
+          decoration: AppTheme.inputDecoration(
+            label: label,
+            hint: 'Enter $label',
+          ),
         ),
       ],
     );
@@ -753,7 +979,13 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTheme.bodySmall.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: AppTheme.bodySmall.copyWith(
+            color: AppTheme.textDark,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 8),
         InkWell(
           onTap: onTap,
@@ -769,10 +1001,20 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  date != null ? DateFormat('dd/MM/yyyy').format(date) : 'Select Date',
-                  style: AppTheme.bodyLarge.copyWith(color: date != null ? AppTheme.textDark : AppTheme.greyPlaceholder),
+                  date != null
+                      ? DateFormat('dd/MM/yyyy').format(date)
+                      : 'Select Date',
+                  style: AppTheme.bodyLarge.copyWith(
+                    color: date != null
+                        ? AppTheme.textDark
+                        : AppTheme.greyPlaceholder,
+                  ),
                 ),
-                const Icon(Icons.calendar_today_outlined, size: 20, color: AppTheme.textLight),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 20,
+                  color: AppTheme.textLight,
+                ),
               ],
             ),
           ),
@@ -781,12 +1023,24 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
     );
   }
 
-  Widget _buildImageCard(String title, Uint8List? localBytes, String? networkUrl, VoidCallback onPick) {
-    final hasImage = localBytes != null || (networkUrl != null && networkUrl.isNotEmpty);
+  Widget _buildImageCard(
+    String title,
+    Uint8List? localBytes,
+    String? networkUrl,
+    VoidCallback onPick,
+  ) {
+    final hasImage =
+        localBytes != null || (networkUrl != null && networkUrl.isNotEmpty);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: AppTheme.bodySmall.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.w600)),
+        Text(
+          title,
+          style: AppTheme.bodySmall.copyWith(
+            color: AppTheme.textDark,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: onPick,
@@ -811,9 +1065,18 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.add_photo_alternate_outlined, size: 40, color: AppTheme.greyPlaceholder),
+                      const Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 40,
+                        color: AppTheme.greyPlaceholder,
+                      ),
                       const SizedBox(height: 12),
-                      Text('Upload Image', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textLight)),
+                      Text(
+                        'Upload Image',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.textLight,
+                        ),
+                      ),
                     ],
                   ),
           ),

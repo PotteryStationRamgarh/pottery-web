@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/providers/app_refresh_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/cache_busted_url.dart';
 
 /// ImagePlaceholder — shown when an image is loading or fails to load.
 /// Used across product cards, exclusive cards, exhibition section etc.
@@ -78,8 +81,11 @@ class NetworkImageWithPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageVersion = context.select<AppRefreshProvider, int>(
+      (value) => value.imageVersion,
+    );
     Widget image = Image.network(
-      url,
+      CacheBustedUrl.withVersion(url, imageVersion),
       fit: fit,
       width: double.infinity,
       height: double.infinity,
@@ -98,7 +104,7 @@ class NetworkImageWithPlaceholder extends StatelessWidget {
                 color: AppTheme.lightBrown.withOpacity(0.4),
                 value: loadingProgress.expectedTotalBytes != null
                     ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
+                          loadingProgress.expectedTotalBytes!
                     : null,
               ),
             ),
@@ -134,18 +140,12 @@ class NetworkImageWithPlaceholder extends StatelessWidget {
 
     // Clip with rounded corners if provided
     if (borderRadius != null) {
-      image = ClipRRect(
-        borderRadius: borderRadius!,
-        child: image,
-      );
+      image = ClipRRect(borderRadius: borderRadius!, child: image);
     }
 
     // Wrap in AspectRatio if provided
     if (aspectRatio != null) {
-      return AspectRatio(
-        aspectRatio: aspectRatio!,
-        child: image,
-      );
+      return AspectRatio(aspectRatio: aspectRatio!, child: image);
     }
 
     return image;

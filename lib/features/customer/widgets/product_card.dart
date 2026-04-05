@@ -34,11 +34,10 @@ class _ProductCardState extends State<ProductCard> {
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() => _isHovered = false),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // Tappable image — opens gallery on tap
           _buildImage(),
 
@@ -46,8 +45,8 @@ class _ProductCardState extends State<ProductCard> {
 
           // Product name
           Text(
-            widget.product.title.isNotEmpty 
-                ? widget.product.title 
+            widget.product.title.isNotEmpty
+                ? widget.product.title
                 : 'Item not available',
             style: GoogleFonts.jost(
               fontSize: 14,
@@ -63,8 +62,8 @@ class _ProductCardState extends State<ProductCard> {
 
           // Short description — 2 lines max
           Text(
-            widget.product.description.isNotEmpty 
-                ? widget.product.description 
+            widget.product.description.isNotEmpty
+                ? widget.product.description
                 : 'Description not available',
             style: GoogleFonts.jost(
               fontSize: 12,
@@ -99,7 +98,6 @@ class _ProductCardState extends State<ProductCard> {
               ],
             ),
           ],
-
         ],
       ),
     );
@@ -121,10 +119,10 @@ class _ProductCardState extends State<ProductCard> {
             color: AppTheme.divider.withOpacity(0.3),
             // Corners animate smoothly on hover
             borderRadius: BorderRadius.only(
-              topLeft:     const Radius.circular(20),
+              topLeft: const Radius.circular(20),
               bottomRight: const Radius.circular(20),
-              topRight:    Radius.circular(_isHovered ? 20 : 4),
-              bottomLeft:  Radius.circular(_isHovered ? 20 : 4),
+              topRight: Radius.circular(_isHovered ? 20 : 4),
+              bottomLeft: Radius.circular(_isHovered ? 20 : 4),
             ),
           ),
           child: AspectRatio(
@@ -141,9 +139,7 @@ class _ProductCardState extends State<ProductCard> {
                       fit: BoxFit.cover,
                     ),
                   )
-                : const ImagePlaceholder(
-                    aspectRatio: 1.0,
-                  ),
+                : const ImagePlaceholder(aspectRatio: 1.0),
           ),
         ),
       ),

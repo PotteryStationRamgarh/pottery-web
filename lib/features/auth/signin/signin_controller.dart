@@ -5,7 +5,6 @@ import '../auth_service.dart';
 /// SigninController handles all business logic for the signin screen.
 /// SigninScreen calls this — SigninScreen itself has zero logic.
 class SigninController {
-  
   // AuthService is the only class that talks to Firebase directly
   final AuthService _authService = AuthService();
 
@@ -23,20 +22,20 @@ class SigninController {
     final emailError = ValidationUtils.validateEmail(email);
     if (emailError != null) return emailError;
 
-    if (password.isEmpty) return 'Password cannot be empty.';
+    if (password.trim().isEmpty) {
+      return 'Password is required.';
+    }
 
     try {
       // Attempt Firebase signin
-      await _authService.signin(
+      final credential = await _authService.signin(
         email: email.trim(),
         password: password,
       );
 
-      // Reload user to get fresh emailVerified status from Firebase servers
-      await _authService.reloadUser();
-
-      // Check if email is verified after reload
-      if (!_authService.isEmailVerified) {
+      // Sign-in already returns the latest user payload, so we can avoid
+      // an extra round-trip here and only fall back to verify flow when needed.
+      if (!(credential.user?.emailVerified ?? false)) {
         // Return sentinel value — signinScreen handles this separately
         return 'email_not_verified';
       }

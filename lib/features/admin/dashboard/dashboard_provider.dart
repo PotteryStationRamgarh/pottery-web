@@ -13,23 +13,23 @@ class DashboardProvider extends ChangeNotifier {
 
   // ─── State ─────────────────────────────────────────────────────────────────
 
-  int    _productCount   = 0;
-  int    _exclusiveCount = 0;
+  int _productCount = 0;
+  int _exclusiveCount = 0;
   String _exhibitionStatus = 'Loading…';
   AppExhibition _exhibition = AppExhibition.empty();
   List<Exhibition> _futureExhibitions = [];
   List<Exhibition> _pastExhibitions = [];
-  bool   _isLoading = false;
+  bool _isLoading = false;
 
   // ─── Getters ────────────────────────────────────────────────────────────────
 
-  int    get productCount      => _productCount;
-  int    get exclusiveCount    => _exclusiveCount;
-  String get exhibitionStatus  => _exhibitionStatus;
+  int get productCount => _productCount;
+  int get exclusiveCount => _exclusiveCount;
+  String get exhibitionStatus => _exhibitionStatus;
   AppExhibition get exhibition => _exhibition;
   List<Exhibition> get futureExhibitions => _futureExhibitions;
   List<Exhibition> get pastExhibitions => _pastExhibitions;
-  bool   get isLoading         => _isLoading;
+  bool get isLoading => _isLoading;
 
   // ─── Load ───────────────────────────────────────────────────────────────────
 
@@ -38,18 +38,18 @@ class DashboardProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final products   = await FirestoreService.getAllProducts();
+      final products = await FirestoreService.getAllProducts();
       final exclusives = await FirestoreService.getExclusiveProducts();
-      
+
       // Get categorized exhibitions
       final categorized = await ExhibitionRepository.getCategorized();
       final current = categorized['current'] as Exhibition?;
       _futureExhibitions = List<Exhibition>.from(categorized['future'] ?? []);
       _pastExhibitions = List<Exhibition>.from(categorized['past'] ?? []);
-      
-      _productCount   = products.length;
+
+      _productCount = products.length;
       _exclusiveCount = exclusives.length;
-      
+
       if (current != null) {
         _exhibition = AppExhibition(
           title: current.title,

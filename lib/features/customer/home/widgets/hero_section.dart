@@ -25,8 +25,8 @@ class HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config   = context.watch<ConfigProvider>();
-    final size     = MediaQuery.of(context).size;
+    final config = context.watch<ConfigProvider>();
+    final size = MediaQuery.of(context).size;
     final isMobile = size.width < 768;
 
     return Container(
@@ -44,11 +44,7 @@ class HeroSection extends StatelessWidget {
   // DESKTOP
   // ─────────────────────────────────────────
 
-  Widget _buildDesktop(
-    BuildContext context,
-    ConfigProvider config,
-    Size size,
-  ) {
+  Widget _buildDesktop(BuildContext context, ConfigProvider config, Size size) {
     return Center(
       child: ConstrainedBox(
         // Max width keeps content centered on very wide screens
@@ -58,7 +54,6 @@ class HeroSection extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-
               // Left — text content
               Expanded(
                 child: Padding(
@@ -77,7 +72,6 @@ class HeroSection extends StatelessWidget {
                   child: _buildImage(config, size.height * 0.70),
                 ),
               ),
-
             ],
           ),
         ),
@@ -93,7 +87,6 @@ class HeroSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         // Image on top for mobile — now with padding so it doesn't touch edges
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -109,7 +102,6 @@ class HeroSection extends StatelessWidget {
         ),
 
         const SizedBox(height: 56),
-
       ],
     );
   }
@@ -127,7 +119,6 @@ class HeroSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-
         // Small label above headline — like a category tag
         Text(
           'POTTERY STATION RAMGARH',
@@ -182,7 +173,6 @@ class HeroSection extends StatelessWidget {
           runSpacing: 12,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-
             // Primary button — solid brown
             _PrimaryButton(
               label: 'Explore Collections',
@@ -192,15 +182,10 @@ class HeroSection extends StatelessWidget {
             // Secondary — text link with underline
             _TextButton(
               label: 'Our Story',
-              onTap: () => _showAboutDialog(
-                context,
-                config.content.aboutUs,
-              ),
+              onTap: () => _showAboutDialog(context, config.content.aboutUs),
             ),
-
           ],
         ),
-
       ],
     );
   }
@@ -221,10 +206,10 @@ class HeroSection extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppTheme.divider.withOpacity(0.35),
             borderRadius: const BorderRadius.only(
-              topLeft:     Radius.circular(80),
+              topLeft: Radius.circular(80),
               bottomRight: Radius.circular(100),
-              topRight:    Radius.circular(16),
-              bottomLeft:  Radius.circular(16),
+              topRight: Radius.circular(16),
+              bottomLeft: Radius.circular(16),
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -256,7 +241,6 @@ class HeroSection extends StatelessWidget {
     );
   }
 
-
   // ─────────────────────────────────────────
   // ABOUT DIALOG
   // Opened from "Our Story" text button
@@ -267,9 +251,7 @@ class HeroSection extends StatelessWidget {
       context: context,
       builder: (_) => Dialog(
         backgroundColor: AppTheme.background,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
           child: Padding(
@@ -278,7 +260,6 @@ class HeroSection extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 Text(
                   'Our Story',
                   style: GoogleFonts.playfairDisplay(
@@ -326,7 +307,6 @@ class HeroSection extends StatelessWidget {
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
@@ -356,16 +336,13 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32,
-            vertical: 16,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           decoration: BoxDecoration(
             color: _isHovered
                 ? AppTheme.primaryBrown.withOpacity(0.82)
@@ -407,7 +384,7 @@ class _TextButtonState extends State<_TextButton> {
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
@@ -429,9 +406,7 @@ class _TextButtonState extends State<_TextButton> {
             style: GoogleFonts.jost(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: _isHovered
-                  ? AppTheme.primaryBrown
-                  : AppTheme.textLight,
+              color: _isHovered ? AppTheme.primaryBrown : AppTheme.textLight,
               letterSpacing: 2,
             ),
           ),

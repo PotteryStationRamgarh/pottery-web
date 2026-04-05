@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../app/routes.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../../models/product.dart';
 import '../home/widgets/nav_bar.dart';
 import '../home/home_footer.dart';
@@ -19,10 +20,12 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> allImages = widget.product.imageUrls.isNotEmpty 
-        ? List<String>.from(widget.product.imageUrls) 
-        : (widget.product.primaryImage.isNotEmpty ? [widget.product.primaryImage] : []);
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final List<String> allImages = widget.product.imageUrls.isNotEmpty
+        ? List<String>.from(widget.product.imageUrls)
+        : (widget.product.primaryImage.isNotEmpty
+              ? [widget.product.primaryImage]
+              : []);
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -33,37 +36,47 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 80), // Spacing for NavBar
-
                 // Main Content
                 Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isMobile ? 24 : MediaQuery.of(context).size.width * 0.1,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Breadcrumb-style navigation (Back button)
-                      TextButton.icon(
-                        onPressed: () {
-                          if (Navigator.canPop(context)) {
-                            Navigator.pop(context);
-                          } else {
-                            Navigator.pushReplacementNamed(context, Routes.customerHome);
-                          }
-                        },
-                        icon: const Icon(Icons.arrow_back, size: 18),
-                        label: Text('Back to Home', style: GoogleFonts.jost(fontWeight: FontWeight.w500)),
-                        style: TextButton.styleFrom(foregroundColor: AppTheme.textDark),
-                      ),
-                      const SizedBox(height: 16),
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 48),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1320),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Breadcrumb-style navigation (Back button)
+                        TextButton.icon(
+                          onPressed: () {
+                            if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                            } else {
+                              Navigator.pushReplacementNamed(
+                                context,
+                                Routes.customerHome,
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.arrow_back, size: 18),
+                          label: Text(
+                            'Back to Home',
+                            style: GoogleFonts.jost(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
 
-                      // Layout: Images on left (desktop), Info on right
-                      isMobile
-                          ? _buildMobileLayout(allImages)
-                          : _buildDesktopLayout(allImages),
+                        // Layout: Images on left (desktop), Info on right
+                        isMobile
+                            ? _buildMobileLayout(allImages)
+                            : _buildDesktopLayout(allImages),
 
-                      const SizedBox(height: 32),
-                    ],
+                        const SizedBox(height: 32),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -78,79 +91,90 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
   }
 
   Widget _buildDesktopLayout(List<String> allImages) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Image Gallery (Left)
-        Expanded(
-          flex: 1,
-          child: Column(
-            children: [
-              // Main Image - AspectRatio 1:1 to shrink vertical height
-              AspectRatio(
-                aspectRatio: 1 / 1, 
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    image: DecorationImage(
-                      image: NetworkImage(allImages[_activeImageIndex]),
-                      fit: BoxFit.cover,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Thumbnails
-              if (allImages.length > 1)
-                SizedBox(
-                  height: 80,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: allImages.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) => GestureDetector(
-                      onTap: () => setState(() => _activeImageIndex = index),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 80,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: _activeImageIndex == index ? AppTheme.primaryBrown : Colors.transparent,
-                            width: 2,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!ResponsiveBreakpoints.isDesktopWidth(constraints.maxWidth)) {
+          return _buildMobileLayout(allImages);
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Gallery (Left)
+            Expanded(
+              flex: 1,
+              child: Column(
+                children: [
+                  // Main Image - AspectRatio 1:1 to shrink vertical height
+                  AspectRatio(
+                    aspectRatio: 1 / 1,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        image: DecorationImage(
+                          image: NetworkImage(allImages[_activeImageIndex]),
+                          fit: BoxFit.cover,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
                           ),
-                          image: DecorationImage(
-                            image: NetworkImage(allImages[index]),
-                            fit: BoxFit.cover,
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Thumbnails
+                  if (allImages.length > 1)
+                    SizedBox(
+                      height: 80,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: allImages.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) => GestureDetector(
+                          onTap: () =>
+                              setState(() => _activeImageIndex = index),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 80,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _activeImageIndex == index
+                                    ? AppTheme.primaryBrown
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                              image: DecorationImage(
+                                image: NetworkImage(allImages[index]),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-            ],
-          ),
-        ),
+                ],
+              ),
+            ),
 
-        const SizedBox(width: 40),
+            const SizedBox(width: 40),
 
-        // Product Details (Right)
-        Expanded(
-          flex: 1,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 450),
-            child: _buildProductInfo(),
-          ),
-        ),
-      ],
+            // Product Details (Right)
+            Expanded(
+              flex: 1,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 450),
+                child: _buildProductInfo(),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -168,7 +192,10 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(image: NetworkImage(allImages[index]), fit: BoxFit.cover),
+                image: DecorationImage(
+                  image: NetworkImage(allImages[index]),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -205,7 +232,7 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
         Text(
           widget.product.title,
           style: GoogleFonts.playfairDisplay(
-            fontSize: 32,
+            fontSize: ResponsiveBreakpoints.isMobile(context) ? 28 : 32,
             fontWeight: FontWeight.w600,
             color: AppTheme.textDark,
           ),
@@ -245,11 +272,24 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
           ),
           child: Column(
             children: [
-              _buildSummaryRow('Limited Edition', 'Only ${widget.product.totalPieces} pieces'),
+              _buildSummaryRow(
+                'Limited Edition',
+                'Only ${widget.product.totalPieces} pieces',
+              ),
               const Divider(height: 24),
-              _buildSummaryRow('Material', widget.product.material.isNotEmpty ? widget.product.material : 'Not available'),
+              _buildSummaryRow(
+                'Material',
+                widget.product.material.isNotEmpty
+                    ? widget.product.material
+                    : 'Not available',
+              ),
               const Divider(height: 24),
-              _buildSummaryRow('Crafting Time', widget.product.craftingTime.isNotEmpty ? widget.product.craftingTime : 'Not available'),
+              _buildSummaryRow(
+                'Crafting Time',
+                widget.product.craftingTime.isNotEmpty
+                    ? widget.product.craftingTime
+                    : 'Not available',
+              ),
             ],
           ),
         ),
@@ -270,19 +310,56 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
         children: [
           Icon(icon, size: 14, color: AppTheme.textDark),
           const SizedBox(width: 8),
-          Text(label, style: GoogleFonts.jost(fontSize: 12, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: GoogleFonts.jost(fontSize: 12, fontWeight: FontWeight.w500),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildSummaryRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: GoogleFonts.jost(color: AppTheme.textLight)),
-        Text(value, style: GoogleFonts.jost(fontWeight: FontWeight.w600, color: AppTheme.textDark)),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final shouldStack = ResponsiveBreakpoints.isMobileWidth(
+          constraints.maxWidth,
+        );
+
+        if (shouldStack) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: GoogleFonts.jost(color: AppTheme.textLight)),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: GoogleFonts.jost(
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textDark,
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: GoogleFonts.jost(color: AppTheme.textLight)),
+            Flexible(
+              child: Text(
+                value,
+                textAlign: TextAlign.right,
+                style: GoogleFonts.jost(
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textDark,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

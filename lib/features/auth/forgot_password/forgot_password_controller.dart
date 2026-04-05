@@ -6,7 +6,7 @@ class ForgotPasswordController {
   final AuthService _authService = AuthService();
 
   /// Sends a password reset email to the given address.
-  /// 
+  ///
   /// Returns:
   /// - null → Email sent successfully
   /// - any string → error message to show the user

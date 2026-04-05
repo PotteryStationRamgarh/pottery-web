@@ -8,7 +8,6 @@ import 'package:pottery_web/firebase_options.dart';
 /// Role fetching lives here because it is a core utility
 /// used by SplashScreen — not specific to any single feature.
 class FirebaseService {
-
   // Private constructor — this class should never be instantiated
   FirebaseService._();
 
@@ -78,7 +77,8 @@ class FirebaseService {
     try {
       await _db.collection('users').doc(uid).set({
         'email': email,
-        'role': 'customer', // Default role — change to admin manually in Firestore
+        'role':
+            'customer', // Default role — change to admin manually in Firestore
         'createdAt': FieldValue.serverTimestamp(),
       });
       debugPrint('User document created for $email');

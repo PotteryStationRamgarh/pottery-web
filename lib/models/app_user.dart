@@ -16,18 +16,14 @@ class AppUser {
   factory AppUser.fromDoc(DocumentSnapshot doc) {
     final map = doc.data() as Map<String, dynamic>;
     return AppUser(
-      uid:       doc.id,
-      email:     map['email']     as String? ?? '',
-      role:      map['role']      as String? ?? 'user',
+      uid: doc.id,
+      email: map['email'] as String? ?? '',
+      role: map['role'] as String? ?? 'user',
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'email':     email,
-      'role':      role,
-      'createdAt': createdAt,
-    };
+    return {'email': email, 'role': role, 'createdAt': createdAt};
   }
 }

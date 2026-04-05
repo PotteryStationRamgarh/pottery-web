@@ -10,7 +10,6 @@ import '../features/auth/forgot_password/forgot_password_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
 import '../features/customer/home/customer_home_screen.dart';
 import '../features/customer/gallery/gallery_screen.dart';
-import '../features/customer/categories/customer_categories_screen.dart';
 import '../features/customer/products/customer_products_screen.dart';
 import '../models/product.dart';
 import '../features/admin/profile/admin_profile_page.dart';
@@ -45,8 +44,8 @@ class MyApp extends StatelessWidget {
         Routes.splash: (context) => const SplashScreen(),
 
         // Auth flow — sign in, sign up, verify email, loading
-        Routes.signin:      (context) => const SigninScreen(),
-        Routes.signup:      (context) => const SignupScreen(),
+        Routes.signin: (context) => const SigninScreen(),
+        Routes.signup: (context) => const SignupScreen(),
         Routes.verifyEmail: (context) => const VerifyEmailScreen(),
         Routes.forgotPassword: (context) => const ForgotPasswordScreen(),
         Routes.customerLoading: (_) => const CustomerLoadingScreen(),
@@ -63,7 +62,9 @@ class MyApp extends StatelessWidget {
 
         // Browse products by category — arguments: {categoryId, categoryName}
         Routes.products: (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>?;
+          final args =
+              ModalRoute.of(context)!.settings.arguments
+                  as Map<String, String>?;
           return CustomerProductsScreen(
             categoryId: args?['categoryId'] ?? '',
             categoryName: args?['categoryName'] ?? 'Products',
@@ -78,7 +79,8 @@ class MyApp extends StatelessWidget {
 
         // Dedicated Exclusive Detail Page — arguments: ExclusiveProduct
         Routes.exclusiveDetail: (context) {
-          final product = ModalRoute.of(context)!.settings.arguments as ExclusiveProduct;
+          final product =
+              ModalRoute.of(context)!.settings.arguments as ExclusiveProduct;
           return ExclusiveDetailScreen(product: product);
         },
 

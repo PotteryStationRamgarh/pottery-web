@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/providers/config_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_logo.dart';
+import '../../core/utils/responsive_utils.dart';
 
 import 'dashboard/pages/dashboard_page.dart';
 import 'content/branding/admin_branding_page.dart';
@@ -57,14 +58,22 @@ class _AdminLayoutState extends State<AdminLayout> {
 
   String get _currentTitle {
     switch (_selectedIndex) {
-      case 0: return 'Dashboard';
-      case 1: return 'Branding';
-      case 2: return 'Exhibition';
-      case 3: return 'Categories';
-      case 4: return 'Products';
-      case 5: return 'Exclusives';
-      case 6: return 'Settings';
-      default: return 'Dashboard';
+      case 0:
+        return 'Dashboard';
+      case 1:
+        return 'Branding';
+      case 2:
+        return 'Exhibition';
+      case 3:
+        return 'Categories';
+      case 4:
+        return 'Products';
+      case 5:
+        return 'Exclusives';
+      case 6:
+        return 'Settings';
+      default:
+        return 'Dashboard';
     }
   }
 
@@ -91,22 +100,64 @@ class _AdminLayoutState extends State<AdminLayout> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               children: [
                 const _SidebarGroupLabel('MAIN'),
-                _SidebarItem(icon: Icons.dashboard_outlined, label: 'Dashboard', index: 0, selectedIndex: _selectedIndex, onTap: _navigate),
+                _SidebarItem(
+                  icon: Icons.dashboard_outlined,
+                  label: 'Dashboard',
+                  index: 0,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
                 const SizedBox(height: 16),
 
                 const _SidebarGroupLabel('CONTENT'),
-                _SidebarItem(icon: Icons.brush_outlined, label: 'Branding', index: 1, selectedIndex: _selectedIndex, onTap: _navigate),
-                _SidebarItem(icon: Icons.event_outlined, label: 'Exhibition', index: 2, selectedIndex: _selectedIndex, onTap: _navigate),
+                _SidebarItem(
+                  icon: Icons.brush_outlined,
+                  label: 'Branding',
+                  index: 1,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
+                _SidebarItem(
+                  icon: Icons.event_outlined,
+                  label: 'Exhibition',
+                  index: 2,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
                 const SizedBox(height: 16),
 
                 const _SidebarGroupLabel('CATALOG'),
-                _SidebarItem(icon: Icons.category_outlined, label: 'Categories', index: 3, selectedIndex: _selectedIndex, onTap: _navigate),
-                _SidebarItem(icon: Icons.inventory_2_outlined, label: 'Products', index: 4, selectedIndex: _selectedIndex, onTap: _navigate),
-                _SidebarItem(icon: Icons.star_outline, label: 'Exclusives', index: 5, selectedIndex: _selectedIndex, onTap: _navigate),
+                _SidebarItem(
+                  icon: Icons.category_outlined,
+                  label: 'Categories',
+                  index: 3,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
+                _SidebarItem(
+                  icon: Icons.inventory_2_outlined,
+                  label: 'Products',
+                  index: 4,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
+                _SidebarItem(
+                  icon: Icons.star_outline,
+                  label: 'Exclusives',
+                  index: 5,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
                 const SizedBox(height: 16),
 
                 const _SidebarGroupLabel('SYSTEM'),
-                _SidebarItem(icon: Icons.settings_outlined, label: 'Settings', index: 6, selectedIndex: _selectedIndex, onTap: _navigate),
+                _SidebarItem(
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
+                  index: 6,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
 
                 const SizedBox(height: 20),
               ],
@@ -117,7 +168,10 @@ class _AdminLayoutState extends State<AdminLayout> {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Pottery Station Ramgarh',
-              style: AppTheme.bodySmall.copyWith(color: Colors.white24, fontSize: 11),
+              style: AppTheme.bodySmall.copyWith(
+                color: Colors.white24,
+                fontSize: 11,
+              ),
             ),
           ),
         ],
@@ -128,7 +182,7 @@ class _AdminLayoutState extends State<AdminLayout> {
   @override
   Widget build(BuildContext context) {
     final config = context.watch<ConfigProvider>();
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
     return PopScope(
       // Allow popping only if on dashboard (index 0)
@@ -159,16 +213,22 @@ class _AdminLayoutState extends State<AdminLayout> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: const BoxDecoration(
                       color: AppTheme.white,
-                      border: Border(bottom: BorderSide(color: AppTheme.divider)),
+                      border: Border(
+                        bottom: BorderSide(color: AppTheme.divider),
+                      ),
                     ),
                     child: Row(
                       children: [
                         // Hamburger on mobile — LEFT side
                         if (!isDesktop)
                           IconButton(
-                            icon: const Icon(Icons.menu, color: AppTheme.textDark),
+                            icon: const Icon(
+                              Icons.menu,
+                              color: AppTheme.textDark,
+                            ),
                             tooltip: 'Menu',
-                            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                            onPressed: () =>
+                                _scaffoldKey.currentState?.openDrawer(),
                           ),
 
                         if (!isDesktop) const SizedBox(width: 4),
@@ -176,7 +236,11 @@ class _AdminLayoutState extends State<AdminLayout> {
                         // Back arrow — show on sub-pages (not dashboard)
                         if (_selectedIndex > 0)
                           IconButton(
-                            icon: const Icon(Icons.arrow_back, color: AppTheme.textDark, size: 20),
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: AppTheme.textDark,
+                              size: 20,
+                            ),
                             tooltip: 'Back to Dashboard',
                             onPressed: () => setState(() => _selectedIndex = 0),
                           ),
@@ -195,11 +259,16 @@ class _AdminLayoutState extends State<AdminLayout> {
                         MouseRegion(
                           cursor: SystemMouseCursors.click,
                           child: GestureDetector(
-                            onTap: () => Navigator.pushNamed(context, '/profile'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/profile'),
                             child: const CircleAvatar(
                               backgroundColor: AppTheme.primaryBrown,
                               radius: 18,
-                              child: Icon(Icons.person_outline, color: Colors.white, size: 20),
+                              child: Icon(
+                                Icons.person_outline,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
@@ -261,7 +330,9 @@ class _SidebarItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: selected ? AppTheme.primaryBrown.withValues(alpha: 0.15) : Colors.transparent,
+        color: selected
+            ? AppTheme.primaryBrown.withValues(alpha: 0.15)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Material(
@@ -282,12 +353,20 @@ class _SidebarItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
-                  Icon(icon, color: selected ? Colors.white : Colors.white.withValues(alpha: 0.7), size: 20),
+                  Icon(
+                    icon,
+                    color: selected
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.7),
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Text(
                     label,
                     style: AppTheme.bodyMedium.copyWith(
-                      color: selected ? Colors.white : Colors.white.withValues(alpha: 0.7),
+                      color: selected
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.7),
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                       fontSize: 13,
                     ),

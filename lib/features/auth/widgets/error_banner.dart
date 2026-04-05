@@ -20,19 +20,11 @@ class ErrorBanner extends StatelessWidget {
       opacity: 1.0,
       duration: const Duration(milliseconds: 300),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppTheme.errorRed.withOpacity(0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border(
-            left: BorderSide(
-              color: AppTheme.errorRed,
-              width: 4,
-            ),
-          ),
+          border: Border(left: BorderSide(color: AppTheme.errorRed, width: 4)),
         ),
         child: Row(
           children: [
@@ -46,12 +38,7 @@ class ErrorBanner extends StatelessWidget {
             const SizedBox(width: 12),
 
             // Error message text
-            Expanded(
-              child: Text(
-                message,
-                style: AppTheme.errorText,
-              ),
-            ),
+            Expanded(child: Text(message, style: AppTheme.errorText)),
 
             // Dismiss button
             GestureDetector(

@@ -66,7 +66,7 @@ class _DashboardViewState extends State<_DashboardView> {
 
   @override
   Widget build(BuildContext context) {
-    final config    = context.watch<ConfigProvider>();
+    final config = context.watch<ConfigProvider>();
     final dashboard = context.watch<DashboardProvider>();
     final isPageNarrow = MediaQuery.of(context).size.width < 900;
 
@@ -82,14 +82,14 @@ class _DashboardViewState extends State<_DashboardView> {
           children: [
             const DashboardHeader(),
             const SizedBox(height: 24),
-            
+
             // 1. Full-width top cards
             MaintenanceToggleCard(
               isEnabled: config.features.maintenanceMode,
               onChanged: (val) {
                 context.read<ConfigProvider>().updateFeatures(
-                      config.features.copyWith(maintenanceMode: val),
-                    );
+                  config.features.copyWith(maintenanceMode: val),
+                );
               },
             ),
             const SizedBox(height: 24),
@@ -101,9 +101,14 @@ class _DashboardViewState extends State<_DashboardView> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   _QuickActionSection(onNavigate: _nav, isNarrow: isPageNarrow),
-                   const SizedBox(height: 48),
-                   _SystemOverviewSection(config: config, dashboard: dashboard, firestoreFuture: _firestoreFuture, storageOk: _storageOk),
+                  _QuickActionSection(onNavigate: _nav, isNarrow: isPageNarrow),
+                  const SizedBox(height: 48),
+                  _SystemOverviewSection(
+                    config: config,
+                    dashboard: dashboard,
+                    firestoreFuture: _firestoreFuture,
+                    storageOk: _storageOk,
+                  ),
                 ],
               )
             else
@@ -113,13 +118,21 @@ class _DashboardViewState extends State<_DashboardView> {
                   // Left: Quick Actions (Larger)
                   Expanded(
                     flex: 3,
-                    child: _QuickActionSection(onNavigate: _nav, isNarrow: isPageNarrow),
+                    child: _QuickActionSection(
+                      onNavigate: _nav,
+                      isNarrow: isPageNarrow,
+                    ),
                   ),
                   const SizedBox(width: 48),
                   // Right: System Overview
                   Expanded(
                     flex: 2,
-                    child: _SystemOverviewSection(config: config, dashboard: dashboard, firestoreFuture: _firestoreFuture, storageOk: _storageOk),
+                    child: _SystemOverviewSection(
+                      config: config,
+                      dashboard: dashboard,
+                      firestoreFuture: _firestoreFuture,
+                      storageOk: _storageOk,
+                    ),
                   ),
                 ],
               ),
@@ -169,8 +182,8 @@ class _SystemOverviewSection extends StatelessWidget {
         Text('System Overview', style: AppTheme.headingLarge),
         const SizedBox(height: 16),
         _SystemStatusWidget(
-          firestoreFuture: firestoreFuture, 
-          storageOk: storageOk, 
+          firestoreFuture: firestoreFuture,
+          storageOk: storageOk,
           isMaintenanceMode: config.features.maintenanceMode,
         ),
         const SizedBox(height: 24),
@@ -180,44 +193,74 @@ class _SystemOverviewSection extends StatelessWidget {
   }
 }
 
-
 class _StatsRow extends StatelessWidget {
   final DashboardProvider dashboard;
   const _StatsRow({required this.dashboard});
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, c) {
-      final isMobile = c.maxWidth < 600;
-      if (isMobile) {
-        return Column(
-          children: [
-            _statCard('Total Inventory', dashboard, Icons.inventory_2_outlined, AppTheme.primaryBrown),
-            const SizedBox(height: 16),
-            _statCard('Exclusive Products', dashboard, Icons.star_outline, AppTheme.warmClay),
-          ],
+    return LayoutBuilder(
+      builder: (context, c) {
+        final isMobile = c.maxWidth < 600;
+        if (isMobile) {
+          return Column(
+            children: [
+              _statCard(
+                'Total Inventory',
+                dashboard,
+                Icons.inventory_2_outlined,
+                AppTheme.primaryBrown,
+              ),
+              const SizedBox(height: 16),
+              _statCard(
+                'Exclusive Products',
+                dashboard,
+                Icons.star_outline,
+                AppTheme.warmClay,
+              ),
+            ],
+          );
+        }
+        return IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                child: _statCard(
+                  'Total Inventory',
+                  dashboard,
+                  Icons.inventory_2_outlined,
+                  AppTheme.primaryBrown,
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: _statCard(
+                  'Exclusive Products',
+                  dashboard,
+                  Icons.star_outline,
+                  AppTheme.warmClay,
+                ),
+              ),
+            ],
+          ),
         );
-      }
-      return IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(child: _statCard('Total Inventory', dashboard, Icons.inventory_2_outlined, AppTheme.primaryBrown)),
-            const SizedBox(width: 20),
-            Expanded(child: _statCard('Exclusive Products', dashboard, Icons.star_outline, AppTheme.warmClay)),
-          ],
-        ),
-      );
-    });
+      },
+    );
   }
 
-  Widget _statCard(String title, DashboardProvider d, IconData icon, Color? color) {
+  Widget _statCard(
+    String title,
+    DashboardProvider d,
+    IconData icon,
+    Color? color,
+  ) {
     return StatCard(
       title: title,
       value: d.isLoading
           ? '—'
           : title == 'Total Inventory'
-              ? '${d.productCount}'
-              : '${d.exclusiveCount}',
+          ? '${d.productCount}'
+          : '${d.exclusiveCount}',
       icon: icon,
       accentColor: color,
     );
@@ -241,7 +284,12 @@ class _SystemStatusWidget extends StatelessWidget {
       future: firestoreFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryBrown));
+          return const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppTheme.primaryBrown,
+            ),
+          );
         }
         return SystemStatusCard(
           isFirestoreConnected: snapshot.data!,
@@ -260,11 +308,11 @@ class _ExhibitionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = dashboard.exhibitionStatus;
-    final heading = status == 'Upcoming' 
-        ? 'Next Exhibition' 
-        : status == 'Active' 
-            ? 'Current Exhibition' 
-            : 'Past Exhibition';
+    final heading = status == 'Upcoming'
+        ? 'Next Exhibition'
+        : status == 'Active'
+        ? 'Current Exhibition'
+        : 'Past Exhibition';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,10 +327,18 @@ class _ExhibitionWidget extends StatelessWidget {
             border: Border.all(color: AppTheme.divider),
           ),
           child: dashboard.isLoading
-              ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryBrown))
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppTheme.primaryBrown,
+                  ),
+                )
               : dashboard.exhibition.title.isEmpty
-                  ? Text('No active, upcoming or past exhibitions found.', style: AppTheme.bodyMedium)
-                  : _buildExhibitionDetails(dashboard),
+              ? Text(
+                  'No active, upcoming or past exhibitions found.',
+                  style: AppTheme.bodyMedium,
+                )
+              : _buildExhibitionDetails(dashboard),
         ),
       ],
     );
@@ -305,18 +361,24 @@ class _ExhibitionWidget extends StatelessWidget {
             Expanded(
               child: Text(
                 d.exhibition.title,
-                style: AppTheme.headingMedium.copyWith(fontSize: 22, color: AppTheme.primaryBrown),
+                style: AppTheme.headingMedium.copyWith(
+                  fontSize: 22,
+                  color: AppTheme.primaryBrown,
+                ),
               ),
             ),
             _StatusBadgeSmall(status: d.exhibitionStatus),
           ],
         ),
         const SizedBox(height: 16),
-        _ExhibitionInfoLine(icon: Icons.location_on_outlined, text: d.exhibition.location),
+        _ExhibitionInfoLine(
+          icon: Icons.location_on_outlined,
+          text: d.exhibition.location,
+        ),
         const SizedBox(height: 8),
         _ExhibitionInfoLine(
-          icon: Icons.calendar_today_outlined, 
-          text: d.exhibition.startDate != null 
+          icon: Icons.calendar_today_outlined,
+          text: d.exhibition.startDate != null
               ? '${_fmt(d.exhibition.startDate!)} – ${_fmt(d.exhibition.endDate!)}'
               : 'Dates not set',
         ),
@@ -348,7 +410,11 @@ class _StatusBadgeSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = status == 'Active' ? AppTheme.successGreen : status == 'Upcoming' ? AppTheme.primaryBrown : AppTheme.textLight;
+    final color = status == 'Active'
+        ? AppTheme.successGreen
+        : status == 'Upcoming'
+        ? AppTheme.primaryBrown
+        : AppTheme.textLight;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -357,7 +423,10 @@ class _StatusBadgeSmall extends StatelessWidget {
       ),
       child: Text(
         status,
-        style: AppTheme.bodySmall.copyWith(color: color, fontWeight: FontWeight.bold),
+        style: AppTheme.bodySmall.copyWith(
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -386,11 +455,13 @@ class _QuickActionsGrid extends StatelessWidget {
       crossAxisSpacing: 16,
       childAspectRatio: 1.2,
       children: _actions
-          .map((a) => QuickActionCard(
-                label: a.label,
-                icon: a.icon,
-                onTap: () => onNavigate(a.navIndex),
-              ))
+          .map(
+            (a) => QuickActionCard(
+              label: a.label,
+              icon: a.icon,
+              onTap: () => onNavigate(a.navIndex),
+            ),
+          )
           .toList(),
     );
   }

@@ -14,13 +14,19 @@ class FirestoreService {
   FirestoreService._();
 
   static final _db = FirebaseFirestore.instance;
+  static GetOptions _getOptions(bool forceRefresh) =>
+      GetOptions(source: forceRefresh ? Source.server : Source.serverAndCache);
 
   // ── APP CONFIG — individual fetchers ─────────────────────────────────────
 
-  static Future<AppBranding> getBranding() async {
+  static Future<AppBranding> getBranding({bool forceRefresh = false}) async {
     try {
-      final doc = await _db.collection('app_config').doc('branding').get(const GetOptions(source: Source.server));
-      if (doc.exists && doc.data() != null) return AppBranding.fromMap(doc.data()!);
+      final doc = await _db
+          .collection('app_config')
+          .doc('branding')
+          .get(_getOptions(forceRefresh));
+      if (doc.exists && doc.data() != null)
+        return AppBranding.fromMap(doc.data()!);
       return AppBranding.empty();
     } catch (e) {
       debugPrint('getBranding error: $e');
@@ -28,10 +34,14 @@ class FirestoreService {
     }
   }
 
-  static Future<AppContact> getContact() async {
+  static Future<AppContact> getContact({bool forceRefresh = false}) async {
     try {
-      final doc = await _db.collection('app_config').doc('contact').get(const GetOptions(source: Source.server));
-      if (doc.exists && doc.data() != null) return AppContact.fromMap(doc.data()!);
+      final doc = await _db
+          .collection('app_config')
+          .doc('contact')
+          .get(_getOptions(forceRefresh));
+      if (doc.exists && doc.data() != null)
+        return AppContact.fromMap(doc.data()!);
       return AppContact.empty();
     } catch (e) {
       debugPrint('getContact error: $e');
@@ -39,10 +49,14 @@ class FirestoreService {
     }
   }
 
-  static Future<AppContent> getContent() async {
+  static Future<AppContent> getContent({bool forceRefresh = false}) async {
     try {
-      final doc = await _db.collection('app_config').doc('content').get(const GetOptions(source: Source.server));
-      if (doc.exists && doc.data() != null) return AppContent.fromMap(doc.data()!);
+      final doc = await _db
+          .collection('app_config')
+          .doc('content')
+          .get(_getOptions(forceRefresh));
+      if (doc.exists && doc.data() != null)
+        return AppContent.fromMap(doc.data()!);
       return AppContent.empty();
     } catch (e) {
       debugPrint('getContent error: $e');
@@ -50,10 +64,14 @@ class FirestoreService {
     }
   }
 
-  static Future<AppSocial> getSocial() async {
+  static Future<AppSocial> getSocial({bool forceRefresh = false}) async {
     try {
-      final doc = await _db.collection('app_config').doc('social').get(const GetOptions(source: Source.server));
-      if (doc.exists && doc.data() != null) return AppSocial.fromMap(doc.data()!);
+      final doc = await _db
+          .collection('app_config')
+          .doc('social')
+          .get(_getOptions(forceRefresh));
+      if (doc.exists && doc.data() != null)
+        return AppSocial.fromMap(doc.data()!);
       return AppSocial.empty();
     } catch (e) {
       debugPrint('getSocial error: $e');
@@ -61,10 +79,14 @@ class FirestoreService {
     }
   }
 
-  static Future<AppFeatures> getFeatures() async {
+  static Future<AppFeatures> getFeatures({bool forceRefresh = false}) async {
     try {
-      final doc = await _db.collection('app_config').doc('features').get(const GetOptions(source: Source.server));
-      if (doc.exists && doc.data() != null) return AppFeatures.fromMap(doc.data()!);
+      final doc = await _db
+          .collection('app_config')
+          .doc('features')
+          .get(_getOptions(forceRefresh));
+      if (doc.exists && doc.data() != null)
+        return AppFeatures.fromMap(doc.data()!);
       return AppFeatures.empty();
     } catch (e) {
       debugPrint('getFeatures error: $e');
@@ -74,40 +96,47 @@ class FirestoreService {
 
   // ── APP CONFIG — fetch all in parallel ───────────────────────────────────
 
-  static Future<Map<String, dynamic>> getAllConfig() async {
+  static Future<Map<String, dynamic>> getAllConfig({
+    bool forceRefresh = false,
+  }) async {
     try {
       final results = await Future.wait([
-        getBranding(),
-        getContact(),
-        getContent(),
-        getSocial(),
-        getFeatures(),
+        getBranding(forceRefresh: forceRefresh),
+        getContact(forceRefresh: forceRefresh),
+        getContent(forceRefresh: forceRefresh),
+        getSocial(forceRefresh: forceRefresh),
+        getFeatures(forceRefresh: forceRefresh),
       ]);
       return {
-        'branding':   results[0] as AppBranding,
-        'contact':    results[1] as AppContact,
-        'content':    results[2] as AppContent,
-        'social':     results[3] as AppSocial,
-        'features':   results[4] as AppFeatures,
+        'branding': results[0] as AppBranding,
+        'contact': results[1] as AppContact,
+        'content': results[2] as AppContent,
+        'social': results[3] as AppSocial,
+        'features': results[4] as AppFeatures,
         // exhibition removed — now in its own collection via ExhibitionRepository
       };
     } catch (e) {
       debugPrint('getAllConfig error: $e');
       return {
-        'branding':   AppBranding.empty(),
-        'contact':    AppContact.empty(),
-        'content':    AppContent.empty(),
-        'social':     AppSocial.empty(),
-        'features':   AppFeatures.empty(),
+        'branding': AppBranding.empty(),
+        'contact': AppContact.empty(),
+        'content': AppContent.empty(),
+        'social': AppSocial.empty(),
+        'features': AppFeatures.empty(),
       };
     }
   }
 
   // ── CATEGORIES ────────────────────────────────────────────────────────────
 
-  static Future<List<ProductCategory>> getCategories() async {
+  static Future<List<ProductCategory>> getCategories({
+    bool forceRefresh = false,
+  }) async {
     try {
-      final snap = await _db.collection('categories').orderBy('order').get(const GetOptions(source: Source.server));
+      final snap = await _db
+          .collection('categories')
+          .orderBy('order')
+          .get(_getOptions(forceRefresh));
       return snap.docs.map(ProductCategory.fromDoc).toList();
     } catch (e) {
       debugPrint('getCategories error: $e');
@@ -117,13 +146,16 @@ class FirestoreService {
 
   // ── PRODUCTS ──────────────────────────────────────────────────────────────
 
-  static Future<List<Product>> getProductsByCategory(String categoryId) async {
+  static Future<List<Product>> getProductsByCategory(
+    String categoryId, {
+    bool forceRefresh = false,
+  }) async {
     try {
       final snap = await _db
           .collection('products')
           .where('categoryId', isEqualTo: categoryId)
           .orderBy('order')
-          .get(const GetOptions(source: Source.server));
+          .get(_getOptions(forceRefresh));
       return snap.docs.map(Product.fromDoc).toList();
     } catch (e) {
       debugPrint('getProductsByCategory error: $e');
@@ -131,9 +163,14 @@ class FirestoreService {
     }
   }
 
-  static Future<List<Product>> getAllProducts() async {
+  static Future<List<Product>> getAllProducts({
+    bool forceRefresh = false,
+  }) async {
     try {
-      final snap = await _db.collection('products').orderBy('order').get(const GetOptions(source: Source.server));
+      final snap = await _db
+          .collection('products')
+          .orderBy('order')
+          .get(_getOptions(forceRefresh));
       return snap.docs.map(Product.fromDoc).toList();
     } catch (e) {
       debugPrint('getAllProducts error: $e');
@@ -143,9 +180,14 @@ class FirestoreService {
 
   // ── EXCLUSIVE PRODUCTS ────────────────────────────────────────────────────
 
-  static Future<List<ExclusiveProduct>> getExclusiveProducts() async {
+  static Future<List<ExclusiveProduct>> getExclusiveProducts({
+    bool forceRefresh = false,
+  }) async {
     try {
-      final snap = await _db.collection('exclusive_products').orderBy('order').get(const GetOptions(source: Source.server));
+      final snap = await _db
+          .collection('exclusive_products')
+          .orderBy('order')
+          .get(_getOptions(forceRefresh));
       return snap.docs.map(ExclusiveProduct.fromDoc).toList();
     } catch (e) {
       debugPrint('getExclusiveProducts error: $e');
@@ -163,11 +205,11 @@ class FirestoreService {
   }) async {
     try {
       await _db.collection('support_messages').add({
-        'userId':    userId,
-        'name':      name,
-        'email':     email,
-        'message':   message,
-        'status':    'unread',
+        'userId': userId,
+        'name': name,
+        'email': email,
+        'message': message,
+        'status': 'unread',
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
@@ -180,9 +222,9 @@ class FirestoreService {
 
   static Future<void> setLoginImage(String url) async {
     try {
-      await _db.collection('settings').doc('branding').set(
-        {'loginImage': url}, SetOptions(merge: true),
-      );
+      await _db.collection('settings').doc('branding').set({
+        'loginImage': url,
+      }, SetOptions(merge: true));
     } catch (e) {
       debugPrint('setLoginImage error: $e');
       rethrow;
@@ -191,18 +233,23 @@ class FirestoreService {
 
   static Future<void> setSignupImage(String url) async {
     try {
-      await _db.collection('settings').doc('branding').set(
-        {'signupImage': url}, SetOptions(merge: true),
-      );
+      await _db.collection('settings').doc('branding').set({
+        'signupImage': url,
+      }, SetOptions(merge: true));
     } catch (e) {
       debugPrint('setSignupImage error: $e');
       rethrow;
     }
   }
 
-  static Future<Map<String, dynamic>> getBrandingSettings() async {
+  static Future<Map<String, dynamic>> getBrandingSettings({
+    bool forceRefresh = false,
+  }) async {
     try {
-      final doc = await _db.collection('settings').doc('branding').get(const GetOptions(source: Source.server));
+      final doc = await _db
+          .collection('settings')
+          .doc('branding')
+          .get(_getOptions(forceRefresh));
       if (doc.exists && doc.data() != null) return doc.data()!;
       return {};
     } catch (e) {
@@ -214,9 +261,15 @@ class FirestoreService {
   // ── ADMIN — UPDATE CONFIG ─────────────────────────────────────────────────
 
   /// FIXED: uses merge: true so fields not included in [data] are NOT deleted.
-  static Future<void> updateConfig(String docId, Map<String, dynamic> data) async {
+  static Future<void> updateConfig(
+    String docId,
+    Map<String, dynamic> data,
+  ) async {
     try {
-      await _db.collection('app_config').doc(docId).set(data, SetOptions(merge: true));
+      await _db
+          .collection('app_config')
+          .doc(docId)
+          .set(data, SetOptions(merge: true));
     } catch (e) {
       debugPrint('updateConfig error: $e');
       rethrow;
@@ -229,7 +282,10 @@ class FirestoreService {
     return await _db.collection('categories').add(category.toMap());
   }
 
-  static Future<void> updateCategory(String id, Map<String, dynamic> data) async {
+  static Future<void> updateCategory(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     await _db.collection('categories').doc(id).update(data);
   }
 
@@ -243,7 +299,10 @@ class FirestoreService {
     return await _db.collection('products').add(product.toMap());
   }
 
-  static Future<void> updateProduct(String id, Map<String, dynamic> data) async {
+  static Future<void> updateProduct(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     await _db.collection('products').doc(id).update(data);
   }
 
@@ -253,11 +312,16 @@ class FirestoreService {
 
   // ── ADMIN — EXCLUSIVE PRODUCTS CRUD ──────────────────────────────────────
 
-  static Future<DocumentReference> addExclusiveProduct(ExclusiveProduct product) async {
+  static Future<DocumentReference> addExclusiveProduct(
+    ExclusiveProduct product,
+  ) async {
     return await _db.collection('exclusive_products').add(product.toMap());
   }
 
-  static Future<void> updateExclusiveProduct(String id, Map<String, dynamic> data) async {
+  static Future<void> updateExclusiveProduct(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     await _db.collection('exclusive_products').doc(id).update(data);
   }
 
@@ -267,25 +331,30 @@ class FirestoreService {
 
   // ── ADMIN — SUPPORT MESSAGES ──────────────────────────────────────────────
 
-  static Future<List<SupportMessage>> getSupportMessages() async {
+  static Future<List<SupportMessage>> getSupportMessages({
+    bool forceRefresh = false,
+  }) async {
     final snap = await _db
         .collection('support_messages')
         .orderBy('createdAt', descending: true)
-        .get(const GetOptions(source: Source.server));
+        .get(_getOptions(forceRefresh));
     return snap.docs.map(SupportMessage.fromDoc).toList();
   }
 
-  static Future<void> updateSupportMessageStatus(String id, String status) async {
+  static Future<void> updateSupportMessageStatus(
+    String id,
+    String status,
+  ) async {
     await _db.collection('support_messages').doc(id).update({'status': status});
   }
 
   // ── ADMIN — USERS ─────────────────────────────────────────────────────────
 
-  static Future<List<AppUser>> getUsers() async {
+  static Future<List<AppUser>> getUsers({bool forceRefresh = false}) async {
     final snap = await _db
         .collection('users')
         .orderBy('createdAt', descending: true)
-        .get(const GetOptions(source: Source.server));
+        .get(_getOptions(forceRefresh));
     return snap.docs.map(AppUser.fromDoc).toList();
   }
 

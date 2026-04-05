@@ -1,6 +1,9 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/providers/app_refresh_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../../../models/product.dart';
 import '../repositories/exclusive_product_repository.dart';
 import '../widgets/admin_form_field.dart';
@@ -67,7 +70,9 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
   Future<void> _loadExclusives() async {
     setState(() => _isLoading = true);
     try {
-      final list = await ExclusiveProductRepository.getExclusiveProducts();
+      final list = await ExclusiveProductRepository.getExclusiveProducts(
+        forceRefresh: true,
+      );
       _allExclusives = list;
       _applyFilter();
     } catch (e) {
@@ -98,7 +103,10 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
         title: const Text('Delete Exclusive Piece?'),
         content: Text('Delete "${product.title}"? This cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -110,6 +118,7 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
     if (confirmed == true) {
       try {
         await ExclusiveProductRepository.deleteExclusiveProduct(product.id);
+        if (mounted) context.read<AppRefreshProvider>().invalidateAll();
         _showSnackbar('Exclusive piece deleted');
         _loadExclusives();
       } catch (e) {
@@ -207,6 +216,7 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
       }
 
       _showSnackbar('Exclusive piece saved successfully!');
+      if (mounted) context.read<AppRefreshProvider>().invalidateAll();
       _showList();
     } catch (e) {
       _showSnackbar('Failed to save exclusive piece: $e', isError: true);
@@ -253,12 +263,17 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
           padding: const EdgeInsets.all(32),
           child: LayoutBuilder(
             builder: (context, headerConstraints) {
-              final isNarrowHeader = headerConstraints.maxWidth < 600;
+              final isNarrowHeader = ResponsiveBreakpoints.isMobileWidth(
+                headerConstraints.maxWidth,
+              );
               return isNarrowHeader
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Exclusive Collection', style: AppTheme.headingLarge),
+                        Text(
+                          'Exclusive Collection',
+                          style: AppTheme.headingLarge,
+                        ),
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
@@ -269,7 +284,12 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(child: Text('Exclusive Collection', style: AppTheme.headingLarge)),
+                        Expanded(
+                          child: Text(
+                            'Exclusive Collection',
+                            style: AppTheme.headingLarge,
+                          ),
+                        ),
                         _buildAddButton(),
                       ],
                     );
@@ -285,12 +305,16 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
               _searchQuery = val;
               _applyFilter();
             },
-            decoration: AppTheme.inputDecoration(
-              label: 'Search exclusives...',
-              hint: 'Search by title',
-            ).copyWith(
-              prefixIcon: const Icon(Icons.search, color: AppTheme.textLight),
-            ),
+            decoration:
+                AppTheme.inputDecoration(
+                  label: 'Search exclusives...',
+                  hint: 'Search by title',
+                ).copyWith(
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppTheme.textLight,
+                  ),
+                ),
           ),
         ),
 
@@ -300,13 +324,15 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _filteredExclusives.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                      itemCount: _filteredExclusives.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 16),
-                      itemBuilder: (context, index) => _buildExclusiveCard(_filteredExclusives[index]),
-                    ),
+              ? _buildEmptyState()
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
+                  itemCount: _filteredExclusives.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
+                  itemBuilder: (context, index) =>
+                      _buildExclusiveCard(_filteredExclusives[index]),
+                ),
         ),
       ],
     );
@@ -321,8 +347,10 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isNarrow = constraints.maxWidth < 500;
-          
+          final isNarrow = ResponsiveBreakpoints.isMobileWidth(
+            constraints.maxWidth,
+          );
+
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -334,10 +362,15 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                     color: AppTheme.background,
                     borderRadius: BorderRadius.circular(8),
                     image: product.imageUrls.isNotEmpty
-                        ? DecorationImage(image: NetworkImage(product.imageUrls.first), fit: BoxFit.cover)
+                        ? DecorationImage(
+                            image: NetworkImage(product.imageUrls.first),
+                            fit: BoxFit.cover,
+                          )
                         : null,
                   ),
-                  child: product.imageUrls.isEmpty ? const Icon(Icons.image, color: AppTheme.greyPlaceholder) : null,
+                  child: product.imageUrls.isEmpty
+                      ? const Icon(Icons.image, color: AppTheme.greyPlaceholder)
+                      : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -345,7 +378,7 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        product.title, 
+                        product.title,
                         style: AppTheme.headingMedium.copyWith(fontSize: 16),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -354,7 +387,7 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                         children: [
                           Flexible(
                             child: Text(
-                              '${product.totalPieces} pieces • Order: ${product.order}', 
+                              '${product.totalPieces} pieces • Order: ${product.order}',
                               style: AppTheme.bodySmall,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -363,7 +396,11 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                           if (product.hasCertificate && !isNarrow)
                             Padding(
                               padding: const EdgeInsets.only(left: 8.0),
-                              child: Icon(Icons.verified_outlined, size: 14, color: AppTheme.primaryBrown.withOpacity(0.7)),
+                              child: Icon(
+                                Icons.verified_outlined,
+                                size: 14,
+                                color: AppTheme.primaryBrown.withOpacity(0.7),
+                              ),
                             ),
                         ],
                       ),
@@ -372,25 +409,35 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: (product.isActive ? AppTheme.successGreen : Colors.grey).withOpacity(0.1),
+                    color:
+                        (product.isActive ? AppTheme.successGreen : Colors.grey)
+                            .withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     product.isActive ? 'Active' : 'Inactive',
                     style: TextStyle(
-                      color: product.isActive ? AppTheme.successGreen : Colors.grey,
+                      color: product.isActive
+                          ? AppTheme.successGreen
+                          : Colors.grey,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 const SizedBox(width: 4),
-                
+
                 if (!isNarrow) ...[
                   IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: AppTheme.primaryBrown),
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      color: AppTheme.primaryBrown,
+                    ),
                     onPressed: () => _showForm(product),
                   ),
                   IconButton(
@@ -400,19 +447,27 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                 ] else ...[
                   PopupMenuButton<String>(
                     onSelected: (val) {
-                      if (val == 'edit') _showForm(product);
-                      else if (val == 'delete') _deleteExclusive(product);
+                      if (val == 'edit')
+                        _showForm(product);
+                      else if (val == 'delete')
+                        _deleteExclusive(product);
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ],
             ),
           );
-        }
+        },
       ),
     );
   }
@@ -422,9 +477,18 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.star_border_outlined, size: 64, color: AppTheme.textLight),
+          const Icon(
+            Icons.star_border_outlined,
+            size: 64,
+            color: AppTheme.textLight,
+          ),
           const SizedBox(height: 16),
-          Text(_searchQuery.isEmpty ? 'No exclusive pieces yet.' : 'No matching exclusive pieces.', style: AppTheme.bodyLarge),
+          Text(
+            _searchQuery.isEmpty
+                ? 'No exclusive pieces yet.'
+                : 'No matching exclusive pieces.',
+            style: AppTheme.bodyLarge,
+          ),
         ],
       ),
     );
@@ -440,7 +504,33 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
         children: [
           LayoutBuilder(
             builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 650;
+              final isNarrow = ResponsiveBreakpoints.isMobileWidth(
+                constraints.maxWidth,
+              );
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextButton.icon(
+                      onPressed: _showList,
+                      icon: const Icon(Icons.arrow_back),
+                      label: const Text('Back to List'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primaryBrown,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _editingExclusive == null
+                          ? 'Add Exclusive Piece'
+                          : 'Edit: ${_editingExclusive!.title}',
+                      style: AppTheme.headingLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(width: double.infinity, child: _buildSaveButton()),
+                  ],
+                );
+              }
               return Wrap(
                 spacing: 16,
                 runSpacing: 16,
@@ -450,10 +540,14 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                     onPressed: _showList,
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Back to List'),
-                    style: TextButton.styleFrom(foregroundColor: AppTheme.primaryBrown),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.primaryBrown,
+                    ),
                   ),
                   Text(
-                    _editingExclusive == null ? 'Add Exclusive Piece' : 'Edit: ${_editingExclusive!.title}',
+                    _editingExclusive == null
+                        ? 'Add Exclusive Piece'
+                        : 'Edit: ${_editingExclusive!.title}',
                     style: AppTheme.headingLarge,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -462,11 +556,23 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryBrown,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: _isSaving
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Text('Save Exclusive'),
                   ),
                 ],
@@ -476,123 +582,241 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
 
           const SizedBox(height: 32),
 
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: _buildSection('Basic Details', [
-                  AdminFormField(label: 'Title', hint: 'Enter piece title', controller: _titleCtrl),
-                  const SizedBox(height: 16),
-                  AdminFormField(label: 'Description & Story', hint: 'Enter description', controller: _descCtrl, maxLines: 4),
-                  const SizedBox(height: 16),
-                  LayoutBuilder(
-                    builder: (context, c) {
-                      final isNarrow = c.maxWidth < 400;
-                      return isNarrow 
-                        ? Column(children: [
-                            AdminFormField(label: 'Total Pieces Made', hint: 'Enter number', controller: _piecesCtrl, keyboardType: TextInputType.number),
-                            const SizedBox(height: 16),
-                            AdminFormField(label: 'Display Order', hint: 'Enter order', controller: _orderCtrl, keyboardType: TextInputType.number),
-                          ])
-                        : Row(children: [
-                            Expanded(child: AdminFormField(label: 'Total Pieces Made', hint: 'Enter number', controller: _piecesCtrl, keyboardType: TextInputType.number)),
-                            const SizedBox(width: 24),
-                            Expanded(child: AdminFormField(label: 'Display Order', hint: 'Enter order', controller: _orderCtrl, keyboardType: TextInputType.number)),
-                          ]);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  LayoutBuilder(
-                    builder: (context, c) {
-                      final isNarrow = c.maxWidth < 400;
-                      return isNarrow 
-                        ? Column(children: [
-                            AdminFormField(label: 'Material', hint: 'e.g. Stoneware', controller: _materialCtrl),
-                            const SizedBox(height: 16),
-                            AdminFormField(label: 'Crafting Time', hint: 'e.g. 4-6 Weeks', controller: _craftingTimeCtrl),
-                          ])
-                        : Row(children: [
-                            Expanded(child: AdminFormField(label: 'Material', hint: 'e.g. Stoneware', controller: _materialCtrl)),
-                            const SizedBox(width: 24),
-                            Expanded(child: AdminFormField(label: 'Crafting Time', hint: 'e.g. 4-6 Weeks', controller: _craftingTimeCtrl)),
-                          ]);
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  LayoutBuilder(
-                    builder: (context, c) {
-                      final isNarrow = c.maxWidth < 400;
-                      return isNarrow
-                        ? Column(children: [
-                            AdminToggleSwitch(
-                              label: 'Authenticity Cert',
-                              value: _hasCertificate,
-                              onChanged: (val) => setState(() => _hasCertificate = val),
-                            ),
-                            const SizedBox(height: 16),
-                            AdminToggleSwitch(
-                              label: 'Is Active',
-                              value: _isActive,
-                              onChanged: (val) => setState(() => _isActive = val),
-                            ),
-                          ])
-                        : Row(children: [
-                            Expanded(
-                              child: AdminToggleSwitch(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isStacked = !ResponsiveBreakpoints.isDesktopWidth(
+                constraints.maxWidth,
+              );
+
+              final details = _buildSection('Basic Details', [
+                AdminFormField(
+                  label: 'Title',
+                  hint: 'Enter piece title',
+                  controller: _titleCtrl,
+                ),
+                const SizedBox(height: 16),
+                AdminFormField(
+                  label: 'Description & Story',
+                  hint: 'Enter description',
+                  controller: _descCtrl,
+                  maxLines: 4,
+                ),
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (context, c) {
+                    final isNarrow = ResponsiveBreakpoints.isMobileWidth(
+                      c.maxWidth,
+                    );
+                    return isNarrow
+                        ? Column(
+                            children: [
+                              AdminFormField(
+                                label: 'Total Pieces Made',
+                                hint: 'Enter number',
+                                controller: _piecesCtrl,
+                                keyboardType: TextInputType.number,
+                              ),
+                              const SizedBox(height: 16),
+                              AdminFormField(
+                                label: 'Display Order',
+                                hint: 'Enter order',
+                                controller: _orderCtrl,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: AdminFormField(
+                                  label: 'Total Pieces Made',
+                                  hint: 'Enter number',
+                                  controller: _piecesCtrl,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: AdminFormField(
+                                  label: 'Display Order',
+                                  hint: 'Enter order',
+                                  controller: _orderCtrl,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                            ],
+                          );
+                  },
+                ),
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (context, c) {
+                    final isNarrow = ResponsiveBreakpoints.isMobileWidth(
+                      c.maxWidth,
+                    );
+                    return isNarrow
+                        ? Column(
+                            children: [
+                              AdminFormField(
+                                label: 'Material',
+                                hint: 'e.g. Stoneware',
+                                controller: _materialCtrl,
+                              ),
+                              const SizedBox(height: 16),
+                              AdminFormField(
+                                label: 'Crafting Time',
+                                hint: 'e.g. 4-6 Weeks',
+                                controller: _craftingTimeCtrl,
+                              ),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: AdminFormField(
+                                  label: 'Material',
+                                  hint: 'e.g. Stoneware',
+                                  controller: _materialCtrl,
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: AdminFormField(
+                                  label: 'Crafting Time',
+                                  hint: 'e.g. 4-6 Weeks',
+                                  controller: _craftingTimeCtrl,
+                                ),
+                              ),
+                            ],
+                          );
+                  },
+                ),
+                const SizedBox(height: 24),
+                LayoutBuilder(
+                  builder: (context, c) {
+                    final isNarrow = ResponsiveBreakpoints.isMobileWidth(
+                      c.maxWidth,
+                    );
+                    return isNarrow
+                        ? Column(
+                            children: [
+                              AdminToggleSwitch(
                                 label: 'Authenticity Cert',
                                 value: _hasCertificate,
-                                onChanged: (val) => setState(() => _hasCertificate = val),
+                                onChanged: (val) =>
+                                    setState(() => _hasCertificate = val),
                               ),
-                            ),
-                            const SizedBox(width: 24),
-                            Expanded(
-                              child: AdminToggleSwitch(
+                              const SizedBox(height: 16),
+                              AdminToggleSwitch(
                                 label: 'Is Active',
                                 value: _isActive,
-                                onChanged: (val) => setState(() => _isActive = val),
+                                onChanged: (val) =>
+                                    setState(() => _isActive = val),
                               ),
-                            ),
-                          ]);
-                    },
-                  ),
-                ]),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                flex: 2,
-                child: _buildSection('Masterpiece Images', [
-                  ImageUploadWidget(
-                    title: 'Upload Images',
-                    multiple: true,
-                    onImagesSelected: _onImagesSelected,
-                  ),
-                  if (_editingExclusive != null && _newImageBytes.isEmpty && _currentImageUrls.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Current Images:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 100,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _currentImageUrls.length,
-                              separatorBuilder: (context, index) => const SizedBox(width: 8),
-                              itemBuilder: (context, index) => Image.network(_currentImageUrls[index], width: 100, fit: BoxFit.cover),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: AdminToggleSwitch(
+                                  label: 'Authenticity Cert',
+                                  value: _hasCertificate,
+                                  onChanged: (val) =>
+                                      setState(() => _hasCertificate = val),
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: AdminToggleSwitch(
+                                  label: 'Is Active',
+                                  value: _isActive,
+                                  onChanged: (val) =>
+                                      setState(() => _isActive = val),
+                                ),
+                              ),
+                            ],
+                          );
+                  },
+                ),
+              ]);
+              final images = _buildSection('Masterpiece Images', [
+                ImageUploadWidget(
+                  title: 'Upload Images',
+                  multiple: true,
+                  onImagesSelected: _onImagesSelected,
+                ),
+                if (_editingExclusive != null &&
+                    _newImageBytes.isEmpty &&
+                    _currentImageUrls.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Current Images:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 100,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _currentImageUrls.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 8),
+                            itemBuilder: (context, index) => Image.network(
+                              _currentImageUrls[index],
+                              width: 100,
+                              fit: BoxFit.cover,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                ]),
-              ),
-            ],
+                  ),
+              ]);
+
+              if (isStacked) {
+                return Column(
+                  children: [details, const SizedBox(height: 24), images],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 3, child: details),
+                  const SizedBox(width: 24),
+                  Expanded(flex: 2, child: images),
+                ],
+              );
+            },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return ElevatedButton(
+      onPressed: _isSaving ? null : _save,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primaryBrown,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: _isSaving
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : const Text('Save Exclusive'),
     );
   }
 
@@ -618,7 +842,10 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
   void _showSnackbar(String message, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: isError ? Colors.red : AppTheme.successGreen),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : AppTheme.successGreen,
+      ),
     );
   }
 }

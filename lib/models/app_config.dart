@@ -27,38 +27,38 @@ class AppBranding {
 
   factory AppBranding.fromMap(Map<String, dynamic> map) {
     return AppBranding(
-      appName:          map['appName']          as String? ?? 'Pottery Station',
-      logoUrl:          map['logoUrl']          as String? ?? '',
-      authImageUrl:     map['authImageUrl']     as String? ?? '',
-      heroImageUrl:     map['heroImageUrl']     as String? ?? '', // ← NEW
-      heroText:         map['heroText']         as String? ?? '',
-      heroDesc:         map['heroDesc']         as String? ?? '',
+      appName: map['appName'] as String? ?? 'Pottery Station',
+      logoUrl: map['logoUrl'] as String? ?? '',
+      authImageUrl: map['authImageUrl'] as String? ?? '',
+      heroImageUrl: map['heroImageUrl'] as String? ?? '', // ← NEW
+      heroText: map['heroText'] as String? ?? '',
+      heroDesc: map['heroDesc'] as String? ?? '',
       storeBannerTitle: map['storeBannerTitle'] as String? ?? '',
-      storeBannerDesc:  map['storeBannerDesc']  as String? ?? '',
+      storeBannerDesc: map['storeBannerDesc'] as String? ?? '',
     );
   }
 
   factory AppBranding.empty() => const AppBranding(
-        appName:          'Pottery Station',
-        logoUrl:          '',
-        authImageUrl:     '',
-        heroImageUrl:     '', // ← NEW
-        heroText:         'The art of intentional form.',
-        heroDesc:         '',
-        storeBannerTitle: '',
-        storeBannerDesc:  '',
-      );
+    appName: 'Pottery Station',
+    logoUrl: '',
+    authImageUrl: '',
+    heroImageUrl: '', // ← NEW
+    heroText: 'The art of intentional form.',
+    heroDesc: '',
+    storeBannerTitle: '',
+    storeBannerDesc: '',
+  );
 
   Map<String, dynamic> toMap() {
     return {
-      'appName':          appName,
-      'logoUrl':          logoUrl,
-      'authImageUrl':     authImageUrl,
-      'heroImageUrl':     heroImageUrl, // ← NEW
-      'heroText':         heroText,
-      'heroDesc':         heroDesc,
+      'appName': appName,
+      'logoUrl': logoUrl,
+      'authImageUrl': authImageUrl,
+      'heroImageUrl': heroImageUrl, // ← NEW
+      'heroText': heroText,
+      'heroDesc': heroDesc,
       'storeBannerTitle': storeBannerTitle,
-      'storeBannerDesc':  storeBannerDesc,
+      'storeBannerDesc': storeBannerDesc,
     };
   }
 
@@ -73,14 +73,14 @@ class AppBranding {
     String? storeBannerDesc,
   }) {
     return AppBranding(
-      appName:          appName          ?? this.appName,
-      logoUrl:          logoUrl          ?? this.logoUrl,
-      authImageUrl:     authImageUrl     ?? this.authImageUrl,
-      heroImageUrl:     heroImageUrl     ?? this.heroImageUrl, // ← NEW
-      heroText:         heroText         ?? this.heroText,
-      heroDesc:         heroDesc         ?? this.heroDesc,
+      appName: appName ?? this.appName,
+      logoUrl: logoUrl ?? this.logoUrl,
+      authImageUrl: authImageUrl ?? this.authImageUrl,
+      heroImageUrl: heroImageUrl ?? this.heroImageUrl, // ← NEW
+      heroText: heroText ?? this.heroText,
+      heroDesc: heroDesc ?? this.heroDesc,
       storeBannerTitle: storeBannerTitle ?? this.storeBannerTitle,
-      storeBannerDesc:  storeBannerDesc  ?? this.storeBannerDesc,
+      storeBannerDesc: storeBannerDesc ?? this.storeBannerDesc,
     );
   }
 }
@@ -103,21 +103,18 @@ class AppContact {
     return AppContact(
       supportEmail: map['supportEmail'] as String? ?? '',
       supportPhone: map['supportPhone'] as String? ?? '',
-      address:      map['address']      as String? ?? '',
+      address: map['address'] as String? ?? '',
     );
   }
 
-  factory AppContact.empty() => const AppContact(
-        supportEmail: '',
-        supportPhone: '',
-        address:      '',
-      );
+  factory AppContact.empty() =>
+      const AppContact(supportEmail: '', supportPhone: '', address: '');
 
   Map<String, dynamic> toMap() {
     return {
       'supportEmail': supportEmail,
       'supportPhone': supportPhone,
-      'address':      address,
+      'address': address,
     };
   }
 
@@ -129,7 +126,7 @@ class AppContact {
     return AppContact(
       supportEmail: supportEmail ?? this.supportEmail,
       supportPhone: supportPhone ?? this.supportPhone,
-      address:      address      ?? this.address,
+      address: address ?? this.address,
     );
   }
 }
@@ -153,26 +150,26 @@ class AppContent {
 
   factory AppContent.fromMap(Map<String, dynamic> map) {
     return AppContent(
-      aboutUs:         map['aboutUs']         as String? ?? '',
+      aboutUs: map['aboutUs'] as String? ?? '',
       termsConditions: map['termsConditions'] as String? ?? '',
-      privacyPolicy:   map['privacyPolicy']   as String? ?? '',
-      helpText:        map['helpText']        as String? ?? '',
+      privacyPolicy: map['privacyPolicy'] as String? ?? '',
+      helpText: map['helpText'] as String? ?? '',
     );
   }
 
   factory AppContent.empty() => const AppContent(
-        aboutUs:         '',
-        termsConditions: '',
-        privacyPolicy:   '',
-        helpText:        '',
-      );
+    aboutUs: '',
+    termsConditions: '',
+    privacyPolicy: '',
+    helpText: '',
+  );
 
   Map<String, dynamic> toMap() {
     return {
-      'aboutUs':         aboutUs,
+      'aboutUs': aboutUs,
       'termsConditions': termsConditions,
-      'privacyPolicy':   privacyPolicy,
-      'helpText':        helpText,
+      'privacyPolicy': privacyPolicy,
+      'helpText': helpText,
     };
   }
 
@@ -183,10 +180,10 @@ class AppContent {
     String? helpText,
   }) {
     return AppContent(
-      aboutUs:         aboutUs         ?? this.aboutUs,
+      aboutUs: aboutUs ?? this.aboutUs,
       termsConditions: termsConditions ?? this.termsConditions,
-      privacyPolicy:   privacyPolicy   ?? this.privacyPolicy,
-      helpText:        helpText        ?? this.helpText,
+      privacyPolicy: privacyPolicy ?? this.privacyPolicy,
+      helpText: helpText ?? this.helpText,
     );
   }
 }
@@ -209,22 +206,19 @@ class AppSocial {
   factory AppSocial.fromMap(Map<String, dynamic> map) {
     return AppSocial(
       instagramUrl: map['instagramUrl'] as String? ?? '',
-      facebookUrl:  map['facebookUrl']  as String? ?? '',
-      websiteUrl:   map['websiteUrl']   as String? ?? '',
+      facebookUrl: map['facebookUrl'] as String? ?? '',
+      websiteUrl: map['websiteUrl'] as String? ?? '',
     );
   }
 
-  factory AppSocial.empty() => const AppSocial(
-        instagramUrl: '',
-        facebookUrl:  '',
-        websiteUrl:   '',
-      );
+  factory AppSocial.empty() =>
+      const AppSocial(instagramUrl: '', facebookUrl: '', websiteUrl: '');
 
   Map<String, dynamic> toMap() {
     return {
       'instagramUrl': instagramUrl,
-      'facebookUrl':  facebookUrl,
-      'websiteUrl':   websiteUrl,
+      'facebookUrl': facebookUrl,
+      'websiteUrl': websiteUrl,
     };
   }
 
@@ -235,8 +229,8 @@ class AppSocial {
   }) {
     return AppSocial(
       instagramUrl: instagramUrl ?? this.instagramUrl,
-      facebookUrl:  facebookUrl  ?? this.facebookUrl,
-      websiteUrl:   websiteUrl   ?? this.websiteUrl,
+      facebookUrl: facebookUrl ?? this.facebookUrl,
+      websiteUrl: websiteUrl ?? this.websiteUrl,
     );
   }
 }
@@ -259,9 +253,7 @@ class AppFeatures {
   factory AppFeatures.empty() => const AppFeatures(maintenanceMode: false);
 
   Map<String, dynamic> toMap() {
-    return {
-      'maintenanceMode': maintenanceMode,
-    };
+    return {'maintenanceMode': maintenanceMode};
   }
 
   AppFeatures copyWith({bool? maintenanceMode}) {
@@ -308,50 +300,50 @@ class AppExhibition {
 
   factory AppExhibition.fromMap(Map<String, dynamic> map) {
     return AppExhibition(
-      title:           map['title']           as String? ?? '',
-      location:        map['location']        as String? ?? '',
-      address:         map['address']         as String? ?? '',
-      startDate:       (map['startDate']  as Timestamp?)?.toDate(),
-      endDate:         (map['endDate']    as Timestamp?)?.toDate(),
-      openTime:        map['openTime']        as String? ?? '',
-      closeTime:       map['closeTime']       as String? ?? '',
-      displayTime:     map['displayTime']     as String? ?? '',
-      imageUrl:        map['imageUrl']        as String? ?? '',
-      isActive:        map['isActive']        as bool?   ?? false,
+      title: map['title'] as String? ?? '',
+      location: map['location'] as String? ?? '',
+      address: map['address'] as String? ?? '',
+      startDate: (map['startDate'] as Timestamp?)?.toDate(),
+      endDate: (map['endDate'] as Timestamp?)?.toDate(),
+      openTime: map['openTime'] as String? ?? '',
+      closeTime: map['closeTime'] as String? ?? '',
+      displayTime: map['displayTime'] as String? ?? '',
+      imageUrl: map['imageUrl'] as String? ?? '',
+      isActive: map['isActive'] as bool? ?? false,
       thankYouMessage: map['thankYouMessage'] as String? ?? '',
-      lastDayMessage:  map['lastDayMessage']  as String? ?? '',
+      lastDayMessage: map['lastDayMessage'] as String? ?? '',
       upcomingMessage: map['upcomingMessage'] as String? ?? '',
     );
   }
 
   factory AppExhibition.empty() => const AppExhibition(
-        title:           '',
-        location:        '',
-        address:         '',
-        openTime:        '',
-        closeTime:       '',
-        displayTime:     '',
-        imageUrl:        '',
-        isActive:        false,
-        thankYouMessage: '',
-        lastDayMessage:  '',
-        upcomingMessage: '',
-      );
+    title: '',
+    location: '',
+    address: '',
+    openTime: '',
+    closeTime: '',
+    displayTime: '',
+    imageUrl: '',
+    isActive: false,
+    thankYouMessage: '',
+    lastDayMessage: '',
+    upcomingMessage: '',
+  );
 
   Map<String, dynamic> toMap() {
     return {
-      'title':           title,
-      'location':        location,
-      'address':         address,
-      'startDate':       startDate != null ? Timestamp.fromDate(startDate!) : null,
-      'endDate':         endDate != null ? Timestamp.fromDate(endDate!) : null,
-      'openTime':        openTime,
-      'closeTime':       closeTime,
-      'displayTime':     displayTime,
-      'imageUrl':        imageUrl,
-      'isActive':        isActive,
+      'title': title,
+      'location': location,
+      'address': address,
+      'startDate': startDate != null ? Timestamp.fromDate(startDate!) : null,
+      'endDate': endDate != null ? Timestamp.fromDate(endDate!) : null,
+      'openTime': openTime,
+      'closeTime': closeTime,
+      'displayTime': displayTime,
+      'imageUrl': imageUrl,
+      'isActive': isActive,
       'thankYouMessage': thankYouMessage,
-      'lastDayMessage':  lastDayMessage,
+      'lastDayMessage': lastDayMessage,
       'upcomingMessage': upcomingMessage,
     };
   }
@@ -372,18 +364,18 @@ class AppExhibition {
     String? upcomingMessage,
   }) {
     return AppExhibition(
-      title:           title           ?? this.title,
-      location:        location        ?? this.location,
-      address:         address         ?? this.address,
-      startDate:       startDate       ?? this.startDate,
-      endDate:         endDate         ?? this.endDate,
-      openTime:        openTime        ?? this.openTime,
-      closeTime:       closeTime       ?? this.closeTime,
-      displayTime:     displayTime     ?? this.displayTime,
-      imageUrl:        imageUrl        ?? this.imageUrl,
-      isActive:        isActive        ?? this.isActive,
+      title: title ?? this.title,
+      location: location ?? this.location,
+      address: address ?? this.address,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      openTime: openTime ?? this.openTime,
+      closeTime: closeTime ?? this.closeTime,
+      displayTime: displayTime ?? this.displayTime,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isActive: isActive ?? this.isActive,
       thankYouMessage: thankYouMessage ?? this.thankYouMessage,
-      lastDayMessage:  lastDayMessage  ?? this.lastDayMessage,
+      lastDayMessage: lastDayMessage ?? this.lastDayMessage,
       upcomingMessage: upcomingMessage ?? this.upcomingMessage,
     );
   }
@@ -401,9 +393,9 @@ class AppExhibition {
 
     if (endDate != null) {
       final lastDay = DateTime(endDate!.year, endDate!.month, endDate!.day);
-      final today   = DateTime(now.year, now.month, now.day);
+      final today = DateTime(now.year, now.month, now.day);
       if (today.isAtSameMomentAs(lastDay)) return lastDayMessage;
-      if (now.isAfter(endDate!))           return thankYouMessage;
+      if (now.isAfter(endDate!)) return thankYouMessage;
     }
 
     return '';

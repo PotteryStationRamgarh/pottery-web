@@ -43,7 +43,10 @@ class ImageUploadCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Card header ──
-          Text(title, style: AppTheme.headingMedium.copyWith(color: AppTheme.textDark)),
+          Text(
+            title,
+            style: AppTheme.headingMedium.copyWith(color: AppTheme.textDark),
+          ),
           const SizedBox(height: 4),
           Text(subtitle, style: AppTheme.bodySmall),
           const SizedBox(height: 20),
@@ -75,7 +78,10 @@ class ImageUploadCard extends StatelessWidget {
                 ),
               ),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 backgroundColor: AppTheme.primaryBrown.withOpacity(0.08),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

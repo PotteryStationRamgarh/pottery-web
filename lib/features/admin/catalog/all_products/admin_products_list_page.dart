@@ -1,7 +1,10 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/providers/app_refresh_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../../../models/product.dart';
 import '../../../../models/product_category.dart';
 import '../repositories/product_repository.dart';
@@ -62,8 +65,8 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
     setState(() => _isLoading = true);
     try {
       final results = await Future.wait([
-        ProductRepository.getProducts(),
-        ProductRepository.getCategories(),
+        ProductRepository.getProducts(forceRefresh: true),
+        ProductRepository.getCategories(forceRefresh: true),
       ]);
       _allProducts = results[0] as List<Product>;
       _categories = results[1] as List<ProductCategory>;
@@ -83,7 +86,8 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
         final query = _searchQuery.toLowerCase();
         _filteredProducts = _allProducts.where((p) {
           final catName = _getCategoryName(p.categoryId).toLowerCase();
-          return p.title.toLowerCase().contains(query) || catName.contains(query);
+          return p.title.toLowerCase().contains(query) ||
+              catName.contains(query);
         }).toList();
       }
     });
@@ -103,7 +107,10 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
         title: const Text('Delete Product?'),
         content: Text('Delete "${product.title}"? This cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -115,6 +122,7 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
     if (confirmed == true) {
       try {
         await ProductRepository.deleteProduct(product.id);
+        if (mounted) context.read<AppRefreshProvider>().invalidateAll();
         _showSnackbar('Product deleted');
         _loadData();
       } catch (e) {
@@ -131,14 +139,18 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
       _titleCtrl.text = product.title;
       _descCtrl.text = product.description;
       _orderCtrl.text = product.order.toString();
-      _selectedCategoryId = _categories.any((c) => c.id == product.categoryId) ? product.categoryId : (_categories.isNotEmpty ? _categories.first.id : null);
+      _selectedCategoryId = _categories.any((c) => c.id == product.categoryId)
+          ? product.categoryId
+          : (_categories.isNotEmpty ? _categories.first.id : null);
       _isActive = product.isActive;
       _currentImageUrls = List.from(product.imageUrls);
     } else {
       _titleCtrl.clear();
       _descCtrl.clear();
       _orderCtrl.clear();
-      _selectedCategoryId = _categories.isNotEmpty ? _categories.first.id : null;
+      _selectedCategoryId = _categories.isNotEmpty
+          ? _categories.first.id
+          : null;
       _isActive = true;
       _currentImageUrls = [];
     }
@@ -201,6 +213,7 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
       }
 
       _showSnackbar('Product saved successfully!');
+      if (mounted) context.read<AppRefreshProvider>().invalidateAll();
       _showList();
     } catch (e) {
       _showSnackbar('Failed to save product: $e', isError: true);
@@ -233,7 +246,9 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
           padding: const EdgeInsets.all(32),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 600;
+              final isNarrow = ResponsiveBreakpoints.isMobileWidth(
+                constraints.maxWidth,
+              );
               return isNarrow
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,8 +264,13 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryBrown,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
@@ -267,8 +287,13 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.primaryBrown,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
                       ],
@@ -285,12 +310,16 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
               _searchQuery = val;
               _applyFilter();
             },
-            decoration: AppTheme.inputDecoration(
-              label: 'Search products...',
-              hint: 'Search by title or category',
-            ).copyWith(
-              prefixIcon: const Icon(Icons.search, color: AppTheme.textLight),
-            ),
+            decoration:
+                AppTheme.inputDecoration(
+                  label: 'Search products...',
+                  hint: 'Search by title or category',
+                ).copyWith(
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppTheme.textLight,
+                  ),
+                ),
           ),
         ),
 
@@ -300,13 +329,15 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _filteredProducts.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                      itemCount: _filteredProducts.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 16),
-                      itemBuilder: (context, index) => _buildProductCard(_filteredProducts[index]),
-                    ),
+              ? _buildEmptyState()
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
+                  itemCount: _filteredProducts.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
+                  itemBuilder: (context, index) =>
+                      _buildProductCard(_filteredProducts[index]),
+                ),
         ),
       ],
     );
@@ -321,8 +352,10 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isNarrow = constraints.maxWidth < 500;
-          
+          final isNarrow = ResponsiveBreakpoints.isMobileWidth(
+            constraints.maxWidth,
+          );
+
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -334,10 +367,15 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                     color: AppTheme.background,
                     borderRadius: BorderRadius.circular(8),
                     image: product.imageUrls.isNotEmpty
-                        ? DecorationImage(image: NetworkImage(product.imageUrls.first), fit: BoxFit.cover)
+                        ? DecorationImage(
+                            image: NetworkImage(product.imageUrls.first),
+                            fit: BoxFit.cover,
+                          )
                         : null,
                   ),
-                  child: product.imageUrls.isEmpty ? const Icon(Icons.image, color: AppTheme.greyPlaceholder) : null,
+                  child: product.imageUrls.isEmpty
+                      ? const Icon(Icons.image, color: AppTheme.greyPlaceholder)
+                      : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -345,13 +383,13 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        product.title, 
+                        product.title,
                         style: AppTheme.headingMedium.copyWith(fontSize: 16),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        '${_getCategoryName(product.categoryId)} • Order: ${product.order}', 
+                        '${_getCategoryName(product.categoryId)} • Order: ${product.order}',
                         style: AppTheme.bodySmall,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -361,25 +399,35 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: (product.isActive ? AppTheme.successGreen : Colors.grey).withOpacity(0.1),
+                    color:
+                        (product.isActive ? AppTheme.successGreen : Colors.grey)
+                            .withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     product.isActive ? 'Active' : 'Inactive',
                     style: TextStyle(
-                      color: product.isActive ? AppTheme.successGreen : Colors.grey,
+                      color: product.isActive
+                          ? AppTheme.successGreen
+                          : Colors.grey,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 const SizedBox(width: 4),
-                
+
                 if (!isNarrow) ...[
                   IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: AppTheme.primaryBrown),
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      color: AppTheme.primaryBrown,
+                    ),
                     onPressed: () => _showForm(product),
                   ),
                   IconButton(
@@ -389,19 +437,27 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                 ] else ...[
                   PopupMenuButton<String>(
                     onSelected: (val) {
-                      if (val == 'edit') _showForm(product);
-                      else if (val == 'delete') _deleteProduct(product);
+                      if (val == 'edit')
+                        _showForm(product);
+                      else if (val == 'delete')
+                        _deleteProduct(product);
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ],
             ),
           );
-        }
+        },
       ),
     );
   }
@@ -411,9 +467,16 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.inventory_2_outlined, size: 64, color: AppTheme.textLight),
+          const Icon(
+            Icons.inventory_2_outlined,
+            size: 64,
+            color: AppTheme.textLight,
+          ),
           const SizedBox(height: 16),
-          Text(_searchQuery.isEmpty ? 'No products yet.' : 'No matching products.', style: AppTheme.bodyLarge),
+          Text(
+            _searchQuery.isEmpty ? 'No products yet.' : 'No matching products.',
+            style: AppTheme.bodyLarge,
+          ),
         ],
       ),
     );
@@ -427,105 +490,217 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              TextButton.icon(
-                onPressed: _showList,
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Back to List'),
-                style: TextButton.styleFrom(foregroundColor: AppTheme.primaryBrown),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  _editingProduct == null ? 'Add Product' : 'Edit: ${_editingProduct!.title}',
-                  style: AppTheme.headingLarge,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                onPressed: _isSaving ? null : _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryBrown,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _isSaving
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Save Product'),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = ResponsiveBreakpoints.isMobileWidth(
+                constraints.maxWidth,
+              );
+
+              if (isMobile) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextButton.icon(
+                      onPressed: _showList,
+                      icon: const Icon(Icons.arrow_back),
+                      label: const Text('Back to List'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primaryBrown,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _editingProduct == null
+                          ? 'Add Product'
+                          : 'Edit: ${_editingProduct!.title}',
+                      style: AppTheme.headingLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(width: double.infinity, child: _buildSaveButton()),
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: _showList,
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Back to List'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.primaryBrown,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      _editingProduct == null
+                          ? 'Add Product'
+                          : 'Edit: ${_editingProduct!.title}',
+                      style: AppTheme.headingLarge,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  _buildSaveButton(),
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 32),
 
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: _buildSection('Product Details', [
-                  AdminFormField(label: 'Title', hint: 'Enter product title', controller: _titleCtrl),
-                  const SizedBox(height: 16),
-                  AdminFormField(label: 'Description', hint: 'Enter product description', controller: _descCtrl, maxLines: 4),
-                  const SizedBox(height: 16),
-                  _buildCategoryDropdown(),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(child: AdminFormField(label: 'Display Order', hint: 'Enter order', controller: _orderCtrl, keyboardType: TextInputType.number)),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: AdminToggleSwitch(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isStacked = !ResponsiveBreakpoints.isDesktopWidth(
+                constraints.maxWidth,
+              );
+
+              final details = _buildSection('Product Details', [
+                AdminFormField(
+                  label: 'Title',
+                  hint: 'Enter product title',
+                  controller: _titleCtrl,
+                ),
+                const SizedBox(height: 16),
+                AdminFormField(
+                  label: 'Description',
+                  hint: 'Enter product description',
+                  controller: _descCtrl,
+                  maxLines: 4,
+                ),
+                const SizedBox(height: 16),
+                _buildCategoryDropdown(),
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (context, inner) {
+                    final isMobile = ResponsiveBreakpoints.isMobileWidth(
+                      inner.maxWidth,
+                    );
+                    if (isMobile) {
+                      return Column(
+                        children: [
+                          AdminFormField(
+                            label: 'Display Order',
+                            hint: 'Enter order',
+                            controller: _orderCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: 16),
+                          AdminToggleSwitch(
                             label: 'Is Active',
                             value: _isActive,
                             onChanged: (val) => setState(() => _isActive = val),
                           ),
+                        ],
+                      );
+                    }
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Display Order',
+                            hint: 'Enter order',
+                            controller: _orderCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ]),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                flex: 2,
-                child: _buildSection('Product Images', [
-                  ImageUploadWidget(
-                    title: 'Upload Images',
-                    multiple: true,
-                    onImagesSelected: _onImagesSelected,
-                  ),
-                  if (_editingProduct != null && _newImageBytes.isEmpty && _currentImageUrls.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Current Images:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 100,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _currentImageUrls.length,
-                              separatorBuilder: (context, index) => const SizedBox(width: 8),
-                              itemBuilder: (context, index) => Image.network(_currentImageUrls[index], width: 100, fit: BoxFit.cover),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: AdminToggleSwitch(
+                              label: 'Is Active',
+                              value: _isActive,
+                              onChanged: (val) =>
+                                  setState(() => _isActive = val),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ]);
+
+              final images = _buildSection('Product Images', [
+                ImageUploadWidget(
+                  title: 'Upload Images',
+                  multiple: true,
+                  onImagesSelected: _onImagesSelected,
+                ),
+                if (_editingProduct != null &&
+                    _newImageBytes.isEmpty &&
+                    _currentImageUrls.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Current Images:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 100,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _currentImageUrls.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 8),
+                            itemBuilder: (context, index) => Image.network(
+                              _currentImageUrls[index],
+                              width: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                ]),
-              ),
-            ],
+                  ),
+              ]);
+
+              if (isStacked) {
+                return Column(
+                  children: [details, const SizedBox(height: 24), images],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 3, child: details),
+                  const SizedBox(width: 24),
+                  Expanded(flex: 2, child: images),
+                ],
+              );
+            },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return ElevatedButton(
+      onPressed: _isSaving ? null : _save,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primaryBrown,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: _isSaving
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : const Text('Save Product'),
     );
   }
 
@@ -544,7 +719,10 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: _selectedCategoryId,
-          decoration: AppTheme.inputDecoration(label: 'Category', hint: 'Select category'),
+          decoration: AppTheme.inputDecoration(
+            label: 'Category',
+            hint: 'Select category',
+          ),
           items: _categories
               .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
               .toList(),
@@ -576,7 +754,10 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
   void _showSnackbar(String message, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: isError ? Colors.red : AppTheme.successGreen),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : AppTheme.successGreen,
+      ),
     );
   }
 }

@@ -7,18 +7,20 @@ import '../../models/exhibition.dart';
 class ExhibitionRepository {
   ExhibitionRepository._();
 
-  static final _db  = FirebaseFirestore.instance;
+  static final _db = FirebaseFirestore.instance;
   static const _col = 'exhibition';
+  static GetOptions _options(bool forceRefresh) =>
+      GetOptions(source: forceRefresh ? Source.server : Source.serverAndCache);
 
   // ── READ ──────────────────────────────────────────────────────────────────
 
   /// All exhibitions, newest first.
-  static Future<List<Exhibition>> getAll() async {
+  static Future<List<Exhibition>> getAll({bool forceRefresh = false}) async {
     try {
       final snap = await _db
           .collection(_col)
           .orderBy('startDate', descending: true)
-          .get(const GetOptions(source: Source.server));
+          .get(_options(forceRefresh));
       return snap.docs.map(Exhibition.fromDoc).toList();
     } catch (e) {
       debugPrint('ExhibitionRepository.getAll error: $e');
@@ -28,38 +30,50 @@ class ExhibitionRepository {
 
   /// First active exhibition, or Exhibition.empty() if none.
   /// Used by ExhibitionProvider → customer home screen.
-  /// 
+  ///
   /// Filters exhibitions that:
   /// 1. Have isActive == true
   /// 2. Have valid startDate and endDate
   /// 3. Are currently within or approaching the date range
-  static Future<Exhibition> getActive() async {
+  static Future<Exhibition> getActive({bool forceRefresh = false}) async {
     try {
-      final snap = await _db.collection(_col).get(const GetOptions(source: Source.server));
+      final snap = await _db.collection(_col).get(_options(forceRefresh));
       if (snap.docs.isEmpty) return Exhibition.empty();
-      
+
       final all = snap.docs.map(Exhibition.fromDoc).toList();
       final now = DateTime.now();
 
       // Priority 1: Next Upcoming
-      final upcoming = all
-          .where((e) => e.isActive && e.startDate != null && e.startDate!.isAfter(now))
-          .toList()
-        ..sort((a, b) => a.startDate!.compareTo(b.startDate!));
+      final upcoming =
+          all
+              .where(
+                (e) =>
+                    e.isActive &&
+                    e.startDate != null &&
+                    e.startDate!.isAfter(now),
+              )
+              .toList()
+            ..sort((a, b) => a.startDate!.compareTo(b.startDate!));
       if (upcoming.isNotEmpty) return upcoming.first;
 
       // Priority 2: Current / Live
-      final current = all
-          .where((e) => e.isActive && e.isCurrentlyActive)
-          .toList()
-        ..sort((a, b) => (b.startDate ?? DateTime(0)).compareTo(a.startDate ?? DateTime(0)));
+      final current =
+          all.where((e) => e.isActive && e.isCurrentlyActive).toList()..sort(
+            (a, b) => (b.startDate ?? DateTime(0)).compareTo(
+              a.startDate ?? DateTime(0),
+            ),
+          );
       if (current.isNotEmpty) return current.first;
 
       // Priority 3: Most Recent Past
-      final past = all
-          .where((e) => e.isActive && e.endDate != null && e.endDate!.isBefore(now))
-          .toList()
-        ..sort((a, b) => b.endDate!.compareTo(a.endDate!));
+      final past =
+          all
+              .where(
+                (e) =>
+                    e.isActive && e.endDate != null && e.endDate!.isBefore(now),
+              )
+              .toList()
+            ..sort((a, b) => b.endDate!.compareTo(a.endDate!));
       if (past.isNotEmpty) return past.first;
 
       return Exhibition.empty();
@@ -70,22 +84,25 @@ class ExhibitionRepository {
   }
 
   /// Get current/active exhibition (within date range and isActive==true)
-  static Future<Exhibition?> getCurrent() async {
+  static Future<Exhibition?> getCurrent({bool forceRefresh = false}) async {
     try {
       final snap = await _db
           .collection(_col)
           .where('isActive', isEqualTo: true)
-          .get(const GetOptions(source: Source.server));
-      
+          .get(_options(forceRefresh));
+
       if (snap.docs.isEmpty) return null;
-      
+
       final active = snap.docs
           .map(Exhibition.fromDoc)
           .where((e) => e.isCurrentlyActive)
           .toList();
-      
+
       if (active.isEmpty) return null;
-      active.sort((a, b) => (b.startDate ?? DateTime(0)).compareTo(a.startDate ?? DateTime(0)));
+      active.sort(
+        (a, b) =>
+            (b.startDate ?? DateTime(0)).compareTo(a.startDate ?? DateTime(0)),
+      );
       return active.first;
     } catch (e) {
       debugPrint('ExhibitionRepository.getCurrent error: $e');
@@ -94,19 +111,19 @@ class ExhibitionRepository {
   }
 
   /// Get next upcoming exhibition (startDate > now)
-  static Future<Exhibition?> getUpcoming() async {
+  static Future<Exhibition?> getUpcoming({bool forceRefresh = false}) async {
     try {
       final now = DateTime.now();
       final snap = await _db
           .collection(_col)
           .where('isActive', isEqualTo: true)
-          .get(const GetOptions(source: Source.server));
-      
+          .get(_options(forceRefresh));
+
       final upcoming = snap.docs
           .map(Exhibition.fromDoc)
           .where((e) => e.startDate != null && e.startDate!.isAfter(now))
           .toList();
-      
+
       if (upcoming.isEmpty) return null;
       upcoming.sort((a, b) => a.startDate!.compareTo(b.startDate!));
       return upcoming.first;
@@ -117,14 +134,16 @@ class ExhibitionRepository {
   }
 
   /// Get all upcoming exhibitions
-  static Future<List<Exhibition>> getFutureExhibitions() async {
+  static Future<List<Exhibition>> getFutureExhibitions({
+    bool forceRefresh = false,
+  }) async {
     try {
       final now = DateTime.now();
       final snap = await _db
           .collection(_col)
           .where('isActive', isEqualTo: true)
-          .get(const GetOptions(source: Source.server));
-      
+          .get(_options(forceRefresh));
+
       final future = snap.docs
           .map(Exhibition.fromDoc)
           .where((e) => e.startDate != null && e.startDate!.isAfter(now))
@@ -138,11 +157,13 @@ class ExhibitionRepository {
   }
 
   /// Get all past exhibitions
-  static Future<List<Exhibition>> getPastExhibitions() async {
+  static Future<List<Exhibition>> getPastExhibitions({
+    bool forceRefresh = false,
+  }) async {
     try {
       final now = DateTime.now();
-      final snap = await _db.collection(_col).get(const GetOptions(source: Source.server));
-      
+      final snap = await _db.collection(_col).get(_options(forceRefresh));
+
       final past = snap.docs
           .map(Exhibition.fromDoc)
           .where((e) => e.endDate != null && e.endDate!.isBefore(now))
@@ -156,17 +177,15 @@ class ExhibitionRepository {
   }
 
   /// Get exhibitions categorized by status: current, future, past
-  static Future<Map<String, dynamic>> getCategorized() async {
+  static Future<Map<String, dynamic>> getCategorized({
+    bool forceRefresh = false,
+  }) async {
     try {
-      final current = await getCurrent();
-      final future = await getFutureExhibitions();
-      final past = await getPastExhibitions();
-      
-      return {
-        'current': current,
-        'future': future,
-        'past': past,
-      };
+      final current = await getCurrent(forceRefresh: forceRefresh);
+      final future = await getFutureExhibitions(forceRefresh: forceRefresh);
+      final past = await getPastExhibitions(forceRefresh: forceRefresh);
+
+      return {'current': current, 'future': future, 'past': past};
     } catch (e) {
       debugPrint('ExhibitionRepository.getCategorized error: $e');
       return {'current': null, 'future': [], 'past': []};
@@ -205,7 +224,7 @@ class ExhibitionRepository {
   static Future<void> deleteOldExhibitions() async {
     try {
       final cutoff = DateTime.now().subtract(const Duration(days: 30));
-      final snap = await _db.collection(_col).get(const GetOptions(source: Source.server));
+      final snap = await _db.collection(_col).get(_options(true));
       for (final doc in snap.docs) {
         final exh = Exhibition.fromDoc(doc);
         if (exh.endDate != null && exh.endDate!.isBefore(cutoff)) {

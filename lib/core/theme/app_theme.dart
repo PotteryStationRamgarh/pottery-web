@@ -16,10 +16,10 @@ class AppTheme {
 
   /// Secondary brand color — hover states, subtle accents
   static const Color lightBrown = Color(0xFFC8A98A);
-  
+
   /// Earthy warm tones for banners and accents
   static const Color terracotta = Color(0xFFB35C37);
-  static const Color warmClay   = Color(0xFF8B5A2B);
+  static const Color warmClay = Color(0xFF8B5A2B);
 
   /// Surface color — inside cards and forms
   static const Color background = Color(0xFFFAF7F4);
@@ -53,7 +53,7 @@ class AppTheme {
   /// Section Backgrounds
   static const Color footerBackground = Color(0xFFF1EDE8);
   static const Color exhibitionBackground = Color(0xFFF7F3EE);
-  
+
   /// Helper colors
   static const Color transparent = Colors.transparent;
   static const Color black = Colors.black;
@@ -64,67 +64,67 @@ class AppTheme {
   // ─────────────────────────────────────────
 
   static TextStyle get displayLarge => GoogleFonts.jost(
-        fontSize: 32,
-        fontWeight: FontWeight.w600,
-        color: textDark,
-        letterSpacing: 0.3,
-      );
+    fontSize: 36,
+    fontWeight: FontWeight.w600,
+    color: textDark,
+    letterSpacing: 0.3,
+  );
 
   static TextStyle get displayMedium => GoogleFonts.jost(
-        fontSize: 26,
-        fontWeight: FontWeight.w600,
-        color: textDark,
-        letterSpacing: 0.3,
-      );
+    fontSize: 30,
+    fontWeight: FontWeight.w600,
+    color: textDark,
+    letterSpacing: 0.3,
+  );
 
   static TextStyle get headingLarge => GoogleFonts.jost(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: textDark,
-        letterSpacing: 0.2,
-      );
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    color: textDark,
+    letterSpacing: 0.2,
+  );
 
   static TextStyle get headingMedium => GoogleFonts.jost(
-        fontSize: 18,
-        fontWeight: FontWeight.w500,
-        color: textDark,
-        letterSpacing: 0.2,
-      );
+    fontSize: 20,
+    fontWeight: FontWeight.w500,
+    color: textDark,
+    letterSpacing: 0.2,
+  );
 
   static TextStyle get bodyLarge => GoogleFonts.jost(
-        fontSize: 15,
-        fontWeight: FontWeight.w400,
-        color: textDark,
-        letterSpacing: 0.1,
-      );
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    color: textDark,
+    letterSpacing: 0.1,
+  );
 
   static TextStyle get bodyMedium => GoogleFonts.jost(
-        fontSize: 13,
-        fontWeight: FontWeight.w400,
-        color: textLight,
-        letterSpacing: 0.1,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: textLight,
+    letterSpacing: 0.1,
+  );
 
   static TextStyle get bodySmall => GoogleFonts.jost(
-        fontSize: 11,
-        fontWeight: FontWeight.w400,
-        color: textLight,
-        letterSpacing: 0.1,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: textLight,
+    letterSpacing: 0.1,
+  );
 
   static TextStyle get labelLarge => GoogleFonts.jost(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: white,
-        letterSpacing: 1.5,
-      );
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    color: white,
+    letterSpacing: 1.5,
+  );
 
   static TextStyle get errorText => GoogleFonts.jost(
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-        color: errorRed,
-        letterSpacing: 0.1,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: errorRed,
+    letterSpacing: 0.1,
+  );
 
   // ─────────────────────────────────────────
   // INPUT DECORATION
@@ -140,20 +140,14 @@ class AppTheme {
       hintText: hint,
       suffixIcon: suffixIcon,
       labelStyle: GoogleFonts.jost(
-        fontSize: 13,
+        fontSize: 14,
         color: textLight,
         letterSpacing: 0.2,
       ),
-      hintStyle: GoogleFonts.jost(
-        fontSize: 13,
-        color: greyPlaceholder,
-      ),
+      hintStyle: GoogleFonts.jost(fontSize: 14, color: greyPlaceholder),
       filled: true,
       fillColor: white,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 16,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: divider, width: 1.5),
@@ -170,6 +164,7 @@ class AppTheme {
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: errorRed, width: 1.5),
       ),
+      errorMaxLines: 4,
     );
   }
 
@@ -178,15 +173,23 @@ class AppTheme {
   // ─────────────────────────────────────────
 
   static ThemeData get themeData => ThemeData(
-        scaffoldBackgroundColor: background,
-        primaryColor: primaryBrown,
-        colorScheme: ColorScheme.light(
-          primary: primaryBrown,
-          secondary: lightBrown,
-          error: errorRed,
-          background: background,
-        ),
-        textTheme: GoogleFonts.jostTextTheme(),
-        useMaterial3: true,
-      );
+    scaffoldBackgroundColor: background,
+    primaryColor: primaryBrown,
+    colorScheme: ColorScheme.light(
+      primary: primaryBrown,
+      secondary: lightBrown,
+      error: errorRed,
+      background: background,
+    ),
+    textTheme: GoogleFonts.jostTextTheme(),
+    inputDecorationTheme: InputDecorationTheme(
+      floatingLabelStyle: GoogleFonts.jost(
+        fontSize: 14,
+        color: primaryBrown,
+        fontWeight: FontWeight.w500,
+      ),
+      errorStyle: errorText,
+    ),
+    useMaterial3: true,
+  );
 }

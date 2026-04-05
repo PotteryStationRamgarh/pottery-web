@@ -15,28 +15,32 @@ class BrandingProvider extends ChangeNotifier {
 
   /// Loads branding once — skips if already loaded.
   /// Called by SplashScreen on startup.
-  Future<void> loadBranding() async {
+  Future<void> loadBranding({bool forceRefresh = false}) async {
     if (_isLoading || _isLoaded) return;
-    await _fetchBranding();
+    await _fetchBranding(forceRefresh: forceRefresh);
   }
 
   /// Forces a fresh fetch from Firestore — ignores cache.
   /// Called by admin after saving branding changes.
-  Future<void> reloadBranding() async {
+  Future<void> reloadBranding({bool forceRefresh = true}) async {
     _isLoaded = false;
-    await _fetchBranding();
+    await _fetchBranding(forceRefresh: forceRefresh);
   }
 
-  Future<void> _fetchBranding() async {
+  Future<void> _fetchBranding({bool forceRefresh = false}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final fetched = await FirestoreService.getBranding();
+      final fetched = await FirestoreService.getBranding(
+        forceRefresh: forceRefresh,
+      );
       _branding = fetched;
       _isLoaded = true;
-      debugPrint('BrandingProvider: Loaded — authImageUrl: ${fetched.authImageUrl}');
+      debugPrint(
+        'BrandingProvider: Loaded — authImageUrl: ${fetched.authImageUrl}',
+      );
     } catch (e) {
       _error = e.toString();
       debugPrint('BrandingProvider: Error — $e');

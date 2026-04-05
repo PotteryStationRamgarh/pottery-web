@@ -18,10 +18,7 @@ class BrandingService {
   /// Returns empty list if none exist or on error.
   static Future<List<String>> getBrandingImageUrls() async {
     try {
-      final doc = await _db
-          .collection('settings')
-          .doc('branding')
-          .get();
+      final doc = await _db.collection('settings').doc('branding').get();
 
       if (!doc.exists || doc.data() == null) {
         return [];
@@ -51,10 +48,9 @@ class BrandingService {
       final urls = await getBrandingImageUrls();
       final int index = urls.length;
 
-      await _db.collection('settings').doc('branding').set(
-        {'imageUrl_$index': imageUrl},
-        SetOptions(merge: true),
-      );
+      await _db.collection('settings').doc('branding').set({
+        'imageUrl_$index': imageUrl,
+      }, SetOptions(merge: true));
 
       debugPrint('Branding image saved at index $index: $imageUrl');
     } catch (e) {

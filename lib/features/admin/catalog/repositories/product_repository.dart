@@ -18,9 +18,9 @@ class ProductRepository {
   // ── READ ──────────────────────────────────────────────────────────────────
 
   /// Get all products, sorted by order.
-  static Future<List<Product>> getProducts() async {
+  static Future<List<Product>> getProducts({bool forceRefresh = false}) async {
     try {
-      return await FirestoreService.getAllProducts();
+      return await FirestoreService.getAllProducts(forceRefresh: forceRefresh);
     } catch (e) {
       debugPrint('ProductRepository.getProducts error: $e');
       rethrow;
@@ -28,13 +28,19 @@ class ProductRepository {
   }
 
   /// Get products by category ID.
-  static Future<List<Product>> getProductsByCategory(String categoryId) async {
+  static Future<List<Product>> getProductsByCategory(
+    String categoryId, {
+    bool forceRefresh = false,
+  }) async {
     try {
       if (categoryId.isEmpty) {
         throw ArgumentError('Category ID cannot be empty');
       }
 
-      return await FirestoreService.getProductsByCategory(categoryId);
+      return await FirestoreService.getProductsByCategory(
+        categoryId,
+        forceRefresh: forceRefresh,
+      );
     } catch (e) {
       debugPrint('ProductRepository.getProductsByCategory error: $e');
       rethrow;
@@ -53,9 +59,11 @@ class ProductRepository {
   }
 
   /// Get all categories (used in product form).
-  static Future<List<ProductCategory>> getCategories() async {
+  static Future<List<ProductCategory>> getCategories({
+    bool forceRefresh = false,
+  }) async {
     try {
-      return await FirestoreService.getCategories();
+      return await FirestoreService.getCategories(forceRefresh: forceRefresh);
     } catch (e) {
       debugPrint('ProductRepository.getCategories error: $e');
       rethrow;
@@ -233,12 +241,17 @@ class ProductRepository {
   // ── HELPERS ───────────────────────────────────────────────────────────────
 
   /// Check if product title is unique.
-  static Future<bool> isProductTitleUnique(String title, {String? excludeId}) async {
+  static Future<bool> isProductTitleUnique(
+    String title, {
+    String? excludeId,
+  }) async {
     try {
       final products = await FirestoreService.getAllProducts();
-      return !products.any((p) =>
-          p.title.toLowerCase() == title.toLowerCase() &&
-          (excludeId == null || p.id != excludeId));
+      return !products.any(
+        (p) =>
+            p.title.toLowerCase() == title.toLowerCase() &&
+            (excludeId == null || p.id != excludeId),
+      );
     } catch (e) {
       debugPrint('ProductRepository.isProductTitleUnique error: $e');
       return false;

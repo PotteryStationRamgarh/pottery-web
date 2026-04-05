@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../../../models/product.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/image_gallery.dart';
@@ -32,7 +33,8 @@ class AllProductsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+    final isTablet = ResponsiveBreakpoints.isTablet(context);
 
     // We NO LONGER hide if products are empty — per user request to always show cards.
     // if (!isLoading && products.isEmpty) return const SizedBox.shrink();
@@ -42,25 +44,23 @@ class AllProductsSection extends StatelessWidget {
       color: AppTheme.background,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 80,
-        vertical:   isMobile ? 56 : 96,
+        vertical: isMobile ? 56 : 96,
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1400),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             _buildHeader(context, isMobile),
 
             SizedBox(height: isMobile ? 32 : 52),
 
             // Grid of products
             isLoading
-                ? _buildShimmer(isMobile)
+                ? _buildShimmer(isMobile, isTablet)
                 : (products.isEmpty)
-                    ? _buildFallbackGrid(context, isMobile)
-                    : _buildGrid(context, isMobile),
-
+                ? _buildFallbackGrid(context, isMobile, isTablet)
+                : _buildGrid(context, isMobile, isTablet),
           ],
         ),
       ),
@@ -72,43 +72,56 @@ class AllProductsSection extends StatelessWidget {
   // ─────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context, bool isMobile) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stack = ResponsiveBreakpoints.isMobileWidth(constraints.maxWidth);
+        final title = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'OUR WORK',
+              style: GoogleFonts.jost(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.primaryBrown.withOpacity(0.55),
+                letterSpacing: 3.5,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Collections',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: isMobile ? 28 : 40,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textDark,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        );
 
-        Expanded(
-          child: Column(
+        final link = _BrowseLink(
+          onTap: () {
+            Navigator.pushNamed(context, Routes.categories);
+          },
+        );
+
+        if (stack) {
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'OUR WORK',
-                style: GoogleFonts.jost(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.primaryBrown.withOpacity(0.55),
-                  letterSpacing: 3.5,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Collections',
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: isMobile ? 28 : 40,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textDark,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
-          ),
-        ),
+            children: [title, const SizedBox(height: 16), link],
+          );
+        }
 
-        // Browse by category link — desktop only
-        _BrowseLink(onTap: () {
-          Navigator.pushNamed(context, Routes.categories);
-        }),
-
-      ],
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(child: title),
+            const SizedBox(width: 16),
+            link,
+          ],
+        );
+      },
     );
   }
 
@@ -116,15 +129,15 @@ class AllProductsSection extends StatelessWidget {
   // PRODUCT GRID
   // ─────────────────────────────────────────
 
-  Widget _buildGrid(BuildContext context, bool isMobile) {
+  Widget _buildGrid(BuildContext context, bool isMobile, bool isTablet) {
     return GridView.builder(
       // Must use shrinkWrap inside a ScrollView
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount:   isMobile ? 2 : 4,
+        crossAxisCount: isMobile ? 2 : (isTablet ? 3 : 4),
         crossAxisSpacing: isMobile ? 14 : 24,
-        mainAxisSpacing:  isMobile ? 28 : 40,
+        mainAxisSpacing: isMobile ? 28 : 40,
         // 0.72 gives enough height for image + text below it
         childAspectRatio: 0.72,
       ),
@@ -136,7 +149,11 @@ class AllProductsSection extends StatelessWidget {
           onImageTap: () {
             ImageGallery.show(
               context,
-              images: product.imageUrls.isNotEmpty ? product.imageUrls : (product.primaryImage.isNotEmpty ? [product.primaryImage] : []),
+              images: product.imageUrls.isNotEmpty
+                  ? product.imageUrls
+                  : (product.primaryImage.isNotEmpty
+                        ? [product.primaryImage]
+                        : []),
               title: product.title,
             );
           },
@@ -145,22 +162,21 @@ class AllProductsSection extends StatelessWidget {
     );
   }
 
-
   // ─────────────────────────────────────────
   // SHIMMER GRID
   // ─────────────────────────────────────────
 
-  Widget _buildShimmer(bool isMobile) {
+  Widget _buildShimmer(bool isMobile, bool isTablet) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount:   isMobile ? 2 : 4,
+        crossAxisCount: isMobile ? 2 : (isTablet ? 3 : 4),
         crossAxisSpacing: isMobile ? 14 : 24,
-        mainAxisSpacing:  isMobile ? 28 : 40,
+        mainAxisSpacing: isMobile ? 28 : 40,
         childAspectRatio: 0.72,
       ),
-      itemCount: isMobile ? 4 : 8,
+      itemCount: isMobile ? 4 : (isTablet ? 6 : 8),
       itemBuilder: (_, __) => _ShimmerCard(),
     );
   }
@@ -169,33 +185,37 @@ class AllProductsSection extends StatelessWidget {
   // FALLBACK GRID — shown when Firestore returns no products
   // ─────────────────────────────────────────
 
-  Widget _buildFallbackGrid(BuildContext context, bool isMobile) {
+  Widget _buildFallbackGrid(
+    BuildContext context,
+    bool isMobile,
+    bool isTablet,
+  ) {
     // Show exactly 4 dummy cards as requested
-    final fallbacks = List.generate(4, (i) => Product(
-      id:          'fallback_$i',
-      title:       'Item not available',
-      description: 'Description not available',
-      imageUrls:   [],
-      categoryId:  '',
-      order:       i,
-      isActive:    true,
-    ));
+    final fallbacks = List.generate(
+      4,
+      (i) => Product(
+        id: 'fallback_$i',
+        title: 'Item not available',
+        description: 'Description not available',
+        imageUrls: [],
+        categoryId: '',
+        order: i,
+        isActive: true,
+      ),
+    );
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount:   isMobile ? 2 : 4,
+        crossAxisCount: isMobile ? 2 : (isTablet ? 3 : 4),
         crossAxisSpacing: isMobile ? 14 : 24,
-        mainAxisSpacing:  isMobile ? 28 : 40,
+        mainAxisSpacing: isMobile ? 28 : 40,
         childAspectRatio: 0.72,
       ),
       itemCount: fallbacks.length,
       itemBuilder: (context, index) {
-        return ProductCard(
-          product: fallbacks[index],
-          onImageTap: () {},
-        );
+        return ProductCard(product: fallbacks[index], onImageTap: () {});
       },
     );
   }
@@ -220,7 +240,7 @@ class _BrowseLinkState extends State<_BrowseLink> {
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit:  (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
@@ -253,16 +273,12 @@ class _BrowseLinkState extends State<_BrowseLink> {
             ),
             const SizedBox(width: 6),
             AnimatedSlide(
-              offset: _isHovered
-                  ? const Offset(0.2, 0)
-                  : Offset.zero,
+              offset: _isHovered ? const Offset(0.2, 0) : Offset.zero,
               duration: const Duration(milliseconds: 200),
               child: Icon(
                 Icons.north_east,
                 size: 13,
-                color: _isHovered
-                    ? AppTheme.primaryBrown
-                    : AppTheme.textLight,
+                color: _isHovered ? AppTheme.primaryBrown : AppTheme.textLight,
               ),
             ),
           ],
@@ -271,7 +287,6 @@ class _BrowseLinkState extends State<_BrowseLink> {
     );
   }
 }
-
 
 // ─────────────────────────────────────────
 // SHIMMER CARD
@@ -294,9 +309,10 @@ class _ShimmerCardState extends State<_ShimmerCard>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _anim = Tween<double>(begin: 0.3, end: 0.7).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
+    _anim = Tween<double>(
+      begin: 0.3,
+      end: 0.7,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -319,10 +335,10 @@ class _ShimmerCardState extends State<_ShimmerCard>
               decoration: BoxDecoration(
                 color: AppTheme.divider.withOpacity(_anim.value),
                 borderRadius: const BorderRadius.only(
-                  topLeft:     Radius.circular(20),
+                  topLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
-                  topRight:    Radius.circular(4),
-                  bottomLeft:  Radius.circular(4),
+                  topRight: Radius.circular(4),
+                  bottomLeft: Radius.circular(4),
                 ),
               ),
             ),

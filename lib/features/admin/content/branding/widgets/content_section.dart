@@ -13,24 +13,28 @@ class ContentSection extends StatelessWidget {
       title: 'App Content & Legal',
       children: [
         FieldInput(
-            label: 'About Us',
-            controller: controller.aboutCtrl,
-            maxLines: 6),
+          label: 'About Us',
+          controller: controller.aboutCtrl,
+          maxLines: 6,
+        ),
         const SizedBox(height: 20),
         FieldInput(
-            label: 'Help Text',
-            controller: controller.helpCtrl,
-            maxLines: 3),
+          label: 'Help Text',
+          controller: controller.helpCtrl,
+          maxLines: 3,
+        ),
         const SizedBox(height: 20),
         FieldInput(
-            label: 'Privacy Policy',
-            controller: controller.privacyCtrl,
-            maxLines: 4),
+          label: 'Privacy Policy',
+          controller: controller.privacyCtrl,
+          maxLines: 4,
+        ),
         const SizedBox(height: 20),
         FieldInput(
-            label: 'Terms & Conditions',
-            controller: controller.termsCtrl,
-            maxLines: 3),
+          label: 'Terms & Conditions',
+          controller: controller.termsCtrl,
+          maxLines: 3,
+        ),
       ],
     );
   }
