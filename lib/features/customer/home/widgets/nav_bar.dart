@@ -78,47 +78,54 @@ class _DesktopNav extends StatelessWidget {
             size: 28,
           ),
 
-          const Spacer(),
+          SizedBox(width: width < 1200 ? 20 : 32),
 
-          Flexible(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _NavItem(label: 'Collections', isActive: true, onTap: () {}),
-                  SizedBox(width: itemSpacing),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _NavItem(label: 'Collections', isActive: true, onTap: () {}),
+                    SizedBox(width: itemSpacing),
 
-                  // Workshop — Coming Soon snackbar
-                  _NavItem(
-                    label: 'Workshop',
-                    onTap: () => _showComingSoon(context),
-                  ),
-                  SizedBox(width: itemSpacing),
+                    // Workshop — Coming Soon snackbar
+                    _NavItem(
+                      label: 'Workshop',
+                      onTap: () => _showComingSoon(context),
+                    ),
+                    SizedBox(width: itemSpacing),
 
-                  // About — opens a dialog with aboutUs text from Firestore
-                  _NavItem(
-                    label: 'About',
-                    onTap: () => _showAbout(context, config),
-                  ),
-                  SizedBox(width: itemSpacing),
+                    // About — opens a dialog with aboutUs text from Firestore
+                    _NavItem(
+                      label: 'About',
+                      onTap: () => _showAbout(context, config),
+                    ),
+                    SizedBox(width: itemSpacing),
 
-                  // Contact — opens a dialog with contact info from Firestore
-                  _NavItem(
-                    label: 'Contact',
-                    onTap: () => _showContact(context, config),
-                  ),
+                    // Contact — opens a dialog with contact info from Firestore
+                    _NavItem(
+                      label: 'Contact',
+                      onTap: () => _showContact(context, config),
+                    ),
 
-                  SizedBox(width: width < 1200 ? 16 : 28),
+                    SizedBox(width: width < 1200 ? 16 : 28),
 
-                  // Profile icon — dropdown with email + sign out
-                  const _ProfileButton(),
+                    // Profile icon — dropdown with email + sign out
+                    const _ProfileButton(),
 
-                  SizedBox(width: width < 1200 ? 12 : 20),
+                    SizedBox(width: width < 1200 ? 12 : 20),
 
-                  // Go to Store — coming soon snackbar for now
-                  const _StoreButton(),
-                ],
+                    // Go to Store — scale down slightly on tighter desktop widths
+                    const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _StoreButton(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -428,6 +435,9 @@ class _StoreButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding =
+        !fullWidth && MediaQuery.of(context).size.width < 1200 ? 12.0 : 20.0;
+
     return SizedBox(
       width: fullWidth ? double.infinity : null,
       child: TextButton(
@@ -449,7 +459,10 @@ class _StoreButton extends StatelessWidget {
         },
         style: TextButton.styleFrom(
           backgroundColor: AppTheme.primaryBrown,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: 12,
+          ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: Text(

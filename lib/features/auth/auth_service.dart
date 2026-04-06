@@ -43,8 +43,8 @@ class AuthService {
     // We use ActionCodeSettings to ensure the link is generated correctly
     // and can be handled by the app/browser properly.
     final actionCodeSettings = ActionCodeSettings(
-      url: 'https://pottery-station-ramgarh.web.app', // Update with real domain
-      handleCodeInApp: true,
+      url: 'https://www.potterystationramgarh.in',
+      handleCodeInApp: false,
       iOSBundleId: 'com.potterystation.app',
       androidPackageName: 'com.potterystation.app',
       androidInstallApp: true,
@@ -90,8 +90,8 @@ class AuthService {
   /// Called from VerifyEmailScreen when user taps resend button.
   Future<void> resendVerificationEmail() async {
     final actionCodeSettings = ActionCodeSettings(
-      url: 'https://pottery-station-ramgarh.web.app',
-      handleCodeInApp: true,
+      url: 'https://www.potterystationramgarh.in',
+      handleCodeInApp: false,
       iOSBundleId: 'com.potterystation.app',
       androidPackageName: 'com.potterystation.app',
       androidInstallApp: true,

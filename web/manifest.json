@@ -1,12 +1,12 @@
 {
-    "name": "pottery_web",
-    "short_name": "pottery_web",
+    "name": "Pottery Station Ramgarh",
+    "short_name": "Pottery Station",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#FAF8F5",
+    "theme_color": "#8B5E3C",
+    "description": "Handcrafted pottery and ceramics from Ramgarh",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
