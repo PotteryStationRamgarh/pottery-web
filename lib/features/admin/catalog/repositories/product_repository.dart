@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../core/services/media_service.dart';
 import '../../../../models/product.dart';
@@ -73,11 +74,6 @@ class ProductRepository {
   // ── CREATE ────────────────────────────────────────────────────────────────
 
   /// Add new product with multiple image uploads.
-  ///
-  /// Flow:
-  /// 1. Create Firestore document (returns docId)
-  /// 2. Upload all images using docId
-  /// 3. Update document with actual image URLs
   static Future<String> addProduct({
     required String title,
     required String description,
@@ -85,6 +81,15 @@ class ProductRepository {
     required List<Uint8List> imageBytes,
     required int order,
     required bool isActive,
+    required double mrp,
+    required double sellingPrice,
+    required int stockCount,
+    required int weight,
+    required String material,
+    required Map<String, dynamic> dimensions,
+    required List<String> careInstructions,
+    required List<String> tags,
+    String sku = '', // auto-generated if empty
   }) async {
     try {
       if (title.trim().isEmpty) {
@@ -106,7 +111,10 @@ class ProductRepository {
         finalOrder = existing.length + 1;
       }
 
-      // 2. Create document with empty imageUrls
+      // 2. Handle SKU and auto-generated fields
+      final finalSku = sku.isEmpty ? 'PSR-${DateTime.now().millisecondsSinceEpoch}' : sku;
+
+      // 3. Create document with initial data
       final product = Product(
         id: '', // Firestore will generate
         title: title.trim(),
@@ -115,19 +123,30 @@ class ProductRepository {
         imageUrls: [], // Will update after upload
         order: finalOrder,
         isActive: isActive,
+        mrp: mrp,
+        sellingPrice: sellingPrice,
+        stockCount: stockCount,
+        isInStock: stockCount > 0,
+        sku: finalSku,
+        weight: weight,
+        dimensions: dimensions,
+        material: material,
+        careInstructions: careInstructions,
+        tags: tags,
+        soldCount: 0,
       );
 
       final docRef = await FirestoreService.addProduct(product);
       final docId = docRef.id;
 
-      // 2. Upload images
+      // 4. Upload images
       final urls = await _media.uploadImages(
         docId: docId,
         pathPrefix: 'products',
         files: imageBytes,
       );
 
-      // 3. Update with actual URLs
+      // 5. Update with actual URLs
       if (urls.isNotEmpty) {
         await FirestoreService.updateProduct(docId, {'imageUrls': urls});
       }
@@ -149,6 +168,15 @@ class ProductRepository {
     required String categoryId,
     required int order,
     required bool isActive,
+    required double mrp,
+    required double sellingPrice,
+    required int stockCount,
+    required int weight,
+    required String material,
+    required Map<String, dynamic> dimensions,
+    required List<String> careInstructions,
+    required List<String> tags,
+    required String sku,
   }) async {
     try {
       if (title.trim().isEmpty) {
@@ -165,6 +193,17 @@ class ProductRepository {
         'categoryId': categoryId,
         'order': order,
         'isActive': isActive,
+        'mrp': mrp,
+        'sellingPrice': sellingPrice,
+        'stockCount': stockCount,
+        'isInStock': stockCount > 0,
+        'weight': weight,
+        'sku': sku,
+        'material': material,
+        'dimensions': dimensions,
+        'careInstructions': careInstructions,
+        'tags': tags,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
       debugPrint('ProductRepository.updateProduct error: $e');
@@ -181,6 +220,15 @@ class ProductRepository {
     required List<Uint8List> imageBytes,
     required int order,
     required bool isActive,
+    required double mrp,
+    required double sellingPrice,
+    required int stockCount,
+    required int weight,
+    required String material,
+    required Map<String, dynamic> dimensions,
+    required List<String> careInstructions,
+    required List<String> tags,
+    required String sku,
   }) async {
     try {
       if (title.trim().isEmpty) {
@@ -209,6 +257,17 @@ class ProductRepository {
         'categoryId': categoryId,
         'order': order,
         'isActive': isActive,
+        'mrp': mrp,
+        'sellingPrice': sellingPrice,
+        'stockCount': stockCount,
+        'isInStock': stockCount > 0,
+        'weight': weight,
+        'sku': sku,
+        'material': material,
+        'dimensions': dimensions,
+        'careInstructions': careInstructions,
+        'tags': tags,
+        'updatedAt': FieldValue.serverTimestamp(),
       };
 
       if (urls.isNotEmpty) {

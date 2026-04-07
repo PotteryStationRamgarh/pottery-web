@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/providers/cart_provider.dart';
+import '../../../app/routes.dart';
 import '../home/widgets/nav_bar.dart';
 
 class CartScreen extends StatefulWidget {
@@ -11,41 +14,13 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  final List<Map<String, dynamic>> _dummyItems = [
-    {
-      'id': '1',
-      'name': 'Terracotta Vase',
-      'desc': 'Series 04 • Limited Edition',
-      'price': 4500,
-      'qty': 1,
-      'image': 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?q=80&w=200&auto=format&fit=crop',
-      'checked': true,
-    },
-    {
-      'id': '2',
-      'name': 'Minimalist Mug',
-      'desc': 'Ash glaze • Hand-thrown',
-      'price': 1200,
-      'qty': 2,
-      'image': 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?q=80&w=200&auto=format&fit=crop',
-      'checked': true,
-    },
-    {
-      'id': '3',
-      'name': 'Rustic Bowl',
-      'desc': 'Earth tones • Large',
-      'price': 2800,
-      'qty': 1,
-      'image': 'https://images.unsplash.com/photo-1593150501174-d9a042d15c39?q=80&w=200&auto=format&fit=crop',
-      'checked': false,
-    },
-  ];
-
   String _pincode = "";
   String _pincodeStatus = ""; // "Checking...", "Delivery available ✓", "Not serviceable ✗"
 
   @override
   Widget build(BuildContext context) {
+    final cart = context.watch<CartProvider>();
+    final items = cart.items.values.toList();
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 1000;
 
@@ -58,10 +33,10 @@ class _CartScreenState extends State<CartScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 72),
+                const SizedBox(height: 100),
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: isDesktop ? 48 : 20,
+                    horizontal: isDesktop ? 80 : 20,
                     vertical: 40,
                   ),
                   child: Column(
@@ -70,25 +45,30 @@ class _CartScreenState extends State<CartScreen> {
                       Text("Your Collection", style: AppTheme.serifHeadingLarge),
                       const SizedBox(height: 8),
                       Text(
-                        "${_dummyItems.length} items in your curation",
-                        style: GoogleFonts.jost(color: AppTheme.textLight),
+                        "${cart.itemCount} items in your curation",
+                        style: GoogleFonts.jost(
+                          color: AppTheme.textLight,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                       const SizedBox(height: 48),
-                      if (isDesktop)
+                      if (items.isEmpty)
+                        _buildEmptyState()
+                      else if (isDesktop)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(flex: 3, child: _buildCartItems()),
+                            Expanded(flex: 3, child: _buildCartItems(items)),
                             const SizedBox(width: 60),
-                            Expanded(flex: 2, child: _buildCheckoutPanel()),
+                            Expanded(flex: 2, child: _buildCheckoutPanel(cart)),
                           ],
                         )
                       else
                         Column(
                           children: [
-                            _buildCartItems(),
+                            _buildCartItems(items),
                             const SizedBox(height: 48),
-                            _buildCheckoutPanel(),
+                            _buildCheckoutPanel(cart),
                           ],
                         ),
                     ],
@@ -104,64 +84,135 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItems() {
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 60),
+          Icon(Icons.shopping_basket_outlined, size: 80, color: AppTheme.divider),
+          const SizedBox(height: 24),
+          Text(
+            "Your basket is empty",
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textDark,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Explore our collections and find something unique.",
+            style: GoogleFonts.jost(color: AppTheme.textLight),
+          ),
+          const SizedBox(height: 40),
+          SizedBox(
+            width: 240,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pushReplacementNamed(context, Routes.customerHome),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.terracotta,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: Text(
+                "CONTINUE SHOPPING",
+                style: GoogleFonts.jost(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCartItems(List<CartItem> items) {
     return Column(
       children: [
-        ..._dummyItems.map((item) => _buildCartItem(item)).toList(),
+        ...items.map((item) => _buildCartItem(item)).toList(),
         const SizedBox(height: 32),
         _buildGiftingCard(),
       ],
     );
   }
 
-  Widget _buildCartItem(Map<String, dynamic> item) {
+  Widget _buildCartItem(CartItem item) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Checkbox(
-            value: item['checked'],
-            activeColor: AppTheme.terracotta,
-            onChanged: (val) {
-              setState(() => item['checked'] = val);
-            },
-          ),
-          const SizedBox(width: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             child: Image.network(
-              item['image'],
-              width: 80,
-              height: 80,
+              item.imageUrl,
+              width: 100,
+              height: 100,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 100,
+                height: 100,
+                color: AppTheme.divider.withOpacity(0.3),
+                child: const Icon(Icons.broken_image_outlined, color: AppTheme.textLight),
+              ),
             ),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 24),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item['name'], style: AppTheme.headingMedium),
-                const SizedBox(height: 4),
-                Text(item['desc'], style: AppTheme.bodySmall),
-                const SizedBox(height: 12),
                 Text(
-                  "₹${item['price']}",
-                  style: GoogleFonts.jost(
+                  item.name,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.terracotta,
+                    color: AppTheme.textDark,
+                  ),
+                ),
+                if (item.isExclusive) ...[
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.terracotta.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      "EXCLUSIVE PIECE",
+                      style: GoogleFonts.jost(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.terracotta,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Text(
+                  "₹${item.price.toInt()}",
+                  style: GoogleFonts.jost(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textDark,
                   ),
                 ),
               ],
@@ -169,13 +220,17 @@ class _CartScreenState extends State<CartScreen> {
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: const Icon(Icons.close, size: 18, color: Colors.grey),
+                icon: const Icon(Icons.delete_outline, size: 20, color: AppTheme.textLight),
                 onPressed: () {
-                  // TODO: Remove item
+                  context.read<CartProvider>().removeItem(item.id);
                 },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
+              const SizedBox(height: 40),
               _buildQtyStepper(item),
             ],
           ),
@@ -184,35 +239,41 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildQtyStepper(Map<String, dynamic> item) {
-    return Row(
-      children: [
-        _stepperButton(Icons.remove, () {
-          if (item['qty'] > 1) setState(() => item['qty']--);
-        }),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            "${item['qty']}",
-            style: GoogleFonts.jost(fontWeight: FontWeight.w600),
+  Widget _buildQtyStepper(CartItem item) {
+    final cart = context.read<CartProvider>();
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.background,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _stepperButton(Icons.remove, () {
+            cart.removeSingleItem(item.id);
+          }),
+          Container(
+            constraints: const BoxConstraints(minWidth: 32),
+            alignment: Alignment.center,
+            child: Text(
+              "${item.quantity}",
+              style: GoogleFonts.jost(fontWeight: FontWeight.w600),
+            ),
           ),
-        ),
-        _stepperButton(Icons.add, () {
-          setState(() => item['qty']++);
-        }),
-      ],
+          _stepperButton(Icons.add, () {
+            cart.incrementQuantity(item.id);
+          }),
+        ],
+      ),
     );
   }
 
   Widget _stepperButton(IconData icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppTheme.divider),
-          borderRadius: BorderRadius.circular(4),
-        ),
+        padding: const EdgeInsets.all(8),
         child: Icon(icon, size: 14, color: AppTheme.textDark),
       ),
     );
@@ -222,8 +283,9 @@ class _CartScreenState extends State<CartScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.exhibitionBackground,
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.exhibitionBackground.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.divider.withOpacity(0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +294,13 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               const Icon(Icons.card_giftcard, size: 20, color: AppTheme.terracotta),
               const SizedBox(width: 12),
-              Text("Curated Gifting", style: AppTheme.headingMedium),
+              Text(
+                "Curated Gifting",
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -251,7 +319,7 @@ class _CartScreenState extends State<CartScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  "All orders include a hand-stamped linen dust bag.",
+                  "All orders include a hand-stamped linen dust bag and an artist's note.",
                   style: GoogleFonts.jost(fontSize: 12, color: AppTheme.textLight),
                 ),
               ),
@@ -262,10 +330,8 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCheckoutPanel() {
-    double subtotal = _dummyItems
-        .where((item) => item['checked'])
-        .fold(0, (sum, item) => sum + (item['price'] * item['qty']));
+  Widget _buildCheckoutPanel(CartProvider cart) {
+    double subtotal = cart.totalAmount;
     double delivery = subtotal > 0 ? 250 : 0;
     double total = subtotal + delivery;
 
@@ -273,8 +339,14 @@ class _CartScreenState extends State<CartScreen> {
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.divider),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,27 +354,27 @@ class _CartScreenState extends State<CartScreen> {
           Text("Acquisition Details", style: AppTheme.serifHeadingMedium),
           const SizedBox(height: 24),
           _buildAddressSection(),
-          const SizedBox(height: 32),
-          _buildPaymentSection(),
-          const SizedBox(height: 32),
+          const SizedBox(height: 40),
           const Divider(),
-          const SizedBox(height: 24),
-          _buildSummaryRow("Subtotal", "₹$subtotal"),
-          _buildSummaryRow("Delivery Charges", "₹$delivery"),
-          const SizedBox(height: 12),
-          _buildSummaryRow("Total", "₹$total", isTotal: true),
           const SizedBox(height: 32),
-          _buildCompletePurchaseButton(),
+          _buildSummaryRow("Subtotal", "₹${subtotal.toInt()}"),
+          _buildSummaryRow("Delivery Charges", "₹${delivery.toInt()}"),
           const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 16),
+          _buildSummaryRow("Total", "₹${total.toInt()}", isTotal: true),
+          const SizedBox(height: 40),
+          _buildCompletePurchaseButton(),
+          const SizedBox(height: 20),
           Center(
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.lock_outline, size: 14, color: AppTheme.textLight),
-                const SizedBox(width: 6),
+                const Icon(Icons.verified_user_outlined, size: 14, color: AppTheme.textLight),
+                const SizedBox(width: 8),
                 Text(
-                  "Secure Transaction",
-                  style: GoogleFonts.jost(fontSize: 12, color: AppTheme.textLight),
+                  "Secured by Pottery Station",
+                  style: GoogleFonts.jost(fontSize: 11, color: AppTheme.textLight, letterSpacing: 0.5),
                 ),
               ],
             ),
@@ -313,36 +385,25 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildAddressSection() {
-    bool hasAddress = false; // Dummy check
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Shipping To", style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.w600)),
-            TextButton(
-              onPressed: () {
-                // TODO: Change address
-              },
-              child: Text(
-                hasAddress ? "Change" : "Add Address",
-                style: GoogleFonts.jost(fontSize: 12, color: AppTheme.terracotta),
+            Text(
+              "Shipping Address",
+              style: GoogleFonts.jost(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textLight,
+                letterSpacing: 1,
               ),
             ),
           ],
         ),
-        if (!hasAddress) ...[
-          const SizedBox(height: 8),
-          _buildAddressForm(),
-        ] else
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              "Manas S., 123 Artisan Lane, Ramgarh, Uttarakhand - 263132",
-              style: AppTheme.bodyMedium,
-            ),
-          ),
+        const SizedBox(height: 16),
+        _buildAddressForm(),
       ],
     );
   }
@@ -354,7 +415,7 @@ class _CartScreenState extends State<CartScreen> {
           decoration: AppTheme.inputDecoration(label: "Full Name"),
           style: AppTheme.bodyMedium,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
@@ -388,55 +449,12 @@ class _CartScreenState extends State<CartScreen> {
               ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         TextField(
           decoration: AppTheme.inputDecoration(label: "Street Address"),
           style: AppTheme.bodyMedium,
         ),
       ],
-    );
-  }
-
-  int _selectedPayment = 0; // 0: Card, 1: UPI, 2: Net Banking
-  Widget _buildPaymentSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Payment Method", style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            _paymentPill(0, "Card"),
-            const SizedBox(width: 8),
-            _paymentPill(1, "UPI"),
-            const SizedBox(width: 8),
-            _paymentPill(2, "Bank"),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _paymentPill(int index, String label) {
-    bool isSelected = _selectedPayment == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedPayment = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.terracotta : Colors.transparent,
-          border: Border.all(color: isSelected ? AppTheme.terracotta : AppTheme.divider),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.jost(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : AppTheme.textDark,
-          ),
-        ),
-      ),
     );
   }
 
@@ -449,14 +467,14 @@ class _CartScreenState extends State<CartScreen> {
           Text(
             label,
             style: isTotal
-                ? AppTheme.headingMedium
+                ? GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w600)
                 : GoogleFonts.jost(color: AppTheme.textLight),
           ),
           Text(
             value,
             style: isTotal
-                ? GoogleFonts.jost(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.terracotta)
-                : GoogleFonts.jost(fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                ? GoogleFonts.jost(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.terracotta)
+                : GoogleFonts.jost(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textDark),
           ),
         ],
       ),
@@ -464,24 +482,28 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCompletePurchaseButton() {
-    return InkWell(
-      onTap: () {
-        // TODO: Complete purchase
-      },
-      child: Container(
-        height: 56,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppTheme.terracotta,
-          borderRadius: BorderRadius.circular(8),
+    return SizedBox(
+      width: double.infinity,
+      height: 60,
+      child: ElevatedButton(
+        onPressed: () {
+          // TODO: Implement actual order creation
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Processing your acquisition...")),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.terracotta,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Text(
           "COMPLETE PURCHASE",
           style: GoogleFonts.jost(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.5,
-            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2,
           ),
         ),
       ),

@@ -35,6 +35,22 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
   late TextEditingController _descCtrl;
   late TextEditingController _orderCtrl;
   late TextEditingController _searchCtrl;
+
+  // New Fields
+  late TextEditingController _mrpCtrl;
+  late TextEditingController _sellingPriceCtrl;
+  late TextEditingController _stockCountCtrl;
+  late TextEditingController _skuCtrl;
+  late TextEditingController _weightCtrl;
+  late TextEditingController _materialCtrl;
+  late TextEditingController _hCtrl;
+  late TextEditingController _wCtrl;
+  late TextEditingController _dCtrl;
+  late TextEditingController _careInputCtrl;
+  late TextEditingController _tagInputCtrl;
+
+  List<String> _careInstructions = [];
+  List<String> _tags = [];
   String? _selectedCategoryId;
   bool _isActive = true;
   List<Uint8List> _newImageBytes = [];
@@ -47,6 +63,19 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
     _descCtrl = TextEditingController();
     _orderCtrl = TextEditingController();
     _searchCtrl = TextEditingController();
+
+    _mrpCtrl = TextEditingController();
+    _sellingPriceCtrl = TextEditingController();
+    _stockCountCtrl = TextEditingController();
+    _skuCtrl = TextEditingController();
+    _weightCtrl = TextEditingController();
+    _materialCtrl = TextEditingController();
+    _hCtrl = TextEditingController();
+    _wCtrl = TextEditingController();
+    _dCtrl = TextEditingController();
+    _careInputCtrl = TextEditingController();
+    _tagInputCtrl = TextEditingController();
+
     _loadData();
   }
 
@@ -56,6 +85,18 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
     _descCtrl.dispose();
     _orderCtrl.dispose();
     _searchCtrl.dispose();
+
+    _mrpCtrl.dispose();
+    _sellingPriceCtrl.dispose();
+    _stockCountCtrl.dispose();
+    _skuCtrl.dispose();
+    _weightCtrl.dispose();
+    _materialCtrl.dispose();
+    _hCtrl.dispose();
+    _wCtrl.dispose();
+    _dCtrl.dispose();
+    _careInputCtrl.dispose();
+    _tagInputCtrl.dispose();
     super.dispose();
   }
 
@@ -144,6 +185,18 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
           : (_categories.isNotEmpty ? _categories.first.id : null);
       _isActive = product.isActive;
       _currentImageUrls = List.from(product.imageUrls);
+
+      _mrpCtrl.text = product.mrp.toString();
+      _sellingPriceCtrl.text = product.sellingPrice.toString();
+      _stockCountCtrl.text = product.stockCount.toString();
+      _skuCtrl.text = product.sku;
+      _weightCtrl.text = product.weight.toString();
+      _materialCtrl.text = product.material;
+      _hCtrl.text = product.dimensions['height']?.toString() ?? '0';
+      _wCtrl.text = product.dimensions['width']?.toString() ?? '0';
+      _dCtrl.text = product.dimensions['depth']?.toString() ?? '0';
+      _careInstructions = List.from(product.careInstructions);
+      _tags = List.from(product.tags);
     } else {
       _titleCtrl.clear();
       _descCtrl.clear();
@@ -153,8 +206,22 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
           : null;
       _isActive = true;
       _currentImageUrls = [];
+
+      _mrpCtrl.clear();
+      _sellingPriceCtrl.clear();
+      _stockCountCtrl.text = '99';
+      _skuCtrl.text = 'AUTO-GENERATED';
+      _weightCtrl.clear();
+      _materialCtrl.clear();
+      _hCtrl.clear();
+      _wCtrl.clear();
+      _dCtrl.clear();
+      _careInstructions = [];
+      _tags = [];
     }
     _newImageBytes = [];
+    _careInputCtrl.clear();
+    _tagInputCtrl.clear();
     setState(() => _mode = 'form');
   }
 
@@ -177,6 +244,16 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
 
     setState(() => _isSaving = true);
     try {
+      final mrp = double.tryParse(_mrpCtrl.text) ?? 0.0;
+      final sellingPrice = double.tryParse(_sellingPriceCtrl.text) ?? 0.0;
+      final stockCount = int.tryParse(_stockCountCtrl.text) ?? 99;
+      final weight = int.tryParse(_weightCtrl.text) ?? 0;
+      final dimensions = {
+        'height': double.tryParse(_hCtrl.text) ?? 0.0,
+        'width': double.tryParse(_wCtrl.text) ?? 0.0,
+        'depth': double.tryParse(_dCtrl.text) ?? 0.0,
+      };
+
       if (_editingProduct == null) {
         // Add
         if (_newImageBytes.isEmpty) throw 'At least one image is required';
@@ -187,6 +264,14 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
           imageBytes: _newImageBytes,
           order: int.tryParse(_orderCtrl.text) ?? 0,
           isActive: _isActive,
+          mrp: mrp,
+          sellingPrice: sellingPrice,
+          stockCount: stockCount,
+          weight: weight,
+          material: _materialCtrl.text.trim(),
+          dimensions: dimensions,
+          careInstructions: _careInstructions,
+          tags: _tags,
         );
       } else {
         // Update
@@ -199,6 +284,15 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
             imageBytes: _newImageBytes,
             order: int.tryParse(_orderCtrl.text) ?? 0,
             isActive: _isActive,
+            mrp: mrp,
+            sellingPrice: sellingPrice,
+            stockCount: stockCount,
+            weight: weight,
+            material: _materialCtrl.text.trim(),
+            dimensions: dimensions,
+            careInstructions: _careInstructions,
+            tags: _tags,
+            sku: _skuCtrl.text,
           );
         } else {
           await ProductRepository.updateProduct(
@@ -208,6 +302,15 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
             categoryId: _selectedCategoryId!,
             order: int.tryParse(_orderCtrl.text) ?? 0,
             isActive: _isActive,
+            mrp: mrp,
+            sellingPrice: sellingPrice,
+            stockCount: stockCount,
+            weight: weight,
+            material: _materialCtrl.text.trim(),
+            dimensions: dimensions,
+            careInstructions: _careInstructions,
+            tags: _tags,
+            sku: _skuCtrl.text,
           );
         }
       }
@@ -556,129 +659,381 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                 constraints.maxWidth,
               );
 
-              final details = _buildSection('Product Details', [
-                AdminFormField(
-                  label: 'Title',
-                  hint: 'Enter product title',
-                  controller: _titleCtrl,
-                ),
-                const SizedBox(height: 16),
-                AdminFormField(
-                  label: 'Description',
-                  hint: 'Enter product description',
-                  controller: _descCtrl,
-                  maxLines: 4,
-                ),
-                const SizedBox(height: 16),
-                _buildCategoryDropdown(),
-                const SizedBox(height: 16),
-                LayoutBuilder(
-                  builder: (context, inner) {
-                    final isMobile = ResponsiveBreakpoints.isMobileWidth(
-                      inner.maxWidth,
-                    );
-                    if (isMobile) {
-                      return Column(
-                        children: [
-                          AdminFormField(
-                            label: 'Display Order',
-                            hint: 'Enter order',
-                            controller: _orderCtrl,
-                            keyboardType: TextInputType.number,
-                          ),
-                          const SizedBox(height: 16),
-                          AdminToggleSwitch(
-                            label: 'Is Active',
-                            value: _isActive,
-                            onChanged: (val) => setState(() => _isActive = val),
-                          ),
-                        ],
-                      );
-                    }
-                    return Row(
+              final leftSide = Column(
+                children: [
+                  _buildSection('Product Details', [
+                    AdminFormField(
+                      label: 'Title',
+                      hint: 'Enter product title',
+                      controller: _titleCtrl,
+                    ),
+                    const SizedBox(height: 16),
+                    AdminFormField(
+                      label: 'Description',
+                      hint: 'Enter product description',
+                      controller: _descCtrl,
+                      maxLines: 4,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildCategoryDropdown(),
+                    const SizedBox(height: 16),
+                    LayoutBuilder(
+                      builder: (context, inner) {
+                        final isMobile = ResponsiveBreakpoints.isMobileWidth(
+                          inner.maxWidth,
+                        );
+                        if (isMobile) {
+                          return Column(
+                            children: [
+                              AdminFormField(
+                                label: 'Display Order',
+                                hint: 'Enter order',
+                                controller: _orderCtrl,
+                                keyboardType: TextInputType.number,
+                              ),
+                              const SizedBox(height: 16),
+                              AdminToggleSwitch(
+                                label: 'Is Active',
+                                value: _isActive,
+                                onChanged: (val) => setState(() => _isActive = val),
+                              ),
+                            ],
+                          );
+                        }
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: AdminFormField(
+                                label: 'Display Order',
+                                hint: 'Enter order',
+                                controller: _orderCtrl,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: AdminToggleSwitch(
+                                  label: 'Is Active',
+                                  value: _isActive,
+                                  onChanged: (val) =>
+                                      setState(() => _isActive = val),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ]),
+                  const SizedBox(height: 24),
+                  _buildSection('Pricing & Inventory', [
+                    Row(
                       children: [
                         Expanded(
                           child: AdminFormField(
-                            label: 'Display Order',
-                            hint: 'Enter order',
-                            controller: _orderCtrl,
+                            label: 'MRP (₹)',
+                            hint: 'Original price',
+                            controller: _mrpCtrl,
                             keyboardType: TextInputType.number,
                           ),
                         ),
-                        const SizedBox(width: 24),
+                        const SizedBox(width: 16),
                         Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: AdminToggleSwitch(
-                              label: 'Is Active',
-                              value: _isActive,
-                              onChanged: (val) =>
-                                  setState(() => _isActive = val),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ]);
-
-              final images = _buildSection('Product Images', [
-                ImageUploadWidget(
-                  title: 'Upload Images',
-                  multiple: true,
-                  onImagesSelected: _onImagesSelected,
-                ),
-                if (_editingProduct != null &&
-                    _newImageBytes.isEmpty &&
-                    _currentImageUrls.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Current Images:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 100,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _currentImageUrls.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(width: 8),
-                            itemBuilder: (context, index) => Image.network(
-                              _currentImageUrls[index],
-                              width: 100,
-                              fit: BoxFit.cover,
-                            ),
+                          child: AdminFormField(
+                            label: 'Selling Price (₹)',
+                            hint: 'Customer pays',
+                            controller: _sellingPriceCtrl,
+                            keyboardType: TextInputType.number,
                           ),
                         ),
                       ],
                     ),
-                  ),
-              ]);
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Stock Count',
+                            hint: '99 for unlimited',
+                            controller: _stockCountCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Weight (grams)',
+                            hint: 'For shipping',
+                            controller: _weightCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'SKU',
+                            hint: 'Auto-generated',
+                            controller: _skuCtrl,
+                            readOnly: true,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Status',
+                                style: GoogleFonts.jost(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.background,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppTheme.divider),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: (int.tryParse(_stockCountCtrl.text) ?? 0) > 0
+                                            ? AppTheme.successGreen
+                                            : Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      (int.tryParse(_stockCountCtrl.text) ?? 0) > 0
+                                          ? 'IN STOCK'
+                                          : 'OUT OF STOCK',
+                                      style: GoogleFonts.jost(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: (int.tryParse(_stockCountCtrl.text) ?? 0) > 0
+                                            ? AppTheme.successGreen
+                                            : Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]),
+                ],
+              );
+
+              final rightSide = Column(
+                children: [
+                  _buildSection('Product Images', [
+                    ImageUploadWidget(
+                      title: 'Upload Images',
+                      multiple: true,
+                      onImagesSelected: _onImagesSelected,
+                    ),
+                    if (_editingProduct != null &&
+                        _newImageBytes.isEmpty &&
+                        _currentImageUrls.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Current Images:',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              height: 100,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _currentImageUrls.length,
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(width: 8),
+                                itemBuilder: (context, index) => Image.network(
+                                  _currentImageUrls[index],
+                                  width: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ]),
+                  const SizedBox(height: 24),
+                  _buildSection('Product Specs', [
+                    AdminFormField(
+                      label: 'Material / Clay Type',
+                      hint: 'e.g. Ramgarh Red Clay',
+                      controller: _materialCtrl,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Height (cm)',
+                            hint: '0',
+                            controller: _hCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Width (cm)',
+                            hint: '0',
+                            controller: _wCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Depth (cm)',
+                            hint: '0',
+                            controller: _dCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    _buildDynamicList(
+                      title: 'Care Instructions',
+                      hint: 'Add instruction...',
+                      controller: _careInputCtrl,
+                      items: _careInstructions,
+                      maxItems: 6,
+                      onAdd: (val) {
+                        setState(() => _careInstructions.add(val));
+                        _careInputCtrl.clear();
+                      },
+                      onRemove: (idx) => setState(() => _careInstructions.removeAt(idx)),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildDynamicList(
+                      title: 'Tags',
+                      hint: 'Add tag...',
+                      controller: _tagInputCtrl,
+                      items: _tags,
+                      maxItems: 10,
+                      onAdd: (val) {
+                        setState(() => _tags.add(val));
+                        _tagInputCtrl.clear();
+                      },
+                      onRemove: (idx) => setState(() => _tags.removeAt(idx)),
+                    ),
+                  ]),
+                ],
+              );
 
               if (isStacked) {
                 return Column(
-                  children: [details, const SizedBox(height: 24), images],
+                  children: [leftSide, const SizedBox(height: 24), rightSide],
                 );
               }
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 3, child: details),
+                  Expanded(flex: 3, child: leftSide),
                   const SizedBox(width: 24),
-                  Expanded(flex: 2, child: images),
+                  Expanded(flex: 2, child: rightSide),
                 ],
               );
             },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDynamicList({
+    required String title,
+    required String hint,
+    required TextEditingController controller,
+    required List<String> items,
+    required int maxItems,
+    required Function(String) onAdd,
+    required Function(int) onRemove,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.jost(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: items.asMap().entries.map((entry) {
+            return Chip(
+              label: Text(entry.value, style: const TextStyle(fontSize: 12)),
+              onDeleted: () => onRemove(entry.key),
+              deleteIcon: const Icon(Icons.close, size: 14),
+              backgroundColor: AppTheme.background,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: AppTheme.divider),
+              ),
+            );
+          }).toList(),
+        ),
+        if (items.length < maxItems) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  onSubmitted: (val) {
+                    if (val.trim().isNotEmpty) onAdd(val.trim());
+                  },
+                  decoration: AppTheme.inputDecoration(
+                    label: '',
+                    hint: hint,
+                  ).copyWith(contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () {
+                  if (controller.text.trim().isNotEmpty) onAdd(controller.text.trim());
+                },
+                icon: const Icon(Icons.add_circle, color: AppTheme.primaryBrown),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 

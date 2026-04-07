@@ -7,7 +7,6 @@ import '../../../features/admin/catalog/repositories/product_repository.dart';
 import '../../../models/product.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../widgets/product_card.dart';
-import '../widgets/image_gallery.dart';
 
 /// CustomerProductsScreen — shows products filtered by category.
 class CustomerProductsScreen extends StatefulWidget {
@@ -152,17 +151,6 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
                       final product = _products[index];
                       return ProductCard(
                         product: product,
-                        onImageTap: () {
-                          ImageGallery.show(
-                            context,
-                            images: product.imageUrls.isNotEmpty
-                                ? product.imageUrls
-                                : (product.primaryImage.isNotEmpty
-                                      ? [product.primaryImage]
-                                      : []),
-                            title: product.title,
-                          );
-                        },
                       );
                     },
                   ),

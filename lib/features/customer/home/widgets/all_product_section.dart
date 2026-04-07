@@ -5,7 +5,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../models/product.dart';
 import '../../widgets/product_card.dart';
-import '../../widgets/image_gallery.dart';
+import '../../../admin/catalog/repositories/product_repository.dart';
+import '../../../admin/catalog/repositories/category_repository.dart';
 
 /// AllProductsSection — grid of all active products from Firestore.
 /// Shown below the exhibition section on the home screen.
@@ -146,17 +147,6 @@ class AllProductsSection extends StatelessWidget {
         final product = products.take(4).toList()[index];
         return ProductCard(
           product: product,
-          onImageTap: () {
-            ImageGallery.show(
-              context,
-              images: product.imageUrls.isNotEmpty
-                  ? product.imageUrls
-                  : (product.primaryImage.isNotEmpty
-                        ? [product.primaryImage]
-                        : []),
-              title: product.title,
-            );
-          },
         );
       },
     );
@@ -215,7 +205,7 @@ class AllProductsSection extends StatelessWidget {
       ),
       itemCount: fallbacks.length,
       itemBuilder: (context, index) {
-        return ProductCard(product: fallbacks[index], onImageTap: () {});
+        return ProductCard(product: fallbacks[index]);
       },
     );
   }

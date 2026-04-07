@@ -279,14 +279,16 @@ class FirestoreService {
   // ── ADMIN — CATEGORIES CRUD ───────────────────────────────────────────────
 
   static Future<DocumentReference> addCategory(ProductCategory category) async {
-    return await _db.collection('categories').add(category.toMap());
+    final docRef = _db.collection('categories').doc();
+    await docRef.set(category.toMap(), SetOptions(merge: true));
+    return docRef;
   }
 
   static Future<void> updateCategory(
     String id,
     Map<String, dynamic> data,
   ) async {
-    await _db.collection('categories').doc(id).update(data);
+    await _db.collection('categories').doc(id).set(data, SetOptions(merge: true));
   }
 
   static Future<void> deleteCategory(String id) async {
@@ -296,14 +298,16 @@ class FirestoreService {
   // ── ADMIN — PRODUCTS CRUD ─────────────────────────────────────────────────
 
   static Future<DocumentReference> addProduct(Product product) async {
-    return await _db.collection('products').add(product.toMap());
+    final docRef = _db.collection('products').doc();
+    await docRef.set(product.toMap(), SetOptions(merge: true));
+    return docRef;
   }
 
   static Future<void> updateProduct(
     String id,
     Map<String, dynamic> data,
   ) async {
-    await _db.collection('products').doc(id).update(data);
+    await _db.collection('products').doc(id).set(data, SetOptions(merge: true));
   }
 
   static Future<void> deleteProduct(String id) async {
@@ -315,14 +319,19 @@ class FirestoreService {
   static Future<DocumentReference> addExclusiveProduct(
     ExclusiveProduct product,
   ) async {
-    return await _db.collection('exclusive_products').add(product.toMap());
+    final docRef = _db.collection('exclusive_products').doc();
+    await docRef.set(product.toMap(), SetOptions(merge: true));
+    return docRef;
   }
 
   static Future<void> updateExclusiveProduct(
     String id,
     Map<String, dynamic> data,
   ) async {
-    await _db.collection('exclusive_products').doc(id).update(data);
+    await _db
+        .collection('exclusive_products')
+        .doc(id)
+        .set(data, SetOptions(merge: true));
   }
 
   static Future<void> deleteExclusiveProduct(String id) async {

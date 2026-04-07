@@ -33,6 +33,8 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < 420;
+    final hasDiscount = widget.product.mrp > widget.product.sellingPrice;
+    final isSoldOut = widget.product.stockCount <= 0;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -44,86 +46,82 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image with badges on top
-            _buildImage(),
+            _buildImage(isSoldOut),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-            // Product title — serif font for premium feel
-            Text(
-              widget.product.title.isNotEmpty
-                  ? widget.product.title
-                  : 'Item not available',
-              style: GoogleFonts.playfairDisplay(
-                fontSize: isCompact ? 15 : 16,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textDark,
-                letterSpacing: 0.1,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-
-            const SizedBox(height: 4),
-
-            // Short description
-            Text(
-              widget.product.description.isNotEmpty
-                  ? widget.product.description
-                  : 'Description not available',
-              style: GoogleFonts.jost(
-                fontSize: isCompact ? 11 : 12,
-                fontWeight: FontWeight.w400,
-                color: AppTheme.textLight,
-                height: 1.4,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            // Badge Row
+            Row(
+              children: [
+                Text(
+                  widget.product.editionType.isNotEmpty 
+                      ? widget.product.editionType.toUpperCase() 
+                      : 'LIMITED EDITION',
+                  style: GoogleFonts.jost(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.terracotta,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                if (widget.product.seriesName.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    '• ${widget.product.seriesName}',
+                    style: GoogleFonts.jost(
+                      fontSize: 10,
+                      color: AppTheme.textLight,
+                    ),
+                  ),
+                ],
+              ],
             ),
 
             const SizedBox(height: 8),
 
-            // LIMITED PRODUCT label — from user requirements
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 6,
-              runSpacing: 4,
-              children: [
-                Icon(Icons.auto_awesome, size: 11, color: AppTheme.terracotta),
-                Text(
-                  'LIMITED PRODUCT',
-                  style: GoogleFonts.jost(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.terracotta,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
+            // Product title
+            Text(
+              widget.product.title.isNotEmpty
+                  ? widget.product.title
+                  : 'Artisanal Masterpiece',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: isCompact ? 18 : 20,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textDark,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
 
-            const SizedBox(height: 6),
+            const SizedBox(height: 12),
 
-            // Total pieces — shown as a subtle info row
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 5,
-              runSpacing: 4,
+            // Price Row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Icon(
-                  Icons.inventory_2_outlined,
-                  size: 13,
-                  color: AppTheme.primaryBrown.withOpacity(0.55),
-                ),
                 Text(
-                  '${widget.product.totalPieces} '
-                  '${widget.product.totalPieces == 1 ? 'piece' : 'pieces'} only',
+                  "₹${widget.product.sellingPrice.toInt()}",
                   style: GoogleFonts.jost(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.primaryBrown.withOpacity(0.65),
-                    letterSpacing: 0.3,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textDark,
                   ),
                 ),
+                if (hasDiscount) ...[
+                  const SizedBox(width: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Text(
+                      "₹${widget.product.mrp.toInt()}",
+                      style: GoogleFonts.jost(
+                        fontSize: 14,
+                        color: AppTheme.textLight,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ],
@@ -136,7 +134,7 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
   // IMAGE SECTION
   // ─────────────────────────────────────────
 
-  Widget _buildImage() {
+  Widget _buildImage(bool isSoldOut) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < 420;
 
@@ -177,64 +175,84 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
           ),
         ),
 
+        // SOLD OUT Overlay
+        if (isSoldOut)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(32),
+                  bottomRight: Radius.circular(_isHovered ? 16 : 32),
+                  topRight: const Radius.circular(8),
+                  bottomLeft: const Radius.circular(8),
+                ),
+              ),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    "SOLD OUT",
+                    style: GoogleFonts.jost(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textDark,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
         // LIMITED EDITION label — top left corner
         Positioned(
-          top: isCompact ? 8 : 10,
-          left: isCompact ? 8 : 10,
+          top: isCompact ? 12 : 16,
+          left: isCompact ? 12 : 16,
           child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isCompact ? 7 : 8,
-              vertical: isCompact ? 3 : 4,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppTheme.appBackground,
+              color: Colors.white.withOpacity(0.9),
               borderRadius: BorderRadius.circular(4),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
-              'LIMITED EDITION',
+              'EXCLUSIVE',
               style: GoogleFonts.jost(
-                fontSize: isCompact ? 7 : 8,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.lightBrown,
-                letterSpacing: isCompact ? 1.1 : 1.5,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.terracotta,
+                letterSpacing: 1.5,
               ),
             ),
           ),
         ),
 
-        // Certificate badge — bottom right, only if hasCertificate is true
+        // Certificate badge
         if (widget.product.hasCertificate)
           Positioned(
-            bottom: isCompact ? 8 : 10,
-            right: isCompact ? 8 : 10,
+            bottom: isCompact ? 12 : 16,
+            right: isCompact ? 12 : 16,
             child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isCompact ? 7 : 8,
-                vertical: isCompact ? 3 : 4,
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
               ),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryBrown,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.workspace_premium_outlined,
-                    size: 11,
-                    color: AppTheme.white,
-                  ),
-                  SizedBox(width: isCompact ? 3 : 4),
-                  Text(
-                    'Certificate',
-                    style: GoogleFonts.jost(
-                      fontSize: isCompact ? 8 : 9,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.white,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
+              child: const Icon(
+                Icons.verified_user_outlined,
+                size: 16,
+                color: AppTheme.terracotta,
               ),
             ),
           ),

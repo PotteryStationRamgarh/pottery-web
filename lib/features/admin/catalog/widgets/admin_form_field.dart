@@ -12,6 +12,7 @@ class AdminFormField extends StatelessWidget {
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
   final bool obscureText;
+  final bool readOnly;
 
   const AdminFormField({
     super.key,
@@ -22,6 +23,7 @@ class AdminFormField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.validator,
     this.obscureText = false,
+    this.readOnly = false,
   });
 
   @override
@@ -43,6 +45,7 @@ class AdminFormField extends StatelessWidget {
           maxLines: maxLines,
           keyboardType: keyboardType,
           obscureText: obscureText,
+          readOnly: readOnly,
           validator: validator,
           style: AppTheme.bodyLarge,
           decoration: InputDecoration(

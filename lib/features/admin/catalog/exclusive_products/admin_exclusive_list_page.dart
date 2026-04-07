@@ -35,6 +35,21 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
   late TextEditingController _searchCtrl;
   late TextEditingController _materialCtrl;
   late TextEditingController _craftingTimeCtrl;
+
+  // New Fields
+  late TextEditingController _mrpCtrl;
+  late TextEditingController _sellingPriceCtrl;
+  late TextEditingController _stockCountCtrl;
+  late TextEditingController _skuCtrl;
+  late TextEditingController _weightCtrl;
+  late TextEditingController _seriesNameCtrl;
+  late TextEditingController _editionTypeCtrl;
+  late TextEditingController _artistNoteCtrl;
+  late TextEditingController _careInputCtrl;
+  late TextEditingController _tagInputCtrl;
+
+  List<String> _careInstructions = [];
+  List<String> _tags = [];
   bool _isActive = true;
   bool _hasCertificate = true;
   List<Uint8List> _newImageBytes = [];
@@ -50,6 +65,18 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
     _searchCtrl = TextEditingController();
     _materialCtrl = TextEditingController();
     _craftingTimeCtrl = TextEditingController();
+
+    _mrpCtrl = TextEditingController();
+    _sellingPriceCtrl = TextEditingController();
+    _stockCountCtrl = TextEditingController();
+    _skuCtrl = TextEditingController();
+    _weightCtrl = TextEditingController();
+    _seriesNameCtrl = TextEditingController();
+    _editionTypeCtrl = TextEditingController();
+    _artistNoteCtrl = TextEditingController();
+    _careInputCtrl = TextEditingController();
+    _tagInputCtrl = TextEditingController();
+
     _loadExclusives();
   }
 
@@ -62,6 +89,17 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
     _searchCtrl.dispose();
     _materialCtrl.dispose();
     _craftingTimeCtrl.dispose();
+
+    _mrpCtrl.dispose();
+    _sellingPriceCtrl.dispose();
+    _stockCountCtrl.dispose();
+    _skuCtrl.dispose();
+    _weightCtrl.dispose();
+    _seriesNameCtrl.dispose();
+    _editionTypeCtrl.dispose();
+    _artistNoteCtrl.dispose();
+    _careInputCtrl.dispose();
+    _tagInputCtrl.dispose();
     super.dispose();
   }
 
@@ -141,6 +179,17 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
       _isActive = product.isActive;
       _hasCertificate = product.hasCertificate;
       _currentImageUrls = List.from(product.imageUrls);
+
+      _mrpCtrl.text = product.mrp.toString();
+      _sellingPriceCtrl.text = product.sellingPrice.toString();
+      _stockCountCtrl.text = product.stockCount.toString();
+      _skuCtrl.text = product.sku;
+      _weightCtrl.text = product.weight.toString();
+      _seriesNameCtrl.text = product.seriesName;
+      _editionTypeCtrl.text = product.editionType;
+      _artistNoteCtrl.text = product.artistNote;
+      _careInstructions = List.from(product.careInstructions);
+      _tags = List.from(product.tags);
     } else {
       _titleCtrl.clear();
       _descCtrl.clear();
@@ -151,8 +200,21 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
       _isActive = true;
       _hasCertificate = true;
       _currentImageUrls = [];
+
+      _mrpCtrl.clear();
+      _sellingPriceCtrl.clear();
+      _stockCountCtrl.text = '1';
+      _skuCtrl.text = 'AUTO-GENERATED';
+      _weightCtrl.clear();
+      _seriesNameCtrl.clear();
+      _editionTypeCtrl.clear();
+      _artistNoteCtrl.clear();
+      _careInstructions = [];
+      _tags = [];
     }
-    _newImageBytes = []; // Correctly re-initialize to empty list
+    _newImageBytes = [];
+    _careInputCtrl.clear();
+    _tagInputCtrl.clear();
     setState(() => _mode = 'form');
   }
 
@@ -171,6 +233,11 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
 
     setState(() => _isSaving = true);
     try {
+      final mrp = double.tryParse(_mrpCtrl.text) ?? 0.0;
+      final sellingPrice = double.tryParse(_sellingPriceCtrl.text) ?? 0.0;
+      final stockCount = int.tryParse(_stockCountCtrl.text) ?? 1;
+      final weight = int.tryParse(_weightCtrl.text) ?? 0;
+
       if (_editingExclusive == null) {
         // Add
         if (_newImageBytes.isEmpty) throw 'At least one image is required';
@@ -184,6 +251,15 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
           craftingTime: _craftingTimeCtrl.text.trim(),
           order: int.tryParse(_orderCtrl.text) ?? 0,
           isActive: _isActive,
+          mrp: mrp,
+          sellingPrice: sellingPrice,
+          stockCount: stockCount,
+          weight: weight,
+          careInstructions: _careInstructions,
+          tags: _tags,
+          seriesName: _seriesNameCtrl.text.trim(),
+          editionType: _editionTypeCtrl.text.trim(),
+          artistNote: _artistNoteCtrl.text.trim(),
         );
       } else {
         // Update
@@ -199,6 +275,16 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
             craftingTime: _craftingTimeCtrl.text.trim(),
             order: int.tryParse(_orderCtrl.text) ?? 0,
             isActive: _isActive,
+            mrp: mrp,
+            sellingPrice: sellingPrice,
+            stockCount: stockCount,
+            weight: weight,
+            careInstructions: _careInstructions,
+            tags: _tags,
+            seriesName: _seriesNameCtrl.text.trim(),
+            editionType: _editionTypeCtrl.text.trim(),
+            artistNote: _artistNoteCtrl.text.trim(),
+            sku: _skuCtrl.text,
           );
         } else {
           await ExclusiveProductRepository.updateExclusiveProduct(
@@ -211,6 +297,16 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
             craftingTime: _craftingTimeCtrl.text.trim(),
             order: int.tryParse(_orderCtrl.text) ?? 0,
             isActive: _isActive,
+            mrp: mrp,
+            sellingPrice: sellingPrice,
+            stockCount: stockCount,
+            weight: weight,
+            careInstructions: _careInstructions,
+            tags: _tags,
+            seriesName: _seriesNameCtrl.text.trim(),
+            editionType: _editionTypeCtrl.text.trim(),
+            artistNote: _artistNoteCtrl.text.trim(),
+            sku: _skuCtrl.text,
           );
         }
       }
@@ -531,10 +627,7 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                   ],
                 );
               }
-              return Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                crossAxisAlignment: WrapCrossAlignment.center,
+              return Row(
                 children: [
                   TextButton.icon(
                     onPressed: _showList,
@@ -544,37 +637,18 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                       foregroundColor: AppTheme.primaryBrown,
                     ),
                   ),
-                  Text(
-                    _editingExclusive == null
-                        ? 'Add Exclusive Piece'
-                        : 'Edit: ${_editingExclusive!.title}',
-                    style: AppTheme.headingLarge,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  ElevatedButton(
-                    onPressed: _isSaving ? null : _save,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryBrown,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      _editingExclusive == null
+                          ? 'Add Exclusive Piece'
+                          : 'Edit: ${_editingExclusive!.title}',
+                      style: AppTheme.headingLarge,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text('Save Exclusive'),
                   ),
+                  const SizedBox(width: 16),
+                  _buildSaveButton(),
                 ],
               );
             },
@@ -588,213 +662,315 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                 constraints.maxWidth,
               );
 
-              final details = _buildSection('Basic Details', [
-                AdminFormField(
-                  label: 'Title',
-                  hint: 'Enter piece title',
-                  controller: _titleCtrl,
-                ),
-                const SizedBox(height: 16),
-                AdminFormField(
-                  label: 'Description & Story',
-                  hint: 'Enter description',
-                  controller: _descCtrl,
-                  maxLines: 4,
-                ),
-                const SizedBox(height: 16),
-                LayoutBuilder(
-                  builder: (context, c) {
-                    final isNarrow = ResponsiveBreakpoints.isMobileWidth(
-                      c.maxWidth,
-                    );
-                    return isNarrow
-                        ? Column(
-                            children: [
-                              AdminFormField(
-                                label: 'Total Pieces Made',
-                                hint: 'Enter number',
-                                controller: _piecesCtrl,
-                                keyboardType: TextInputType.number,
-                              ),
-                              const SizedBox(height: 16),
-                              AdminFormField(
-                                label: 'Display Order',
-                                hint: 'Enter order',
-                                controller: _orderCtrl,
-                                keyboardType: TextInputType.number,
-                              ),
-                            ],
-                          )
-                        : Row(
-                            children: [
-                              Expanded(
-                                child: AdminFormField(
-                                  label: 'Total Pieces Made',
-                                  hint: 'Enter number',
-                                  controller: _piecesCtrl,
-                                  keyboardType: TextInputType.number,
-                                ),
-                              ),
-                              const SizedBox(width: 24),
-                              Expanded(
-                                child: AdminFormField(
-                                  label: 'Display Order',
-                                  hint: 'Enter order',
-                                  controller: _orderCtrl,
-                                  keyboardType: TextInputType.number,
-                                ),
-                              ),
-                            ],
-                          );
-                  },
-                ),
-                const SizedBox(height: 16),
-                LayoutBuilder(
-                  builder: (context, c) {
-                    final isNarrow = ResponsiveBreakpoints.isMobileWidth(
-                      c.maxWidth,
-                    );
-                    return isNarrow
-                        ? Column(
-                            children: [
-                              AdminFormField(
-                                label: 'Material',
-                                hint: 'e.g. Stoneware',
-                                controller: _materialCtrl,
-                              ),
-                              const SizedBox(height: 16),
-                              AdminFormField(
-                                label: 'Crafting Time',
-                                hint: 'e.g. 4-6 Weeks',
-                                controller: _craftingTimeCtrl,
-                              ),
-                            ],
-                          )
-                        : Row(
-                            children: [
-                              Expanded(
-                                child: AdminFormField(
-                                  label: 'Material',
-                                  hint: 'e.g. Stoneware',
-                                  controller: _materialCtrl,
-                                ),
-                              ),
-                              const SizedBox(width: 24),
-                              Expanded(
-                                child: AdminFormField(
-                                  label: 'Crafting Time',
-                                  hint: 'e.g. 4-6 Weeks',
-                                  controller: _craftingTimeCtrl,
-                                ),
-                              ),
-                            ],
-                          );
-                  },
-                ),
-                const SizedBox(height: 24),
-                LayoutBuilder(
-                  builder: (context, c) {
-                    final isNarrow = ResponsiveBreakpoints.isMobileWidth(
-                      c.maxWidth,
-                    );
-                    return isNarrow
-                        ? Column(
-                            children: [
-                              AdminToggleSwitch(
-                                label: 'Authenticity Cert',
-                                value: _hasCertificate,
-                                onChanged: (val) =>
-                                    setState(() => _hasCertificate = val),
-                              ),
-                              const SizedBox(height: 16),
-                              AdminToggleSwitch(
-                                label: 'Is Active',
-                                value: _isActive,
-                                onChanged: (val) =>
-                                    setState(() => _isActive = val),
-                              ),
-                            ],
-                          )
-                        : Row(
-                            children: [
-                              Expanded(
-                                child: AdminToggleSwitch(
-                                  label: 'Authenticity Cert',
-                                  value: _hasCertificate,
-                                  onChanged: (val) =>
-                                      setState(() => _hasCertificate = val),
-                                ),
-                              ),
-                              const SizedBox(width: 24),
-                              Expanded(
-                                child: AdminToggleSwitch(
-                                  label: 'Is Active',
-                                  value: _isActive,
-                                  onChanged: (val) =>
-                                      setState(() => _isActive = val),
-                                ),
-                              ),
-                            ],
-                          );
-                  },
-                ),
-              ]);
-              final images = _buildSection('Masterpiece Images', [
-                ImageUploadWidget(
-                  title: 'Upload Images',
-                  multiple: true,
-                  onImagesSelected: _onImagesSelected,
-                ),
-                if (_editingExclusive != null &&
-                    _newImageBytes.isEmpty &&
-                    _currentImageUrls.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              final leftSide = Column(
+                children: [
+                  _buildSection('Basic Details', [
+                    AdminFormField(
+                      label: 'Title',
+                      hint: 'Enter piece title',
+                      controller: _titleCtrl,
+                    ),
+                    const SizedBox(height: 16),
+                    AdminFormField(
+                      label: 'Description & Story',
+                      hint: 'Enter description',
+                      controller: _descCtrl,
+                      maxLines: 4,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
                       children: [
-                        const Text(
-                          'Current Images:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Total Pieces Made',
+                            hint: 'Enter number',
+                            controller: _piecesCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 100,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _currentImageUrls.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(width: 8),
-                            itemBuilder: (context, index) => Image.network(
-                              _currentImageUrls[index],
-                              width: 100,
-                              fit: BoxFit.cover,
-                            ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Display Order',
+                            hint: 'Enter order',
+                            controller: _orderCtrl,
+                            keyboardType: TextInputType.number,
                           ),
                         ),
                       ],
                     ),
-                  ),
-              ]);
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AdminToggleSwitch(
+                            label: 'Authenticity Cert',
+                            value: _hasCertificate,
+                            onChanged: (val) => setState(() => _hasCertificate = val),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: AdminToggleSwitch(
+                            label: 'Is Active',
+                            value: _isActive,
+                            onChanged: (val) => setState(() => _isActive = val),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]),
+                  const SizedBox(height: 24),
+                  _buildSection('Pricing & Inventory', [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'MRP (₹)',
+                            hint: 'Original price',
+                            controller: _mrpCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Selling Price (₹)',
+                            hint: 'Customer pays',
+                            controller: _sellingPriceCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Stock Count',
+                            hint: 'Number available',
+                            controller: _stockCountCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Weight (grams)',
+                            hint: 'For shipping',
+                            controller: _weightCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    AdminFormField(
+                      label: 'SKU',
+                      hint: 'Auto-generated',
+                      controller: _skuCtrl,
+                      readOnly: true,
+                    ),
+                  ]),
+                  const SizedBox(height: 24),
+                  _buildSection('Artisanal Details', [
+                    AdminFormField(
+                      label: 'Series / Collection Name',
+                      hint: 'e.g. Earth Bound Series 04',
+                      controller: _seriesNameCtrl,
+                    ),
+                    const SizedBox(height: 16),
+                    AdminFormField(
+                      label: 'Edition Type',
+                      hint: 'e.g. STUDIO DROP / LIMITED EDITION',
+                      controller: _editionTypeCtrl,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Material',
+                            hint: 'e.g. Stoneware',
+                            controller: _materialCtrl,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: AdminFormField(
+                            label: 'Crafting Time',
+                            hint: 'e.g. 4-6 Weeks',
+                            controller: _craftingTimeCtrl,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    AdminFormField(
+                      label: 'Artist Note',
+                      hint: 'A personal message from the maker',
+                      controller: _artistNoteCtrl,
+                      maxLines: 3,
+                    ),
+                  ]),
+                ],
+              );
+
+              final rightSide = Column(
+                children: [
+                  _buildSection('Masterpiece Images', [
+                    ImageUploadWidget(
+                      title: 'Upload Images',
+                      multiple: true,
+                      onImagesSelected: _onImagesSelected,
+                    ),
+                    if (_editingExclusive != null &&
+                        _newImageBytes.isEmpty &&
+                        _currentImageUrls.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Current Images:',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              height: 100,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _currentImageUrls.length,
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(width: 8),
+                                itemBuilder: (context, index) => Image.network(
+                                  _currentImageUrls[index],
+                                  width: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ]),
+                  const SizedBox(height: 24),
+                  _buildSection('Product Specs', [
+                    _buildDynamicList(
+                      title: 'Care Instructions',
+                      hint: 'Add instruction...',
+                      controller: _careInputCtrl,
+                      items: _careInstructions,
+                      maxItems: 6,
+                      onAdd: (val) {
+                        setState(() => _careInstructions.add(val));
+                        _careInputCtrl.clear();
+                      },
+                      onRemove: (idx) => setState(() => _careInstructions.removeAt(idx)),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildDynamicList(
+                      title: 'Tags',
+                      hint: 'Add tag...',
+                      controller: _tagInputCtrl,
+                      items: _tags,
+                      maxItems: 10,
+                      onAdd: (val) {
+                        setState(() => _tags.add(val));
+                        _tagInputCtrl.clear();
+                      },
+                      onRemove: (idx) => setState(() => _tags.removeAt(idx)),
+                    ),
+                  ]),
+                ],
+              );
 
               if (isStacked) {
                 return Column(
-                  children: [details, const SizedBox(height: 24), images],
+                  children: [leftSide, const SizedBox(height: 24), rightSide],
                 );
               }
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 3, child: details),
+                  Expanded(flex: 3, child: leftSide),
                   const SizedBox(width: 24),
-                  Expanded(flex: 2, child: images),
+                  Expanded(flex: 2, child: rightSide),
                 ],
               );
             },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDynamicList({
+    required String title,
+    required String hint,
+    required TextEditingController controller,
+    required List<String> items,
+    required int maxItems,
+    required Function(String) onAdd,
+    required Function(int) onRemove,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: items.asMap().entries.map((entry) {
+            return Chip(
+              label: Text(entry.value, style: const TextStyle(fontSize: 12)),
+              onDeleted: () => onRemove(entry.key),
+              deleteIcon: const Icon(Icons.close, size: 14),
+              backgroundColor: AppTheme.background,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: AppTheme.divider),
+              ),
+            );
+          }).toList(),
+        ),
+        if (items.length < maxItems) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  onSubmitted: (val) {
+                    if (val.trim().isNotEmpty) onAdd(val.trim());
+                  },
+                  decoration: AppTheme.inputDecoration(
+                    label: '',
+                    hint: hint,
+                  ).copyWith(contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () {
+                  if (controller.text.trim().isNotEmpty) onAdd(controller.text.trim());
+                },
+                icon: const Icon(Icons.add_circle, color: AppTheme.primaryBrown),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 

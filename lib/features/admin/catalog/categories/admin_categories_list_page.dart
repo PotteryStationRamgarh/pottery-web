@@ -30,6 +30,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
   // Form State
   ProductCategory? _editingCategory;
   late TextEditingController _nameCtrl;
+  late TextEditingController _descCtrl;
   late TextEditingController _orderCtrl;
   late TextEditingController _searchCtrl;
   bool _isActive = true;
@@ -40,6 +41,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController();
+    _descCtrl = TextEditingController();
     _orderCtrl = TextEditingController();
     _searchCtrl = TextEditingController();
     _loadCategories();
@@ -48,6 +50,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _descCtrl.dispose();
     _orderCtrl.dispose();
     _searchCtrl.dispose();
     super.dispose();
@@ -119,11 +122,13 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
     _editingCategory = category;
     if (category != null) {
       _nameCtrl.text = category.name;
+      _descCtrl.text = category.description;
       _orderCtrl.text = category.order.toString();
       _isActive = category.isActive;
       _currentImageUrl = category.imageUrl;
     } else {
       _nameCtrl.clear();
+      _descCtrl.clear();
       _orderCtrl.clear();
       _isActive = true;
       _currentImageUrl = null;
@@ -153,6 +158,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
           throw 'Image is required for new categories';
         await CategoryRepository.addCategory(
           name: _nameCtrl.text.trim(),
+          description: _descCtrl.text.trim(),
           imageBytes: _newImageBytes!,
           order: int.tryParse(_orderCtrl.text) ?? 0,
           isActive: _isActive,
@@ -163,6 +169,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
           await CategoryRepository.updateCategoryWithImage(
             id: _editingCategory!.id,
             name: _nameCtrl.text.trim(),
+            description: _descCtrl.text.trim(),
             imageBytes: _newImageBytes!,
             order: int.tryParse(_orderCtrl.text) ?? 0,
             isActive: _isActive,
@@ -171,6 +178,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
           await CategoryRepository.updateCategory(
             id: _editingCategory!.id,
             name: _nameCtrl.text.trim(),
+            description: _descCtrl.text.trim(),
             order: int.tryParse(_orderCtrl.text) ?? 0,
             isActive: _isActive,
           );
@@ -500,6 +508,13 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
                   label: 'Name',
                   hint: 'Enter category name',
                   controller: _nameCtrl,
+                ),
+                const SizedBox(height: 16),
+                AdminFormField(
+                  label: 'Description',
+                  hint: 'Brief summary of this category',
+                  controller: _descCtrl,
+                  maxLines: 3,
                 ),
                 const SizedBox(height: 16),
                 AdminFormField(

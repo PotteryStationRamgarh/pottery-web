@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../core/services/media_service.dart';
 import '../../../../models/product.dart';
@@ -44,13 +45,6 @@ class ExclusiveProductRepository {
   // ── CREATE ────────────────────────────────────────────────────────────────
 
   /// Add new exclusive product with multiple image uploads.
-  ///
-  /// Flow:
-  /// 1. Create Firestore document (returns docId)
-  /// 2. Upload all images using docId
-  /// 3. Update document with actual image URLs
-  ///
-  /// [totalPieces] must be > 0
   static Future<String> addExclusiveProduct({
     required String title,
     required String description,
@@ -61,6 +55,16 @@ class ExclusiveProductRepository {
     required String craftingTime,
     required int order,
     required bool isActive,
+    required double mrp,
+    required double sellingPrice,
+    required int stockCount,
+    required int weight,
+    required List<String> careInstructions,
+    required List<String> tags,
+    required String seriesName,
+    required String editionType,
+    required String artistNote,
+    String sku = '', // auto-generated if empty
   }) async {
     try {
       if (title.trim().isEmpty) {
@@ -82,7 +86,10 @@ class ExclusiveProductRepository {
         finalOrder = existing.length + 1;
       }
 
-      // 2. Create document with empty imageUrls
+      // 2. Handle SKU and auto-generated fields
+      final finalSku = sku.isEmpty ? 'E-PSR-${DateTime.now().millisecondsSinceEpoch}' : sku;
+
+      // 3. Create document with initial data
       final product = ExclusiveProduct(
         id: '', // Firestore will generate
         title: title.trim(),
@@ -94,19 +101,31 @@ class ExclusiveProductRepository {
         craftingTime: craftingTime.trim(),
         order: finalOrder,
         isActive: isActive,
+        mrp: mrp,
+        sellingPrice: sellingPrice,
+        stockCount: stockCount,
+        isInStock: stockCount > 0,
+        sku: finalSku,
+        weight: weight,
+        careInstructions: careInstructions,
+        tags: tags,
+        soldCount: 0,
+        seriesName: seriesName,
+        editionType: editionType,
+        artistNote: artistNote,
       );
 
       final docRef = await FirestoreService.addExclusiveProduct(product);
       final docId = docRef.id;
 
-      // 2. Upload images
+      // 4. Upload images
       final urls = await _media.uploadImages(
         docId: docId,
         pathPrefix: 'exclusive_products',
         files: imageBytes,
       );
 
-      // 3. Update with actual URLs
+      // 5. Update with actual URLs
       if (urls.isNotEmpty) {
         await FirestoreService.updateExclusiveProduct(docId, {
           'imageUrls': urls,
@@ -134,6 +153,16 @@ class ExclusiveProductRepository {
     required String craftingTime,
     required int order,
     required bool isActive,
+    required double mrp,
+    required double sellingPrice,
+    required int stockCount,
+    required int weight,
+    required List<String> careInstructions,
+    required List<String> tags,
+    required String seriesName,
+    required String editionType,
+    required String artistNote,
+    required String sku,
   }) async {
     try {
       if (title.trim().isEmpty) {
@@ -153,6 +182,18 @@ class ExclusiveProductRepository {
         'craftingTime': craftingTime.trim(),
         'order': order,
         'isActive': isActive,
+        'mrp': mrp,
+        'sellingPrice': sellingPrice,
+        'stockCount': stockCount,
+        'isInStock': stockCount > 0,
+        'weight': weight,
+        'sku': sku,
+        'careInstructions': careInstructions,
+        'tags': tags,
+        'seriesName': seriesName,
+        'editionType': editionType,
+        'artistNote': artistNote,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
       debugPrint('ExclusiveProductRepository.updateExclusiveProduct error: $e');
@@ -172,6 +213,16 @@ class ExclusiveProductRepository {
     required String craftingTime,
     required int order,
     required bool isActive,
+    required double mrp,
+    required double sellingPrice,
+    required int stockCount,
+    required int weight,
+    required List<String> careInstructions,
+    required List<String> tags,
+    required String seriesName,
+    required String editionType,
+    required String artistNote,
+    required String sku,
   }) async {
     try {
       if (title.trim().isEmpty) {
@@ -189,7 +240,7 @@ class ExclusiveProductRepository {
       // 1. Upload new images
       final urls = await _media.uploadImages(
         docId: id,
-        pathPrefix: 'exclusive',
+        pathPrefix: 'exclusive_products',
         files: imageBytes,
       );
 
@@ -203,6 +254,18 @@ class ExclusiveProductRepository {
         'craftingTime': craftingTime.trim(),
         'order': order,
         'isActive': isActive,
+        'mrp': mrp,
+        'sellingPrice': sellingPrice,
+        'stockCount': stockCount,
+        'isInStock': stockCount > 0,
+        'weight': weight,
+        'sku': sku,
+        'careInstructions': careInstructions,
+        'tags': tags,
+        'seriesName': seriesName,
+        'editionType': editionType,
+        'artistNote': artistNote,
+        'updatedAt': FieldValue.serverTimestamp(),
       };
 
       if (urls.isNotEmpty) {

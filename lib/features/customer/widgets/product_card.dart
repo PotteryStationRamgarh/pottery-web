@@ -2,24 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/product.dart';
+import '../products/product_detail_screen.dart';
 import 'image_placeholder.dart';
 
-/// ProductCard — standard product card for the all products grid.
-/// Used in AllProductsSection on the home screen.
-///
-/// No price shown — this is a showcase not a shop.
-/// Tapping the image opens the full screen image gallery.
-///
-/// [product]      — Product fetched from Firestore products/
-/// [onImageTap]   — opens full screen swipeable gallery overlay
+/// ProductCard — updated for ecommerce.
+/// Shows price and navigates to ProductDetailScreen.
 class ProductCard extends StatefulWidget {
   final Product product;
-  final VoidCallback onImageTap;
 
   const ProductCard({
     super.key,
     required this.product,
-    required this.onImageTap,
   });
 
   @override
@@ -27,111 +20,115 @@ class ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<ProductCard> {
-  // Track hover for image zoom and border radius animation
   bool _isHovered = false;
 
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Tappable image — opens gallery on tap
-          _buildImage(),
-
-          const SizedBox(height: 12),
-
-          // Product name
-          Text(
-            widget.product.title.isNotEmpty
-                ? widget.product.title
-                : 'Item not available',
-            style: GoogleFonts.jost(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textDark,
-              letterSpacing: 0.1,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          const SizedBox(height: 4),
-
-          // Short description — 2 lines max
-          Text(
-            widget.product.description.isNotEmpty
-                ? widget.product.description
-                : 'Description not available',
-            style: GoogleFonts.jost(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              color: AppTheme.textLight,
-              height: 1.5,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          // Show photo count hint only if product has multiple images
-          // Lets user know they can see more by tapping
-          if (widget.product.imageUrls.length > 1) ...[
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Icon(
-                  Icons.photo_library_outlined,
-                  size: 11,
-                  color: AppTheme.greyPlaceholder,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${widget.product.imageUrls.length} photos',
-                  style: GoogleFonts.jost(
-                    fontSize: 11,
-                    color: AppTheme.greyPlaceholder,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
+  void _navigateToDetail() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailScreen(product: widget.product),
       ),
     );
   }
 
-  // ─────────────────────────────────────────
-  // IMAGE
-  // ─────────────────────────────────────────
+  @override
+  Widget build(BuildContext context) {
+    final hasDiscount = widget.product.mrp > widget.product.sellingPrice;
+    final isSoldOut = widget.product.stockCount <= 0;
 
-  Widget _buildImage() {
-    return GestureDetector(
-      onTap: widget.onImageTap,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: AppTheme.divider.withOpacity(0.3),
-            // Corners animate smoothly on hover
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(20),
-              bottomRight: const Radius.circular(20),
-              topRight: Radius.circular(_isHovered ? 20 : 4),
-              bottomLeft: Radius.circular(_isHovered ? 20 : 4),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: _navigateToDetail,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Section
+            _buildImage(isSoldOut),
+
+            const SizedBox(height: 12),
+
+            // Category/Tag hint
+            if (widget.product.tags.isNotEmpty)
+              Text(
+                widget.product.tags.first.toUpperCase(),
+                style: GoogleFonts.jost(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.terracotta,
+                  letterSpacing: 1.2,
+                ),
+              ),
+
+            const SizedBox(height: 4),
+
+            // Product name
+            Text(
+              widget.product.title.isNotEmpty ? widget.product.title : 'Artisanal Piece',
+              style: GoogleFonts.jost(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textDark,
+                letterSpacing: 0.1,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          child: AspectRatio(
-            // Square cards look clean in a grid layout
+
+            const SizedBox(height: 6),
+
+            // Price Row
+            Row(
+              children: [
+                Text(
+                  "₹${widget.product.sellingPrice.toInt()}",
+                  style: GoogleFonts.jost(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textDark,
+                  ),
+                ),
+                if (hasDiscount) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    "₹${widget.product.mrp.toInt()}",
+                    style: GoogleFonts.jost(
+                      fontSize: 12,
+                      color: AppTheme.textLight,
+                      decoration: TextDecoration.lineThrough,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImage(bool isSoldOut) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppTheme.divider.withOpacity(0.3),
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(20),
+          bottomRight: const Radius.circular(20),
+          topRight: Radius.circular(_isHovered ? 20 : 4),
+          bottomLeft: Radius.circular(_isHovered ? 20 : 4),
+        ),
+      ),
+      child: Stack(
+        children: [
+          AspectRatio(
             aspectRatio: 1.0,
             child: widget.product.primaryImage.isNotEmpty
                 ? AnimatedScale(
-                    // Subtle zoom on hover
-                    scale: _isHovered ? 1.04 : 1.0,
+                    scale: _isHovered ? 1.05 : 1.0,
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.easeOut,
                     child: NetworkImageWithPlaceholder(
@@ -141,7 +138,31 @@ class _ProductCardState extends State<ProductCard> {
                   )
                 : const ImagePlaceholder(aspectRatio: 1.0),
           ),
-        ),
+          if (isSoldOut)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.4),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      "SOLD OUT",
+                      style: GoogleFonts.jost(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textDark,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

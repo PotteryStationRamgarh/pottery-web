@@ -42,13 +42,9 @@ class CategoryRepository {
   // ── CREATE ────────────────────────────────────────────────────────────────
 
   /// Add new category with single image upload.
-  ///
-  /// Flow:
-  /// 1. Create Firestore document (returns docId)
-  /// 2. Upload image using docId
-  /// 3. Update document with actual image URL
   static Future<String> addCategory({
     required String name,
+    required String description,
     required Uint8List imageBytes,
     required int order,
     required bool isActive,
@@ -69,6 +65,7 @@ class CategoryRepository {
       final category = ProductCategory(
         id: '', // Firestore will generate
         name: name.trim(),
+        description: description.trim(),
         imageUrl: '', // Will update after upload
         order: finalOrder,
         isActive: isActive,
@@ -102,6 +99,7 @@ class CategoryRepository {
   static Future<void> updateCategory({
     required String id,
     required String name,
+    required String description,
     required int order,
     required bool isActive,
   }) async {
@@ -112,6 +110,7 @@ class CategoryRepository {
 
       await FirestoreService.updateCategory(id, {
         'name': name.trim(),
+        'description': description.trim(),
         'order': order,
         'isActive': isActive,
       });
@@ -125,6 +124,7 @@ class CategoryRepository {
   static Future<void> updateCategoryWithImage({
     required String id,
     required String name,
+    required String description,
     required Uint8List imageBytes,
     required int order,
     required bool isActive,
@@ -144,6 +144,7 @@ class CategoryRepository {
       // 2. Update document
       final updateData = {
         'name': name.trim(),
+        'description': description.trim(),
         'order': order,
         'isActive': isActive,
       };

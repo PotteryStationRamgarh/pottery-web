@@ -76,24 +76,33 @@ class MyApp extends StatelessWidget {
           );
         },
 
-        // Gallery page — arguments: Product
-        Routes.gallery: (context) {
-          final product = ModalRoute.of(context)!.settings.arguments as Product;
-          return GalleryScreen(product: product);
-        },
-
-        // Dedicated Exclusive Detail Page — arguments: ExclusiveProduct
+        // Dedicated Exclusive Detail Page — arguments: ExclusiveProduct or String (ID)
         Routes.exclusiveDetail: (context) {
-          final product =
-              ModalRoute.of(context)!.settings.arguments as ExclusiveProduct;
-          return ExclusiveDetailScreen(product: product);
+          final args = ModalRoute.of(context)!.settings.arguments;
+          if (args is ExclusiveProduct) {
+            return ExclusiveDetailScreen(product: args);
+          } else if (args is String) {
+            return ExclusiveDetailScreen(productId: args);
+          }
+          return const ExclusiveDetailScreen();
         },
 
         // New route for all Exclusive products
         Routes.exclusiveList: (context) => const ExclusiveListScreen(),
 
         // Ecommerce screens
-        Routes.productDetail: (context) => const ProductDetailScreen(),
+        Routes.productDetail: (context) {
+          final args = ModalRoute.of(context)!.settings.arguments;
+          if (args is Product) {
+            return ProductDetailScreen(product: args);
+          } else if (args is String) {
+            return ProductDetailScreen(productId: args);
+          }
+          if (args is Map<String, dynamic>) {
+            return ProductDetailScreen(productId: args['id'], product: args['product']);
+          }
+          return const ProductDetailScreen();
+        },
         Routes.cart: (context) => const CartScreen(),
         Routes.myAccount: (context) => const MyAccountScreen(),
         Routes.savedAddresses: (context) => const SavedAddressesScreen(),

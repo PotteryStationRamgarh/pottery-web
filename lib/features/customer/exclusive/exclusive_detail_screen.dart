@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../app/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../models/product.dart';
+import '../../../core/providers/cart_provider.dart';
+import '../../admin/catalog/repositories/exclusive_product_repository.dart';
 import '../home/widgets/nav_bar.dart';
 import '../home/home_footer.dart';
 
 class ExclusiveDetailScreen extends StatefulWidget {
-  final ExclusiveProduct product;
-  const ExclusiveDetailScreen({super.key, required this.product});
+  final ExclusiveProduct? product;
+  final String? productId;
+
+  const ExclusiveDetailScreen({super.key, this.product, this.productId});
 
   @override
   State<ExclusiveDetailScreen> createState() => _ExclusiveDetailScreenState();
@@ -17,14 +22,50 @@ class ExclusiveDetailScreen extends StatefulWidget {
 
 class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
   int _activeImageIndex = 0;
+  ExclusiveProduct? _product;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product != null) {
+      _product = widget.product;
+    } else if (widget.productId != null) {
+      _loadProduct();
+    }
+  }
+
+  Future<void> _loadProduct() async {
+    setState(() => _isLoading = true);
+    try {
+      final p = await ExclusiveProductRepository.getExclusiveProduct(widget.productId!);
+      if (mounted) {
+        setState(() => _product = p);
+      }
+    } catch (e) {
+      debugPrint('Error loading exclusive product: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<String> allImages = widget.product.imageUrls.isNotEmpty
-        ? List<String>.from(widget.product.imageUrls)
-        : (widget.product.primaryImage.isNotEmpty
-              ? [widget.product.primaryImage]
-              : []);
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: AppTheme.background,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_product == null) {
+      return const Scaffold(
+        backgroundColor: AppTheme.background,
+        body: Center(child: Text("Piece not found")),
+      );
+    }
+
+    final List<String> allImages = _product!.imageUrls;
     final isMobile = ResponsiveBreakpoints.isMobile(context);
 
     return Scaffold(
@@ -70,11 +111,16 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
                         const SizedBox(height: 16),
 
                         // Layout: Images on left (desktop), Info on right
-                        isMobile
-                            ? _buildMobileLayout(allImages)
-                            : _buildDesktopLayout(allImages),
+                        if (allImages.isNotEmpty)
+                          isMobile
+                              ? _buildMobileLayout(allImages)
+                              : _buildDesktopLayout(allImages)
+                        else
+                          const Center(child: Text("No images available")),
 
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 64),
+                        _buildExtendedDetails(),
+                        const SizedBox(height: 64),
                       ],
                     ),
                   ),
@@ -145,7 +191,7 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: _activeImageIndex == index
-                                    ? AppTheme.primaryBrown
+                                    ? AppTheme.terracotta
                                     : Colors.transparent,
                                 width: 2,
                               ),
@@ -162,13 +208,13 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
               ),
             ),
 
-            const SizedBox(width: 40),
+            const SizedBox(width: 48),
 
             // Product Details (Right)
             Expanded(
               flex: 1,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 450),
+                constraints: const BoxConstraints(maxWidth: 500),
                 child: _buildProductInfo(),
               ),
             ),
@@ -200,44 +246,99 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         _buildProductInfo(),
       ],
     );
   }
 
   Widget _buildProductInfo() {
+    final hasDiscount = _product!.mrp > _product!.sellingPrice;
+    final isSoldOut = _product!.stockCount <= 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryBrown.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Text(
-            'EXCLUSIVE PIECE',
-            style: GoogleFonts.jost(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryBrown,
-              letterSpacing: 1.2,
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.terracotta.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                _product!.editionType.isNotEmpty
+                    ? _product!.editionType.toUpperCase()
+                    : 'EXCLUSIVE PIECE',
+                style: GoogleFonts.jost(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.terracotta,
+                  letterSpacing: 1.2,
+                ),
+              ),
             ),
-          ),
+            if (_product!.seriesName.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Text(
+                '• ${_product!.seriesName}',
+                style: GoogleFonts.jost(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textLight,
+                  letterSpacing: 1,
+                ),
+              ),
+            ],
+          ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
 
         Text(
-          widget.product.title,
+          _product!.title,
           style: GoogleFonts.playfairDisplay(
-            fontSize: ResponsiveBreakpoints.isMobile(context) ? 28 : 32,
+            fontSize: ResponsiveBreakpoints.isMobile(context) ? 32 : 40,
             fontWeight: FontWeight.w600,
             color: AppTheme.textDark,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+
+        Row(
+          children: [
+            Text(
+              "₹${_product!.sellingPrice.toInt()}",
+              style: GoogleFonts.jost(
+                fontSize: 28,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.terracotta,
+              ),
+            ),
+            if (hasDiscount) ...[
+              const SizedBox(width: 16),
+              Text(
+                "₹${_product!.mrp.toInt()}",
+                style: GoogleFonts.jost(
+                  fontSize: 20,
+                  color: AppTheme.textLight,
+                  decoration: TextDecoration.lineThrough,
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "+ Free insured delivery on exclusives",
+          style: GoogleFonts.jost(
+            fontSize: 13,
+            color: AppTheme.textLight,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+        const SizedBox(height: 24),
 
         // Features Grid
         Wrap(
@@ -245,55 +346,158 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
           runSpacing: 8,
           children: [
             _buildFeatureTag(Icons.auto_awesome, 'Handmade'),
-            if (widget.product.hasCertificate)
+            if (_product!.hasCertificate)
               _buildFeatureTag(Icons.verified_user_outlined, 'Certified'),
+            _buildFeatureTag(Icons.history_edu, 'Series ${_product!.order}'),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 32),
 
         Text(
-          'About this piece',
-          style: GoogleFonts.jost(fontSize: 15, fontWeight: FontWeight.w600),
+          'The Story',
+          style: GoogleFonts.jost(fontSize: 16, fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Text(
-          widget.product.description,
-          style: AppTheme.bodyLarge.copyWith(height: 1.6, fontSize: 14),
+          _product!.description,
+          style: AppTheme.bodyLarge.copyWith(height: 1.8, fontSize: 15),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 32),
 
-        // Summary Card
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.divider),
+        // Add to Cart
+        SizedBox(
+          width: double.infinity,
+          height: 60,
+          child: ElevatedButton(
+            onPressed: isSoldOut
+                ? null
+                : () {
+                    context.read<CartProvider>().addItem(_product!);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text("Added exclusive piece to cart"),
+                        action: SnackBarAction(
+                          label: "VIEW CART",
+                          onPressed: () => Navigator.pushNamed(context, Routes.cart),
+                          textColor: Colors.white,
+                        ),
+                        backgroundColor: AppTheme.terracotta,
+                      ),
+                    );
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.terracotta,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(
+              isSoldOut ? "SOLD OUT" : "INQUIRE / PURCHASE",
+              style: GoogleFonts.jost(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
+            ),
           ),
-          child: Column(
-            children: [
-              _buildSummaryRow(
-                'Limited Edition',
-                'Only ${widget.product.totalPieces} pieces',
+        ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  Widget _buildExtendedDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_product!.artistNote.isNotEmpty) ...[
+          Text(
+            "Artist's Note",
+            style: AppTheme.serifHeadingMedium,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppTheme.exhibitionBackground,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.divider),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.format_quote, color: AppTheme.terracotta, size: 32),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    _product!.artistNote,
+                    style: GoogleFonts.jost(
+                      fontSize: 16,
+                      height: 1.6,
+                      fontStyle: FontStyle.italic,
+                      color: AppTheme.textDark,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 48),
+        ],
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_product!.careInstructions.isNotEmpty)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Care & Handling", style: GoogleFonts.jost(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    ..._product!.careInstructions.map((item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle_outline, size: 16, color: AppTheme.terracotta),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(item, style: GoogleFonts.jost(fontSize: 14))),
+                        ],
+                      ),
+                    )),
+                  ],
+                ),
               ),
-              const Divider(height: 24),
-              _buildSummaryRow(
-                'Material',
-                widget.product.material.isNotEmpty
-                    ? widget.product.material
-                    : 'Not available',
-              ),
-              const Divider(height: 24),
-              _buildSummaryRow(
-                'Crafting Time',
-                widget.product.craftingTime.isNotEmpty
-                    ? widget.product.craftingTime
-                    : 'Not available',
+            if (_product!.tags.isNotEmpty) ...[
+              const SizedBox(width: 48),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Tags", style: GoogleFonts.jost(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _product!.tags.map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: AppTheme.divider),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          "#$tag",
+                          style: GoogleFonts.jost(fontSize: 12, color: AppTheme.textLight),
+                        ),
+                      )).toList(),
+                    ),
+                  ],
+                ),
               ),
             ],
-          ),
+          ],
         ),
-        const SizedBox(height: 24),
       ],
     );
   }
@@ -302,13 +506,13 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        border: Border.all(color: AppTheme.divider),
+        border: Border.all(color: AppTheme.divider.withOpacity(0.5)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: AppTheme.textDark),
+          Icon(icon, size: 14, color: AppTheme.terracotta),
           const SizedBox(width: 8),
           Text(
             label,
@@ -320,46 +524,22 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
   }
 
   Widget _buildSummaryRow(String label, String value) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final shouldStack = ResponsiveBreakpoints.isMobileWidth(
-          constraints.maxWidth,
-        );
-
-        if (shouldStack) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: GoogleFonts.jost(color: AppTheme.textLight)),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: GoogleFonts.jost(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textDark,
-                ),
-              ),
-            ],
-          );
-        }
-
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: GoogleFonts.jost(color: AppTheme.textLight)),
-            Flexible(
-              child: Text(
-                value,
-                textAlign: TextAlign.right,
-                style: GoogleFonts.jost(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textDark,
-                ),
-              ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.jost(color: AppTheme.textLight, fontSize: 13)),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: GoogleFonts.jost(
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textDark,
+              fontSize: 13,
             ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 }
