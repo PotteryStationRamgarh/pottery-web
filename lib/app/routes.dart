@@ -65,6 +65,16 @@ class Routes {
   static const String gallery = '/gallery';
 
   // ─────────────────────────────────────────
+  // ECOMMERCE (STATIC FOR V2)
+  // ─────────────────────────────────────────
+
+  static const String productDetail = '/product-detail';
+  static const String cart = '/cart';
+  static const String myAccount = '/my-account';
+  static const String savedAddresses = '/saved-addresses';
+  static const String customOrder = '/custom-order';
+
+  // ─────────────────────────────────────────
   // ADMIN
   // ─────────────────────────────────────────
 

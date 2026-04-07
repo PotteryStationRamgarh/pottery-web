@@ -18,7 +18,7 @@ class AppTheme {
   static const Color lightBrown = Color(0xFFC8A98A);
 
   /// Earthy warm tones for banners and accents
-  static const Color terracotta = Color(0xFFB35C37);
+  static const Color terracotta = Color(0xFFA0522D);
   static const Color warmClay = Color(0xFF8B5A2B);
 
   /// Surface color — inside cards and forms
@@ -60,8 +60,22 @@ class AppTheme {
   static const Color green = Colors.green;
 
   // ─────────────────────────────────────────
-  // TYPOGRAPHY — Jost
+  // TYPOGRAPHY — Playfair Display & Jost
   // ─────────────────────────────────────────
+
+  static TextStyle get serifHeadingLarge => GoogleFonts.playfairDisplay(
+    fontSize: 28,
+    fontWeight: FontWeight.w600,
+    color: textDark,
+    letterSpacing: 0.2,
+  );
+
+  static TextStyle get serifHeadingMedium => GoogleFonts.playfairDisplay(
+    fontSize: 22,
+    fontWeight: FontWeight.w600,
+    color: textDark,
+    letterSpacing: 0.2,
+  );
 
   static TextStyle get displayLarge => GoogleFonts.jost(
     fontSize: 36,

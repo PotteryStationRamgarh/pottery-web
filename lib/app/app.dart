@@ -17,6 +17,11 @@ import '../features/customer/loading/customer_loading_screen.dart';
 import '../features/customer/exclusive/exclusive_detail_screen.dart';
 import '../features/customer/exclusive/exclusive_list_screen.dart';
 import '../features/customer/categories/customer_categories_grid_page.dart';
+import '../features/customer/products/product_detail_screen.dart';
+import '../features/customer/cart/cart_screen.dart';
+import '../features/customer/account/my_account_screen.dart';
+import '../features/customer/account/saved_addresses_screen.dart';
+import '../features/customer/orders/custom_order_screen.dart';
 
 /// Root of the entire app.
 /// All screens are registered here as named routes.
@@ -86,6 +91,13 @@ class MyApp extends StatelessWidget {
 
         // New route for all Exclusive products
         Routes.exclusiveList: (context) => const ExclusiveListScreen(),
+
+        // Ecommerce screens
+        Routes.productDetail: (context) => const ProductDetailScreen(),
+        Routes.cart: (context) => const CartScreen(),
+        Routes.myAccount: (context) => const MyAccountScreen(),
+        Routes.savedAddresses: (context) => const SavedAddressesScreen(),
+        Routes.customOrder: (context) => const CustomOrderScreen(),
 
         // Only accessible to users with role: 'admin' in Firestore
         Routes.adminDashboard: (context) => const AdminLayout(),

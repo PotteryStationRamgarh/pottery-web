@@ -111,11 +111,34 @@ class _DesktopNav extends StatelessWidget {
                       label: 'Contact',
                       onTap: () => _showContact(context, config),
                     ),
+                    SizedBox(width: itemSpacing),
+
+                    // Custom Orders
+                    _NavItem(
+                      label: 'Custom Orders',
+                      onTap: () => Navigator.pushNamed(context, Routes.customOrder),
+                    ),
 
                     SizedBox(width: width < 1200 ? 16 : 28),
 
-                    // Profile icon — dropdown with email + sign out
-                    const _ProfileButton(),
+                    // Search icon
+                    IconButton(
+                      icon: const Icon(Icons.search, size: 20),
+                      color: AppTheme.textLight,
+                      onPressed: () {
+                        // TODO: Implement search
+                      },
+                    ),
+
+                    // Cart icon with badge
+                    _CartButton(itemCount: 3),
+
+                    // Profile icon — now routes to MyAccount
+                    IconButton(
+                      icon: const Icon(Icons.person_outline, size: 20),
+                      color: AppTheme.textLight,
+                      onPressed: () => Navigator.pushNamed(context, Routes.myAccount),
+                    ),
 
                     SizedBox(width: width < 1200 ? 12 : 20),
 
@@ -158,6 +181,16 @@ class _MobileNav extends StatelessWidget {
 
           const Spacer(),
 
+          // Search icon
+          IconButton(
+            icon: const Icon(Icons.search, size: 20),
+            color: AppTheme.textDark,
+            onPressed: () {},
+          ),
+
+          // Cart icon
+          _CartButton(itemCount: 3, isMobile: true),
+
           // Hamburger — opens the end drawer
           IconButton(
             icon: const Icon(Icons.menu, size: 24),
@@ -166,6 +199,52 @@ class _MobileNav extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────
+// CART BUTTON WITH BADGE
+// ─────────────────────────────────────────
+
+class _CartButton extends StatelessWidget {
+  final int itemCount;
+  final bool isMobile;
+  const _CartButton({required this.itemCount, this.isMobile = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        IconButton(
+          icon: Icon(Icons.shopping_bag_outlined, size: isMobile ? 22 : 20),
+          color: isMobile ? AppTheme.textDark : AppTheme.textLight,
+          onPressed: () => Navigator.pushNamed(context, Routes.cart),
+        ),
+        if (itemCount > 0)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: AppTheme.terracotta,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+              child: Text(
+                '$itemCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -223,6 +302,20 @@ class NavDrawer extends StatelessWidget {
                 onTap: () {
                   Navigator.pop(context);
                   _showContact(context, config);
+                },
+              ),
+              _DrawerItem(
+                label: 'Custom Orders',
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, Routes.customOrder);
+                },
+              ),
+              _DrawerItem(
+                label: 'My Account',
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, Routes.myAccount);
                 },
               ),
 
