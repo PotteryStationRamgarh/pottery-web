@@ -70,6 +70,7 @@ class Routes {
 
   static const String productDetail = '/product-detail';
   static const String cart = '/cart';
+  static const String wishlist = '/wishlist';
   static const String myAccount = '/my-account';
   static const String savedAddresses = '/saved-addresses';
   static const String customOrder = '/custom-order';

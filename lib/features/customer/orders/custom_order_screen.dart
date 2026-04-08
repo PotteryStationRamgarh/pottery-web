@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:typed_data';
+import '../../../app/routes.dart';
+import '../../../core/repositories/custom_products_config_repository.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/repositories/custom_order_repository.dart';
 import '../../../models/custom_order_model.dart';
+import '../../../models/custom_products_config.dart';
+import '../../admin/catalog/widgets/image_upload_widget.dart';
+import '../home/home_footer.dart';
 import '../home/widgets/nav_bar.dart';
 
 class CustomOrderScreen extends StatefulWidget {
@@ -18,21 +24,18 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _sizeController = TextEditingController();
-  final _glazeController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   String _selectedType = 'Bowl';
+  String _selectedGlaze = 'Natural Matte';
   int _quantity = 1;
   bool _isSubmitting = false;
+  Uint8List? _inspirationImageBytes;
+  bool _isLoadingConfig = true;
+  late CustomProductsConfig _config;
 
-  final List<String> _productTypes = [
-    'Bowl',
-    'Vase',
-    'Mug',
-    'Plate',
-    'Decorative',
-    'Other'
-  ];
+  List<String> get _productTypes => _config.productTypes;
+  List<String> get _glazeOptions => _config.glazeOptions;
 
   @override
   void initState() {
@@ -41,6 +44,32 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
     if (user != null) {
       _emailController.text = user.email ?? '';
     }
+    _loadConfig();
+  }
+
+  Future<void> _loadConfig() async {
+    final config = await CustomProductsConfigRepository.getConfig();
+    final productTypes = config.productTypes.isEmpty
+        ? CustomProductsConfig.fromMap(null).productTypes
+        : config.productTypes;
+    final glazeOptions = config.glazeOptions.isEmpty
+        ? CustomProductsConfig.fromMap(null).glazeOptions
+        : config.glazeOptions;
+    if (!mounted) return;
+    setState(() {
+      _config = CustomProductsConfig(
+        heroImageUrl: config.heroImageUrl,
+        heroTitle: config.heroTitle,
+        heroSubtitle: config.heroSubtitle,
+        glazeOptions: glazeOptions,
+        productTypes: productTypes,
+        introText: config.introText,
+        isEnabled: config.isEnabled,
+      );
+      _selectedType = productTypes.first;
+      _selectedGlaze = glazeOptions.first;
+      _isLoadingConfig = false;
+    });
   }
 
   @override
@@ -49,7 +78,6 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _sizeController.dispose();
-    _glazeController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -57,7 +85,10 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
   Future<void> _handleSubmit() async {
     if (_nameController.text.isEmpty || _emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please provide your name and email')),
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Please provide your name and email'),
+        ),
       );
       return;
     }
@@ -74,18 +105,23 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
         phone: _phoneController.text,
         productType: _selectedType,
         size: _sizeController.text,
-        glazePreference: _glazeController.text,
+        glazePreference: _selectedGlaze,
+        glazeFinish: _selectedGlaze,
         quantity: _quantity,
         specialNotes: _notesController.text,
         createdAt: DateTime.now(),
       );
 
-      await CustomOrderRepository.submitCustomOrder(customOrder);
+      await CustomOrderRepository.submitCustomOrderWithImage(
+        customOrder,
+        inspirationImageBytes: _inspirationImageBytes,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Vision submitted! We will reach out soon.'),
+            behavior: SnackBarBehavior.floating,
+            content: Text('Custom product request submitted successfully.'),
             backgroundColor: AppTheme.successGreen,
           ),
         );
@@ -94,7 +130,10 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Submission failed: $e')),
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Submission failed: $e'),
+          ),
         );
       }
     } finally {
@@ -106,11 +145,15 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
     _nameController.clear();
     _phoneController.clear();
     _sizeController.clear();
-    _glazeController.clear();
     _notesController.clear();
     setState(() {
       _selectedType = 'Bowl';
+      if (_productTypes.isNotEmpty) {
+        _selectedType = _productTypes.first;
+      }
+      _selectedGlaze = _glazeOptions.first;
       _quantity = 1;
+      _inspirationImageBytes = null;
     });
   }
 
@@ -122,60 +165,79 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       endDrawer: const NavDrawer(),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
+      body: _isLoadingConfig
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
               children: [
-                const SizedBox(height: 72),
-                _buildHeader(isDesktop),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isDesktop ? 48 : 20,
-                    vertical: 60,
-                  ),
-                  child: Center(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 900),
-                      padding: EdgeInsets.all(isDesktop ? 80 : 32),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 40,
-                            offset: const Offset(0, 20),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Commission a Piece", style: AppTheme.serifHeadingLarge),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Share your vision with us. Our artisans will bring it to life using traditional techniques and bespoke glazes.",
-                            style: GoogleFonts.jost(
-                              color: AppTheme.textLight,
-                              height: 1.8,
-                              fontSize: 16,
+                SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 72),
+                      _buildHeader(isDesktop),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isDesktop ? 48 : 18,
+                          vertical: isDesktop ? 60 : 28,
+                        ),
+                        child: Center(
+                          child: Container(
+                            constraints: const BoxConstraints(maxWidth: 900),
+                            padding: EdgeInsets.all(isDesktop ? 80 : 24),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(32),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 40,
+                                  offset: const Offset(0, 20),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Commission a Piece",
+                                  style: AppTheme.serifHeadingLarge,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _config.introText,
+                                  style: GoogleFonts.jost(
+                                    color: AppTheme.textLight,
+                                    height: 1.8,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                if (FirebaseAuth.instance.currentUser ==
+                                    null) ...[
+                                  const SizedBox(height: 16),
+                                  OutlinedButton.icon(
+                                    onPressed: () => Navigator.pushNamed(
+                                      context,
+                                      Routes.signin,
+                                    ),
+                                    icon: const Icon(Icons.login),
+                                    label: const Text(
+                                      'LOGIN TO SAVE YOUR DETAILS',
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 60),
+                                _buildForm(),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 60),
-                          _buildForm(),
-                        ],
+                        ),
                       ),
-                    ),
+                      const HomeFooter(),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 80),
+                const Positioned(top: 0, left: 0, right: 0, child: NavBar()),
               ],
             ),
-          ),
-          const Positioned(top: 0, left: 0, right: 0, child: NavBar()),
-        ],
-      ),
     );
   }
 
@@ -183,9 +245,9 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
     return Container(
       height: 400,
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         image: DecorationImage(
-          image: NetworkImage('https://images.unsplash.com/photo-1565191999001-551c187427bb?q=80&w=1500&auto=format&fit=crop'),
+          image: NetworkImage(_config.heroImageUrl),
           fit: BoxFit.cover,
         ),
       ),
@@ -194,16 +256,13 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
           gradient: LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
-            colors: [
-              Colors.black.withOpacity(0.7),
-              Colors.transparent,
-            ],
+            colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
           ),
         ),
         padding: EdgeInsets.all(isDesktop ? 80 : 32),
         alignment: Alignment.bottomLeft,
         child: Text(
-          "Bespoke Creations",
+          _config.heroTitle,
           style: GoogleFonts.playfairDisplay(
             fontSize: isDesktop ? 56 : 36,
             fontWeight: FontWeight.bold,
@@ -219,61 +278,133 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLabel("Product Type"),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppTheme.divider, width: 1.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedType,
-                        isExpanded: true,
-                        style: AppTheme.bodyMedium,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 720;
+            final children = [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildLabel("Product Type"),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppTheme.divider, width: 1.5),
                         borderRadius: BorderRadius.circular(12),
-                        items: _productTypes.map((String type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          );
-                        }).toList(),
-                        onChanged: (val) => setState(() => _selectedType = val!),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedType,
+                          isExpanded: true,
+                          style: AppTheme.bodyMedium,
+                          borderRadius: BorderRadius.circular(12),
+                          items: _productTypes.map((String type) {
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedType = val);
+                            }
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 32),
-            Expanded(
-              flex: 1,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLabel("Quantity"),
-                  const SizedBox(height: 12),
-                  _buildQtyCounter(),
-                ],
+              SizedBox(width: isCompact ? 0 : 32, height: isCompact ? 24 : 0),
+              Expanded(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildLabel("Quantity"),
+                    const SizedBox(height: 12),
+                    _buildQtyCounter(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ];
+
+            return isCompact
+                ? Column(children: children)
+                : Row(children: children);
+          },
         ),
         const SizedBox(height: 40),
-        Row(
-          children: [
-            Expanded(child: _FormTextField(label: "Size / Dimensions", hint: "e.g. 20cm diameter", controller: _sizeController)),
-            const SizedBox(width: 32),
-            Expanded(child: _FormTextField(label: "Glaze Preference", hint: "e.g. Ash glaze, Earth tones", controller: _glazeController)),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 720;
+            final children = [
+              Expanded(
+                child: _FormTextField(
+                  label: "Size / Dimensions",
+                  hint: "e.g. 20cm diameter",
+                  controller: _sizeController,
+                ),
+              ),
+              SizedBox(width: isCompact ? 0 : 32, height: isCompact ? 24 : 0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildLabel("Glaze Preference"),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppTheme.divider, width: 1.5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedGlaze,
+                          isExpanded: true,
+                          style: AppTheme.bodyMedium,
+                          items: _glazeOptions
+                              .map(
+                                (glaze) => DropdownMenuItem(
+                                  value: glaze,
+                                  child: Text(glaze),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _selectedGlaze = value);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ];
+
+            return isCompact
+                ? Column(children: children)
+                : Row(children: children);
+          },
+        ),
+        const SizedBox(height: 40),
+        _buildLabel("Inspiration Image"),
+        const SizedBox(height: 12),
+        ImageUploadWidget(
+          title: 'Reference Image',
+          multiple: false,
+          minHeight: 220,
+          onImagesSelected: (images) {
+            setState(() {
+              _inspirationImageBytes = images.isEmpty ? null : images.first;
+            });
+          },
         ),
         const SizedBox(height: 40),
         _buildLabel("Special Vision"),
@@ -294,12 +425,28 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
         const SizedBox(height: 40),
         _FormTextField(label: "Your Full Name", controller: _nameController),
         const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(child: _FormTextField(label: "Email Address", controller: _emailController)),
-            const SizedBox(width: 32),
-            Expanded(child: _FormTextField(label: "Phone Number", controller: _phoneController)),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 720;
+            final children = [
+              Expanded(
+                child: _FormTextField(
+                  label: "Email Address",
+                  controller: _emailController,
+                ),
+              ),
+              SizedBox(width: isCompact ? 0 : 32, height: isCompact ? 24 : 0),
+              Expanded(
+                child: _FormTextField(
+                  label: "Phone Number",
+                  controller: _phoneController,
+                ),
+              ),
+            ];
+            return isCompact
+                ? Column(children: children)
+                : Row(children: children);
+          },
         ),
         const SizedBox(height: 60),
         SizedBox(
@@ -310,14 +457,19 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.terracotta,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               elevation: 0,
             ),
             child: _isSubmitting
                 ? const SizedBox(
                     height: 24,
                     width: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
                   )
                 : Text(
                     "SUBMIT COMMISSION REQUEST",
@@ -327,25 +479,6 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
                       letterSpacing: 2.5,
                     ),
                   ),
-          ),
-        ),
-        const SizedBox(height: 32),
-        Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.history_toggle_off, size: 16, color: AppTheme.textLight),
-              const SizedBox(width: 12),
-              Text(
-                "Our artisans typically respond within 2-3 working days",
-                style: GoogleFonts.jost(
-                  fontSize: 13,
-                  color: AppTheme.textLight,
-                  fontStyle: FontStyle.italic,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
           ),
         ),
       ],
@@ -377,7 +510,9 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
           IconButton(
             icon: const Icon(Icons.remove, size: 18),
             onPressed: () {
-              if (_quantity > 1) setState(() => _quantity--);
+              if (_quantity > 1) {
+                setState(() => _quantity--);
+              }
             },
           ),
           Text(
@@ -398,10 +533,10 @@ class _FormTextField extends StatelessWidget {
   final String label;
   final String? hint;
   final TextEditingController controller;
-  
+
   const _FormTextField({
-    required this.label, 
-    this.hint, 
+    required this.label,
+    this.hint,
     required this.controller,
   });
 

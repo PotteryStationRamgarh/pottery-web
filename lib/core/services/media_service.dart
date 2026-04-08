@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:minio/minio.dart';
 import '../utils/image_compressor.dart';
@@ -12,14 +11,7 @@ class MediaService {
   static const String _publicUrlBase =
       'https://pub-32b0eccfedfb4b29980313569dfccc15.r2.dev';
 
-  /// Compress → Upload → Return Public URLs
-  /// pathPrefix examples: 'products', 'categories', 'exclusive', 'branding', 'exhibition'
-  Future<List<String>> uploadImages({
-    required String docId,
-    required String pathPrefix,
-    required List<Uint8List> files,
-  }) async {
-    // 🔐 FIX 2: Remote Config only for Secrets
+  Minio _createMinio() {
     final accountId = RemoteConfigService.r2AccountId;
     final accessKey = RemoteConfigService.r2AccessKeyId;
     final secretKey = RemoteConfigService.r2SecretAccessKey;
@@ -30,19 +22,29 @@ class MediaService {
       );
     }
 
-    // 🔴 FIX 3: Validation
-    if (!_publicUrlBase.startsWith('http')) {
-      throw Exception('Invalid R2 public URL configuration');
-    }
-
-    // Initialize Minio for Cloudflare R2
-    final minio = Minio(
+    return Minio(
       endPoint: '$accountId.r2.cloudflarestorage.com',
       accessKey: accessKey,
       secretKey: secretKey,
       useSSL: true,
       region: 'auto',
     );
+  }
+
+  /// Compress → Upload → Return Public URLs
+  /// pathPrefix examples: 'products', 'categories', 'exclusive', 'branding', 'exhibition'
+  Future<List<String>> uploadImages({
+    required String docId,
+    required String pathPrefix,
+    required List<Uint8List> files,
+  }) async {
+    // 🔴 FIX 3: Validation
+    if (!_publicUrlBase.startsWith('http')) {
+      throw Exception('Invalid R2 public URL configuration');
+    }
+
+    // Initialize Minio for Cloudflare R2
+    final minio = _createMinio();
 
     List<String> urls = [];
 
@@ -79,6 +81,34 @@ class MediaService {
     }
 
     return urls;
+  }
+
+  Future<void> deletePublicUrls(List<String> urls) async {
+    final objectPaths = urls
+        .map(_extractObjectPath)
+        .whereType<String>()
+        .toSet()
+        .toList();
+
+    if (objectPaths.isEmpty) return;
+
+    final minio = _createMinio();
+
+    for (final path in objectPaths) {
+      try {
+        await minio.removeObject(_bucket, path);
+      } catch (e) {
+        debugPrint('Failed to delete image from R2: $path, error: $e');
+      }
+    }
+  }
+
+  String? _extractObjectPath(String url) {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty || !trimmed.startsWith(_publicUrlBase)) return null;
+
+    final path = trimmed.substring(_publicUrlBase.length).replaceFirst('/', '');
+    return path.isEmpty ? null : path;
   }
 
   Future<void> _uploadToR2(Minio minio, String path, Uint8List bytes) async {

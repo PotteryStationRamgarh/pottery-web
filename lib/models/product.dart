@@ -9,6 +9,7 @@ class ProductCategory {
   final String name;
   final String description;
   final String imageUrl;
+  final String inPlaceText;
   final int order;
   final int productCount;
   final bool isActive;
@@ -19,6 +20,7 @@ class ProductCategory {
     required this.name,
     this.description = '',
     required this.imageUrl,
+    this.inPlaceText = '',
     required this.order,
     this.productCount = 0,
     required this.isActive,
@@ -33,6 +35,7 @@ class ProductCategory {
       name: map['name'] as String? ?? '',
       description: map['description'] as String? ?? '',
       imageUrl: map['imageUrl'] as String? ?? '',
+      inPlaceText: map['inPlaceText'] as String? ?? '',
       order: map['order'] as int? ?? 0,
       productCount: map['productCount'] as int? ?? 0,
       isActive: map['isActive'] as bool? ?? true,
@@ -45,6 +48,7 @@ class ProductCategory {
       'name': name,
       'description': description,
       'imageUrl': imageUrl,
+      'inPlaceText': inPlaceText,
       'order': order,
       'productCount': productCount,
       'isActive': isActive,
@@ -68,17 +72,17 @@ class Product {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   // New ecommerce fields — all nullable with safe defaults
-  final double mrp;           // original price (0 if not set)
-  final double sellingPrice;  // sale price (0 if not set)
-  final int stockCount;       // 99 if not set (assume in stock)
-  final bool isInStock;       // true if not set
-  final String sku;           // '' if not set
-  final int weight;           // grams, 0 if not set
+  final double mrp; // original price (0 if not set)
+  final double sellingPrice; // sale price (0 if not set)
+  final int stockCount; // 99 if not set (assume in stock)
+  final bool isInStock; // true if not set
+  final String sku; // '' if not set
+  final int weight; // grams, 0 if not set
   final Map<String, dynamic> dimensions; // {height, width, depth}
   final String material;
   final List<String> careInstructions;
   final List<String> tags;
-  final int soldCount;        // 0 if not set — used for popularity ranking
+  final int soldCount; // 0 if not set — used for popularity ranking
 
   const Product({
     required this.id,
@@ -110,7 +114,8 @@ class Product {
       id: doc.id,
       title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
-      imageUrls: (map['imageUrls'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      imageUrls:
+          (map['imageUrls'] as List?)?.map((e) => e.toString()).toList() ?? [],
       categoryId: map['categoryId'] as String? ?? '',
       order: map['order'] as int? ?? 0,
       isActive: map['isActive'] as bool? ?? true,
@@ -122,9 +127,15 @@ class Product {
       isInStock: map['isInStock'] as bool? ?? true,
       sku: map['sku'] as String? ?? '',
       weight: map['weight'] as int? ?? 0,
-      dimensions: map['dimensions'] as Map<String, dynamic>? ?? {'height': 0, 'width': 0, 'depth': 0},
+      dimensions:
+          map['dimensions'] as Map<String, dynamic>? ??
+          {'height': 0, 'width': 0, 'depth': 0},
       material: map['material'] as String? ?? '',
-      careInstructions: (map['careInstructions'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      careInstructions:
+          (map['careInstructions'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
       tags: (map['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
       soldCount: map['soldCount'] as int? ?? 0,
     );
@@ -225,7 +236,8 @@ class ExclusiveProduct {
       id: doc.id,
       title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
-      imageUrls: (map['imageUrls'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      imageUrls:
+          (map['imageUrls'] as List?)?.map((e) => e.toString()).toList() ?? [],
       totalPieces: map['totalPieces'] as int? ?? 1,
       hasCertificate: map['hasCertificate'] as bool? ?? false,
       material: map['material'] as String? ?? '',
@@ -240,8 +252,14 @@ class ExclusiveProduct {
       isInStock: map['isInStock'] as bool? ?? true,
       sku: map['sku'] as String? ?? '',
       weight: map['weight'] as int? ?? 0,
-      dimensions: map['dimensions'] as Map<String, dynamic>? ?? {'height': 0, 'width': 0, 'depth': 0},
-      careInstructions: (map['careInstructions'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      dimensions:
+          map['dimensions'] as Map<String, dynamic>? ??
+          {'height': 0, 'width': 0, 'depth': 0},
+      careInstructions:
+          (map['careInstructions'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
       tags: (map['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
       soldCount: map['soldCount'] as int? ?? 0,
       seriesName: map['seriesName'] as String? ?? '',

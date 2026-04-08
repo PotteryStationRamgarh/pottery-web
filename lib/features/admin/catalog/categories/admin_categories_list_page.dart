@@ -31,6 +31,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
   ProductCategory? _editingCategory;
   late TextEditingController _nameCtrl;
   late TextEditingController _descCtrl;
+  late TextEditingController _inPlaceTextCtrl;
   late TextEditingController _orderCtrl;
   late TextEditingController _searchCtrl;
   bool _isActive = true;
@@ -42,6 +43,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
     super.initState();
     _nameCtrl = TextEditingController();
     _descCtrl = TextEditingController();
+    _inPlaceTextCtrl = TextEditingController();
     _orderCtrl = TextEditingController();
     _searchCtrl = TextEditingController();
     _loadCategories();
@@ -51,6 +53,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
   void dispose() {
     _nameCtrl.dispose();
     _descCtrl.dispose();
+    _inPlaceTextCtrl.dispose();
     _orderCtrl.dispose();
     _searchCtrl.dispose();
     super.dispose();
@@ -107,7 +110,9 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
     if (confirmed == true) {
       try {
         await CategoryRepository.deleteCategory(category.id);
-        if (mounted) context.read<AppRefreshProvider>().invalidateAll();
+        if (mounted) {
+          context.read<AppRefreshProvider>().invalidateAll();
+        }
         _showSnackbar('Category deleted');
         _loadCategories();
       } catch (e) {
@@ -123,12 +128,14 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
     if (category != null) {
       _nameCtrl.text = category.name;
       _descCtrl.text = category.description;
+      _inPlaceTextCtrl.text = category.inPlaceText;
       _orderCtrl.text = category.order.toString();
       _isActive = category.isActive;
       _currentImageUrl = category.imageUrl;
     } else {
       _nameCtrl.clear();
       _descCtrl.clear();
+      _inPlaceTextCtrl.clear();
       _orderCtrl.clear();
       _isActive = true;
       _currentImageUrl = null;
@@ -154,11 +161,13 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
     try {
       if (_editingCategory == null) {
         // Add
-        if (_newImageBytes == null)
+        if (_newImageBytes == null) {
           throw 'Image is required for new categories';
+        }
         await CategoryRepository.addCategory(
           name: _nameCtrl.text.trim(),
           description: _descCtrl.text.trim(),
+          inPlaceText: _inPlaceTextCtrl.text.trim(),
           imageBytes: _newImageBytes!,
           order: int.tryParse(_orderCtrl.text) ?? 0,
           isActive: _isActive,
@@ -170,6 +179,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
             id: _editingCategory!.id,
             name: _nameCtrl.text.trim(),
             description: _descCtrl.text.trim(),
+            inPlaceText: _inPlaceTextCtrl.text.trim(),
             imageBytes: _newImageBytes!,
             order: int.tryParse(_orderCtrl.text) ?? 0,
             isActive: _isActive,
@@ -179,6 +189,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
             id: _editingCategory!.id,
             name: _nameCtrl.text.trim(),
             description: _descCtrl.text.trim(),
+            inPlaceText: _inPlaceTextCtrl.text.trim(),
             order: int.tryParse(_orderCtrl.text) ?? 0,
             isActive: _isActive,
           );
@@ -186,7 +197,9 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
       }
 
       _showSnackbar('Category saved successfully!');
-      if (mounted) context.read<AppRefreshProvider>().invalidateAll();
+      if (mounted) {
+        context.read<AppRefreshProvider>().invalidateAll();
+      }
       _showList();
     } catch (e) {
       _showSnackbar('Failed to save category: $e', isError: true);
@@ -350,7 +363,7 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
                         (category.isActive
                                 ? AppTheme.successGreen
                                 : Colors.grey)
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -382,10 +395,11 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
                 ] else ...[
                   PopupMenuButton<String>(
                     onSelected: (val) {
-                      if (val == 'edit')
+                      if (val == 'edit') {
                         _showForm(category);
-                      else if (val == 'delete')
+                      } else if (val == 'delete') {
                         _deleteCategory(category);
+                      }
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'edit', child: Text('Edit')),
@@ -514,6 +528,14 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
                   label: 'Description',
                   hint: 'Brief summary of this category',
                   controller: _descCtrl,
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                AdminFormField(
+                  label: 'In Place Text',
+                  hint:
+                      'Short lifestyle copy for product detail pages in this category',
+                  controller: _inPlaceTextCtrl,
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),

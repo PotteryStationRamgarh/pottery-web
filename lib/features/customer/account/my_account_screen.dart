@@ -7,6 +7,7 @@ import '../../../app/routes.dart';
 import '../../../core/repositories/order_repository.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../models/order_model.dart';
+import '../home/home_footer.dart';
 import '../home/widgets/nav_bar.dart';
 
 class MyAccountScreen extends StatefulWidget {
@@ -105,7 +106,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 80),
+                const HomeFooter(),
               ],
             ),
           ),
@@ -289,25 +290,11 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
             children: [
               _profileField("Email Address", _user?.email ?? "Not available"),
               const SizedBox(height: 32),
-              _profileField("Account Type", "Customer"),
-              const SizedBox(height: 48),
-              SizedBox(
-                width: 200,
-                height: 50,
-                child: OutlinedButton(
-                  onPressed: () {
-                    // TODO: Change password
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.terracotta,
-                    side: const BorderSide(color: AppTheme.terracotta),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: Text(
-                    "CHANGE PASSWORD",
-                    style: GoogleFonts.jost(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
-                  ),
-                ),
+              _profileField("Phone Verification", "Not enabled yet"),
+              const SizedBox(height: 32),
+              _profileField(
+                "Saved Addresses",
+                "Manage Home, Office, Work, and Studio addresses from Addresses.",
               ),
             ],
           ),
@@ -353,7 +340,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
         else if (_orders.isEmpty)
           _buildEmptyHistory()
         else
-          ..._orders.map((order) => _buildOrderCard(order)).toList(),
+          ..._orders.map((order) => _buildOrderCard(order)),
       ],
     );
   }
@@ -374,7 +361,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
             width: 200,
             height: 50,
             child: ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, Routes.products),
+              onPressed: () => Navigator.pushNamed(context, Routes.categories),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.terracotta,
                 foregroundColor: Colors.white,
@@ -389,7 +376,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
   }
 
   Widget _buildOrderCard(OrderModel order) {
-    final dateStr = order.createdAt != null ? DateFormat('MMM dd, yyyy').format(order.createdAt!) : 'Recent';
+    final dateStr = DateFormat('MMM dd, yyyy').format(order.createdAt);
     
     return Container(
       margin: const EdgeInsets.only(bottom: 32),

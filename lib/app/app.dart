@@ -9,7 +9,6 @@ import '../features/auth/verify_email/verify_email_screen.dart';
 import '../features/auth/forgot_password/forgot_password_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
 import '../features/customer/home/customer_home_screen.dart';
-import '../features/customer/gallery/gallery_screen.dart';
 import '../features/customer/products/customer_products_screen.dart';
 import '../models/product.dart';
 import '../features/admin/profile/admin_profile_page.dart';
@@ -19,6 +18,7 @@ import '../features/customer/exclusive/exclusive_list_screen.dart';
 import '../features/customer/categories/customer_categories_grid_page.dart';
 import '../features/customer/products/product_detail_screen.dart';
 import '../features/customer/cart/cart_screen.dart';
+import '../features/customer/account/wishlist_screen.dart';
 import '../features/customer/account/my_account_screen.dart';
 import '../features/customer/account/saved_addresses_screen.dart';
 import '../features/customer/orders/custom_order_screen.dart';
@@ -104,6 +104,7 @@ class MyApp extends StatelessWidget {
           return const ProductDetailScreen();
         },
         Routes.cart: (context) => const CartScreen(),
+        Routes.wishlist: (context) => const WishlistScreen(),
         Routes.myAccount: (context) => const MyAccountScreen(),
         Routes.savedAddresses: (context) => const SavedAddressesScreen(),
         Routes.customOrder: (context) => const CustomOrderScreen(),

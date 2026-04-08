@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../../app/routes.dart';
+import '../../../core/providers/wishlist_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/product.dart';
-import '../products/product_detail_screen.dart';
 import 'image_placeholder.dart';
 
 /// ProductCard — updated for ecommerce.
@@ -10,10 +12,7 @@ import 'image_placeholder.dart';
 class ProductCard extends StatefulWidget {
   final Product product;
 
-  const ProductCard({
-    super.key,
-    required this.product,
-  });
+  const ProductCard({super.key, required this.product});
 
   @override
   State<ProductCard> createState() => _ProductCardState();
@@ -23,11 +22,10 @@ class _ProductCardState extends State<ProductCard> {
   bool _isHovered = false;
 
   void _navigateToDetail() {
-    Navigator.push(
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailScreen(product: widget.product),
-      ),
+      Routes.productDetail,
+      arguments: widget.product.id,
     );
   }
 
@@ -35,6 +33,9 @@ class _ProductCardState extends State<ProductCard> {
   Widget build(BuildContext context) {
     final hasDiscount = widget.product.mrp > widget.product.sellingPrice;
     final isSoldOut = widget.product.stockCount <= 0;
+    final isWishlisted = context.watch<WishlistProvider>().isWishlisted(
+      widget.product.id,
+    );
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -46,7 +47,7 @@ class _ProductCardState extends State<ProductCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image Section
-            _buildImage(isSoldOut),
+            _buildImage(isSoldOut, isWishlisted),
 
             const SizedBox(height: 12),
 
@@ -66,7 +67,9 @@ class _ProductCardState extends State<ProductCard> {
 
             // Product name
             Text(
-              widget.product.title.isNotEmpty ? widget.product.title : 'Artisanal Piece',
+              widget.product.title.isNotEmpty
+                  ? widget.product.title
+                  : 'Artisanal Piece',
               style: GoogleFonts.jost(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -109,12 +112,12 @@ class _ProductCardState extends State<ProductCard> {
     );
   }
 
-  Widget _buildImage(bool isSoldOut) {
+  Widget _buildImage(bool isSoldOut, bool isWishlisted) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppTheme.divider.withOpacity(0.3),
+        color: AppTheme.divider.withValues(alpha: 0.3),
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(20),
           bottomRight: const Radius.circular(20),
@@ -141,10 +144,13 @@ class _ProductCardState extends State<ProductCard> {
           if (isSoldOut)
             Positioned.fill(
               child: Container(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(4),
@@ -162,6 +168,30 @@ class _ProductCardState extends State<ProductCard> {
                 ),
               ),
             ),
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Material(
+              color: Colors.white.withValues(alpha: 0.9),
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () {
+                  context.read<WishlistProvider>().toggle(widget.product.id);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Icon(
+                    isWishlisted ? Icons.favorite : Icons.favorite_border,
+                    size: 18,
+                    color: isWishlisted
+                        ? AppTheme.terracotta
+                        : AppTheme.textDark,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

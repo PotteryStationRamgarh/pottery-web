@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/cart_provider.dart';
 import '../../../app/routes.dart';
+import '../home/home_footer.dart';
 import '../home/widgets/nav_bar.dart';
 
 class CartScreen extends StatefulWidget {
@@ -14,8 +15,8 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  String _pincode = "";
-  String _pincodeStatus = ""; // "Checking...", "Delivery available ✓", "Not serviceable ✗"
+  String _pincodeStatus =
+      ""; // "Checking...", "Delivery available ✓", "Not serviceable ✗"
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +43,10 @@ class _CartScreenState extends State<CartScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Your Collection", style: AppTheme.serifHeadingLarge),
+                      Text(
+                        "Your Collection",
+                        style: AppTheme.serifHeadingLarge,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         "${cart.itemCount} items in your curation",
@@ -74,7 +78,7 @@ class _CartScreenState extends State<CartScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 80),
+                const HomeFooter(),
               ],
             ),
           ),
@@ -90,7 +94,11 @@ class _CartScreenState extends State<CartScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 60),
-          Icon(Icons.shopping_basket_outlined, size: 80, color: AppTheme.divider),
+          Icon(
+            Icons.shopping_basket_outlined,
+            size: 80,
+            color: AppTheme.divider,
+          ),
           const SizedBox(height: 24),
           Text(
             "Your basket is empty",
@@ -110,12 +118,15 @@ class _CartScreenState extends State<CartScreen> {
             width: 240,
             height: 50,
             child: ElevatedButton(
-              onPressed: () => Navigator.pushReplacementNamed(context, Routes.customerHome),
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, Routes.customerHome),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.terracotta,
                 foregroundColor: Colors.white,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: Text(
                 "CONTINUE SHOPPING",
@@ -132,109 +143,121 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCartItems(List<CartItem> items) {
-    return Column(
-      children: [
-        ...items.map((item) => _buildCartItem(item)).toList(),
-        const SizedBox(height: 32),
-        _buildGiftingCard(),
-      ],
-    );
+    return Column(children: [...items.map((item) => _buildCartItem(item))]);
   }
 
   Widget _buildCartItem(CartItem item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+    return InkWell(
+      onTap: () => Navigator.pushNamed(
+        context,
+        item.isExclusive ? Routes.exclusiveDetail : Routes.productDetail,
+        arguments: item.id,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              item.imageUrl,
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 100,
-                height: 100,
-                color: AppTheme.divider.withOpacity(0.3),
-                child: const Icon(Icons.broken_image_outlined, color: AppTheme.textLight),
-              ),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
-          ),
-          const SizedBox(width: 24),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textDark,
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                item.imageUrl,
+                width: 78,
+                height: 78,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 78,
+                  height: 78,
+                  color: AppTheme.divider.withValues(alpha: 0.3),
+                  child: const Icon(
+                    Icons.broken_image_outlined,
+                    color: AppTheme.textLight,
                   ),
                 ),
-                if (item.isExclusive) ...[
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppTheme.terracotta.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textDark,
                     ),
-                    child: Text(
-                      "EXCLUSIVE PIECE",
-                      style: GoogleFonts.jost(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.terracotta,
-                        letterSpacing: 1,
+                  ),
+                  if (item.isExclusive) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
                       ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.terracotta.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        "EXCLUSIVE PIECE",
+                        style: GoogleFonts.jost(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.terracotta,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Text(
+                    "₹${item.price.toInt()}",
+                    style: GoogleFonts.jost(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textDark,
                     ),
                   ),
                 ],
-                const SizedBox(height: 16),
-                Text(
-                  "₹${item.price.toInt()}",
-                  style: GoogleFonts.jost(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textDark,
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    size: 20,
+                    color: AppTheme.textLight,
                   ),
+                  onPressed: () {
+                    context.read<CartProvider>().removeItem(item.id);
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
+                const SizedBox(height: 40),
+                _buildQtyStepper(item),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20, color: AppTheme.textLight),
-                onPressed: () {
-                  context.read<CartProvider>().removeItem(item.id);
-                },
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-              const SizedBox(height: 40),
-              _buildQtyStepper(item),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -279,60 +302,9 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildGiftingCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.exhibitionBackground.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.divider.withOpacity(0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.card_giftcard, size: 20, color: AppTheme.terracotta),
-              const SizedBox(width: 12),
-              Text(
-                "Curated Gifting",
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            maxLines: 2,
-            decoration: AppTheme.inputDecoration(
-              label: "Gift Note (Optional)",
-              hint: "Write a message for your loved ones...",
-            ),
-            style: AppTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Icon(Icons.info_outline, size: 14, color: AppTheme.textLight),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  "All orders include a hand-stamped linen dust bag and an artist's note.",
-                  style: GoogleFonts.jost(fontSize: 12, color: AppTheme.textLight),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCheckoutPanel(CartProvider cart) {
     double subtotal = cart.totalAmount;
-    double delivery = subtotal > 0 ? 250 : 0;
+    double delivery = 0;
     double total = subtotal + delivery;
 
     return Container(
@@ -342,7 +314,7 @@ class _CartScreenState extends State<CartScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -358,7 +330,10 @@ class _CartScreenState extends State<CartScreen> {
           const Divider(),
           const SizedBox(height: 32),
           _buildSummaryRow("Subtotal", "₹${subtotal.toInt()}"),
-          _buildSummaryRow("Delivery Charges", "₹${delivery.toInt()}"),
+          _buildSummaryRow(
+            "Delivery Charges",
+            delivery == 0 ? "FREE" : "₹${delivery.toInt()}",
+          ),
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 16),
@@ -370,11 +345,19 @@ class _CartScreenState extends State<CartScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.verified_user_outlined, size: 14, color: AppTheme.textLight),
+                const Icon(
+                  Icons.verified_user_outlined,
+                  size: 14,
+                  color: AppTheme.textLight,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   "Secured by Pottery Station",
-                  style: GoogleFonts.jost(fontSize: 11, color: AppTheme.textLight, letterSpacing: 0.5),
+                  style: GoogleFonts.jost(
+                    fontSize: 11,
+                    color: AppTheme.textLight,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ],
             ),
@@ -400,6 +383,11 @@ class _CartScreenState extends State<CartScreen> {
                 letterSpacing: 1,
               ),
             ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.pushNamed(context, Routes.savedAddresses),
+              child: const Text('Manage Saved Addresses'),
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -416,43 +404,92 @@ class _CartScreenState extends State<CartScreen> {
           style: AppTheme.bodyMedium,
         ),
         const SizedBox(height: 16),
+        TextField(
+          decoration: AppTheme.inputDecoration(label: "Pincode").copyWith(
+            prefixIcon: _pincodeStatus.isEmpty
+                ? null
+                : Padding(
+                    padding: const EdgeInsets.only(left: 14, right: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _pincodeStatus.contains("available")
+                              ? Icons.local_shipping_outlined
+                              : Icons.hourglass_top_rounded,
+                          size: 16,
+                          color: _pincodeStatus.contains("available")
+                              ? AppTheme.successGreen
+                              : AppTheme.terracotta,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _pincodeStatus,
+                          style: GoogleFonts.jost(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: _pincodeStatus.contains("available")
+                                ? AppTheme.successGreen
+                                : AppTheme.terracotta,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
+          ),
+          onChanged: (val) {
+            setState(() {
+              if (val.length == 6) {
+                _pincodeStatus = "Checking";
+                Future.delayed(const Duration(seconds: 1), () {
+                  if (mounted) {
+                    setState(() => _pincodeStatus = "Delivery available");
+                  }
+                });
+              } else {
+                _pincodeStatus = "";
+              }
+            });
+          },
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          decoration: AppTheme.inputDecoration(
+            label: "House / Flat / Building",
+          ),
+          style: AppTheme.bodyMedium,
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          decoration: AppTheme.inputDecoration(label: "Street / Area / Colony"),
+          style: AppTheme.bodyMedium,
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          decoration: AppTheme.inputDecoration(label: "Landmark"),
+          style: AppTheme.bodyMedium,
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: TextField(
-                decoration: AppTheme.inputDecoration(label: "Pincode"),
-                onChanged: (val) {
-                  setState(() {
-                    _pincode = val;
-                    if (val.length == 6) {
-                      _pincodeStatus = "Checking delivery...";
-                      Future.delayed(const Duration(seconds: 1), () {
-                        setState(() => _pincodeStatus = "Delivery available ✓");
-                      });
-                    } else {
-                      _pincodeStatus = "";
-                    }
-                  });
-                },
+                decoration: AppTheme.inputDecoration(label: "City"),
+                style: AppTheme.bodyMedium,
               ),
             ),
-            if (_pincodeStatus.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(left: 12),
-                child: Text(
-                  _pincodeStatus,
-                  style: GoogleFonts.jost(
-                    fontSize: 11,
-                    color: _pincodeStatus.contains("available") ? Colors.green : Colors.orange,
-                  ),
-                ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextField(
+                decoration: AppTheme.inputDecoration(label: "State"),
+                style: AppTheme.bodyMedium,
               ),
+            ),
           ],
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: AppTheme.inputDecoration(label: "Street Address"),
-          style: AppTheme.bodyMedium,
         ),
       ],
     );
@@ -467,14 +504,25 @@ class _CartScreenState extends State<CartScreen> {
           Text(
             label,
             style: isTotal
-                ? GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w600)
+                ? GoogleFonts.playfairDisplay(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  )
                 : GoogleFonts.jost(color: AppTheme.textLight),
           ),
           Text(
             value,
             style: isTotal
-                ? GoogleFonts.jost(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.terracotta)
-                : GoogleFonts.jost(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                ? GoogleFonts.jost(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.terracotta,
+                  )
+                : GoogleFonts.jost(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textDark,
+                  ),
           ),
         ],
       ),
@@ -496,7 +544,9 @@ class _CartScreenState extends State<CartScreen> {
           backgroundColor: AppTheme.terracotta,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         child: Text(
           "COMPLETE PURCHASE",

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/repositories/home_repository.dart';
+import '../../../core/utils/storefront_filters.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../models/product.dart';
 import '../widgets/exclusive_card.dart';
@@ -30,7 +31,7 @@ class _ExclusiveListScreenState extends State<ExclusiveListScreen> {
     final products = await HomeRepository.getExclusiveProducts();
     if (mounted) {
       setState(() {
-        _products = products;
+        _products = products.where(StorefrontFilters.showExclusiveProduct).toList();
         _isLoading = false;
       });
     }

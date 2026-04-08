@@ -1,8 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../app/routes.dart';
+import '../../../../core/providers/cart_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/config_provider.dart';
 import '../../../../core/widgets/app_logo.dart';
@@ -11,13 +11,12 @@ import '../../../../features/auth/auth_service.dart';
 /// NavBar — fixed glass effect navigation bar at the top of the home screen.
 ///
 /// Desktop layout:
-/// Logo | COLLECTIONS | ABOUT | CONTACT | profile icon | [GO TO STORE]
+/// Logo | COLLECTIONS | ABOUT | CONTACT | account/cart actions
 ///
 /// Mobile layout:
 /// Logo | hamburger icon → opens NavDrawer from the right
 ///
 /// "Collections" is always the active item since this is the home screen.
-/// "Go to Store" shows a coming soon snackbar — feature planned for V2.
 /// Profile icon opens a dropdown with user email + sign out option.
 class NavBar extends StatelessWidget implements PreferredSizeWidget {
   const NavBar({super.key});
@@ -30,6 +29,7 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 1000;
     final config = context.watch<ConfigProvider>();
+    final currentRoute = ModalRoute.of(context)?.settings.name;
 
     return Container(
       height: 72,
@@ -44,8 +44,8 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       child: isMobile
-          ? _MobileNav(config: config)
-          : _DesktopNav(config: config),
+          ? _MobileNav(config: config, currentRoute: currentRoute)
+          : _DesktopNav(config: config, currentRoute: currentRoute),
     );
   }
 }
@@ -56,11 +56,13 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
 
 class _DesktopNav extends StatelessWidget {
   final ConfigProvider config;
-  const _DesktopNav({required this.config});
+  final String? currentRoute;
+  const _DesktopNav({required this.config, this.currentRoute});
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final canGoBack = Navigator.canPop(context) && currentRoute != Routes.customerHome;
 
     // Dynamic spacing and padding based on available width
     // Helps prevent "Overflow" errors on smaller desktop screens
@@ -72,10 +74,21 @@ class _DesktopNav extends StatelessWidget {
       child: Row(
         children: [
           // Brand logo — text fallback if no logoUrl in Firestore
-          AppLogo(
-            logoUrl: config.branding.logoUrl,
-            appName: config.branding.appName,
-            size: 28,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (canGoBack)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, size: 20),
+                  color: AppTheme.textLight,
+                  onPressed: () => Navigator.maybePop(context),
+                ),
+              AppLogo(
+                logoUrl: config.branding.logoUrl,
+                appName: config.branding.appName,
+                size: 28,
+              ),
+            ],
           ),
 
           SizedBox(width: width < 1200 ? 20 : 32),
@@ -89,7 +102,11 @@ class _DesktopNav extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _NavItem(label: 'Collections', isActive: true, onTap: () {}),
+                    _NavItem(
+                      label: 'Collections',
+                      isActive: currentRoute == Routes.customerHome,
+                      onTap: () => _openRoute(context, Routes.customerHome),
+                    ),
                     SizedBox(width: itemSpacing),
 
                     // Workshop — Coming Soon snackbar
@@ -125,13 +142,16 @@ class _DesktopNav extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.search, size: 20),
                       color: AppTheme.textLight,
-                      onPressed: () {
-                        // TODO: Implement search
-                      },
+                      onPressed: () => _openRoute(context, Routes.categories),
                     ),
 
-                    // Cart icon with badge
-                    _CartButton(itemCount: 3),
+                    IconButton(
+                      icon: const Icon(Icons.favorite_border, size: 20),
+                      color: AppTheme.textLight,
+                      onPressed: () => _openRoute(context, Routes.wishlist),
+                    ),
+
+                    const _CartButton(),
 
                     // Profile icon — now routes to MyAccount
                     IconButton(
@@ -141,12 +161,6 @@ class _DesktopNav extends StatelessWidget {
                     ),
 
                     SizedBox(width: width < 1200 ? 12 : 20),
-
-                    // Go to Store — scale down slightly on tighter desktop widths
-                    const FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: _StoreButton(),
-                    ),
                   ],
                 ),
               ),
@@ -164,7 +178,8 @@ class _DesktopNav extends StatelessWidget {
 
 class _MobileNav extends StatelessWidget {
   final ConfigProvider config;
-  const _MobileNav({required this.config});
+  final String? currentRoute;
+  const _MobileNav({required this.config, this.currentRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -172,6 +187,12 @@ class _MobileNav extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
+          if (currentRoute != Routes.customerHome && Navigator.canPop(context))
+            IconButton(
+              icon: const Icon(Icons.arrow_back, size: 20),
+              color: AppTheme.textDark,
+              onPressed: () => Navigator.maybePop(context),
+            ),
           // Brand logo
           AppLogo(
             logoUrl: config.branding.logoUrl,
@@ -185,11 +206,17 @@ class _MobileNav extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             color: AppTheme.textDark,
-            onPressed: () {},
+            onPressed: () => _openRoute(context, Routes.categories),
           ),
 
           // Cart icon
-          _CartButton(itemCount: 3, isMobile: true),
+          const _CartButton(isMobile: true),
+
+          IconButton(
+            icon: const Icon(Icons.favorite_border, size: 20),
+            color: AppTheme.textDark,
+            onPressed: () => _openRoute(context, Routes.wishlist),
+          ),
 
           // Hamburger — opens the end drawer
           IconButton(
@@ -208,43 +235,17 @@ class _MobileNav extends StatelessWidget {
 // ─────────────────────────────────────────
 
 class _CartButton extends StatelessWidget {
-  final int itemCount;
   final bool isMobile;
-  const _CartButton({required this.itemCount, this.isMobile = false});
+  const _CartButton({this.isMobile = false});
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        IconButton(
-          icon: Icon(Icons.shopping_bag_outlined, size: isMobile ? 22 : 20),
-          color: isMobile ? AppTheme.textDark : AppTheme.textLight,
-          onPressed: () => Navigator.pushNamed(context, Routes.cart),
-        ),
-        if (itemCount > 0)
-          Positioned(
-            right: 8,
-            top: 8,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: AppTheme.terracotta,
-                shape: BoxShape.circle,
-              ),
-              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-              child: Text(
-                '$itemCount',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 8,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-      ],
+    context.watch<CartProvider>();
+
+    return IconButton(
+      icon: Icon(Icons.shopping_bag_outlined, size: isMobile ? 22 : 20),
+      color: isMobile ? AppTheme.textDark : AppTheme.textLight,
+      onPressed: () => _openRoute(context, Routes.cart),
     );
   }
 }
@@ -280,8 +281,11 @@ class NavDrawer extends StatelessWidget {
 
               _DrawerItem(
                 label: 'Collections',
-                isActive: true,
-                onTap: () => Navigator.pop(context),
+                isActive: ModalRoute.of(context)?.settings.name == Routes.customerHome,
+                onTap: () {
+                  Navigator.pop(context);
+                  _openRoute(context, Routes.customerHome);
+                },
               ),
               _DrawerItem(
                 label: 'Workshop',
@@ -312,22 +316,21 @@ class NavDrawer extends StatelessWidget {
                 },
               ),
               _DrawerItem(
+                label: 'Wishlist',
+                onTap: () {
+                  Navigator.pop(context);
+                  _openRoute(context, Routes.wishlist);
+                },
+              ),
+              _DrawerItem(
                 label: 'My Account',
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, Routes.myAccount);
+                  _openRoute(context, Routes.myAccount);
                 },
               ),
 
               const Spacer(),
-
-              // Go to Store button — full width in drawer
-              SizedBox(
-                width: double.infinity,
-                child: _StoreButton(fullWidth: true),
-              ),
-
-              const SizedBox(height: 16),
 
               // Sign out at bottom of drawer
               _DrawerItem(
@@ -453,126 +456,6 @@ class _DrawerItem extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────
-// PROFILE BUTTON
-// Dropdown with user email + sign out
-// ─────────────────────────────────────────
-
-class _ProfileButton extends StatelessWidget {
-  const _ProfileButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      offset: const Offset(0, 44),
-      color: AppTheme.background,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppTheme.divider, width: 1),
-      ),
-      itemBuilder: (_) => [
-        // User email — not clickable, just for info
-        PopupMenuItem(
-          enabled: false,
-          child: Text(
-            FirebaseAuth.instance.currentUser?.email ?? '',
-            style: GoogleFonts.jost(fontSize: 12, color: AppTheme.textLight),
-          ),
-        ),
-
-        const PopupMenuDivider(),
-
-        // Sign out option
-        PopupMenuItem(
-          value: 'logout',
-          child: Row(
-            children: [
-              Icon(Icons.logout, size: 15, color: AppTheme.textLight),
-              const SizedBox(width: 8),
-              Text(
-                'Sign Out',
-                style: GoogleFonts.jost(fontSize: 13, color: AppTheme.textDark),
-              ),
-            ],
-          ),
-        ),
-      ],
-      onSelected: (value) async {
-        if (value == 'logout') {
-          await AuthService().logout();
-          if (context.mounted) {
-            Navigator.pushReplacementNamed(context, Routes.signin);
-          }
-        }
-      },
-      // Circle icon button that triggers the dropdown
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: AppTheme.divider, width: 1),
-        ),
-        child: Icon(Icons.person_outline, size: 18, color: AppTheme.textLight),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────
-// STORE BUTTON
-// Shows coming soon snackbar — real store is V2
-// ─────────────────────────────────────────
-
-class _StoreButton extends StatelessWidget {
-  final bool fullWidth;
-  const _StoreButton({this.fullWidth = false});
-
-  @override
-  Widget build(BuildContext context) {
-    final horizontalPadding =
-        !fullWidth && MediaQuery.of(context).size.width < 1200 ? 12.0 : 20.0;
-
-    return SizedBox(
-      width: fullWidth ? double.infinity : null,
-      child: TextButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Online store coming soon!',
-                style: GoogleFonts.jost(fontSize: 13, color: Colors.white),
-              ),
-              backgroundColor: AppTheme.primaryBrown,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        },
-        style: TextButton.styleFrom(
-          backgroundColor: AppTheme.primaryBrown,
-          padding: EdgeInsets.symmetric(
-            horizontal: horizontalPadding,
-            vertical: 12,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        child: Text(
-          'GO TO STORE',
-          style: GoogleFonts.jost(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            letterSpacing: 1.8,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────
 // DIALOGS — About and Contact
 // ─────────────────────────────────────────
 
@@ -612,6 +495,15 @@ void _showComingSoon(BuildContext context) {
       duration: const Duration(seconds: 2),
     ),
   );
+}
+
+void _openRoute(BuildContext context, String routeName, {Object? arguments}) {
+  final currentRoute = ModalRoute.of(context)?.settings.name;
+  if (currentRoute == routeName) {
+    return;
+  }
+
+  Navigator.pushNamed(context, routeName, arguments: arguments);
 }
 
 void _showInfoDialog(

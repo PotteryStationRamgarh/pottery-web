@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/providers/config_provider.dart';
+import '../../../../core/repositories/custom_order_repository.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/remote_config_service.dart';
+import '../../../../models/custom_order_model.dart';
 import '../dashboard_provider.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/stat_card.dart';
@@ -95,6 +97,42 @@ class _DashboardViewState extends State<_DashboardView> {
             const SizedBox(height: 24),
             _StatsRow(dashboard: dashboard),
             const SizedBox(height: 32),
+            FutureBuilder<List<CustomOrderModel>>(
+              future: CustomOrderRepository.getCustomOrders(),
+              builder: (context, snapshot) {
+                final pendingCount = snapshot.data
+                        ?.where((order) => order.status == 'pending')
+                        .length ??
+                    0;
+                if (pendingCount == 0) return const SizedBox.shrink();
+                return Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.terracotta),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.notifications_active_outlined, color: AppTheme.terracotta),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '$pendingCount custom product request(s) need review.',
+                          style: AppTheme.bodyMedium,
+                        ),
+                      ),
+                      FilledButton(
+                        onPressed: () => _nav(6),
+                        child: const Text('Open Requests'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
 
             // 2. Main content row (Quick Actions + System Overview)
             if (isPageNarrow)
@@ -441,6 +479,7 @@ class _QuickActionsGrid extends StatelessWidget {
     _ActionItem('Add Product', Icons.inventory_2_outlined, 4),
     _ActionItem('Add Category', Icons.category_outlined, 3),
     _ActionItem('Add Exclusive', Icons.star_border_outlined, 5),
+    _ActionItem('Custom Requests', Icons.design_services_outlined, 6),
     _ActionItem('Add Exhibition', Icons.event_outlined, 2),
     _ActionItem('Edit Branding', Icons.brush_outlined, 1),
   ];

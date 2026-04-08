@@ -30,7 +30,22 @@ class AddressRepository {
           ? _db.collection('addresses').doc()
           : _db.collection('addresses').doc(address.id);
 
-      await docRef.set(address.toMap(), SetOptions(merge: true));
+      if (address.isDefault) {
+        final batch = _db.batch();
+        final snap = await _db
+            .collection('addresses')
+            .where('userId', isEqualTo: address.userId)
+            .get();
+
+        for (final doc in snap.docs) {
+          batch.update(doc.reference, {'isDefault': false});
+        }
+
+        batch.set(docRef, address.toMap(), SetOptions(merge: true));
+        await batch.commit();
+      } else {
+        await docRef.set(address.toMap(), SetOptions(merge: true));
+      }
     } catch (e) {
       debugPrint('AddressRepository.saveAddress error: $e');
       rethrow;

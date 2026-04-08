@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import '../../../core/providers/app_refresh_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/admin/catalog/repositories/product_repository.dart';
+import '../../../core/utils/storefront_filters.dart';
 import '../../../models/product.dart';
 import '../../../core/utils/responsive_utils.dart';
+import '../home/home_footer.dart';
 import '../widgets/product_card.dart';
 
 /// CustomerProductsScreen — shows products filtered by category.
@@ -60,7 +62,7 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
       );
       if (mounted) {
         setState(() {
-          final activeProds = prods.where((p) => p.isActive).toList();
+          final activeProds = prods.where(StorefrontFilters.showProduct).toList();
           activeProds.shuffle(); // Randomize for customer
           _products = activeProds;
           _isLoading = false;
@@ -154,6 +156,8 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
                       );
                     },
                   ),
+                  const SizedBox(height: 64),
+                  const HomeFooter(),
                 ],
               ),
             ),

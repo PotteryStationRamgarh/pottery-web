@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:math';
 import '../../models/product.dart';
 import '../../models/exhibition.dart';
+import '../utils/storefront_filters.dart';
 import 'exhibition_repository.dart';
 
 /// Single source of truth for all data loaded by the customer home screen.
@@ -24,7 +25,10 @@ class HomeRepository {
               source: forceRefresh ? Source.server : Source.serverAndCache,
             ),
           );
-      return snap.docs.map(Product.fromDoc).toList();
+      return snap.docs
+          .map(Product.fromDoc)
+          .where(StorefrontFilters.showProduct)
+          .toList();
     } catch (e) {
       debugPrint('HomeRepository.getProducts error: $e');
       return [];
@@ -43,7 +47,10 @@ class HomeRepository {
               source: forceRefresh ? Source.server : Source.serverAndCache,
             ),
           );
-      return snap.docs.map(ExclusiveProduct.fromDoc).toList();
+      return snap.docs
+          .map(ExclusiveProduct.fromDoc)
+          .where(StorefrontFilters.showExclusiveProduct)
+          .toList();
     } catch (e) {
       debugPrint('HomeRepository.getExclusiveProducts error: $e');
       return [];

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/firestore_service.dart';
@@ -87,7 +86,9 @@ class ExclusiveProductRepository {
       }
 
       // 2. Handle SKU and auto-generated fields
-      final finalSku = sku.isEmpty ? 'E-PSR-${DateTime.now().millisecondsSinceEpoch}' : sku;
+      final finalSku = sku.isEmpty
+          ? 'E-PSR-${DateTime.now().millisecondsSinceEpoch}'
+          : sku;
 
       // 3. Create document with initial data
       final product = ExclusiveProduct(
@@ -238,6 +239,11 @@ class ExclusiveProductRepository {
       }
 
       // 1. Upload new images
+      final existing = await getExclusiveProduct(id);
+      if (existing != null && existing.imageUrls.isNotEmpty) {
+        await _media.deletePublicUrls(existing.imageUrls);
+      }
+
       final urls = await _media.uploadImages(
         docId: id,
         pathPrefix: 'exclusive_products',
@@ -288,6 +294,11 @@ class ExclusiveProductRepository {
     try {
       if (id.isEmpty) {
         throw ArgumentError('Exclusive product ID cannot be empty');
+      }
+
+      final existing = await getExclusiveProduct(id);
+      if (existing != null && existing.imageUrls.isNotEmpty) {
+        await _media.deletePublicUrls(existing.imageUrls);
       }
 
       await FirestoreService.deleteExclusiveProduct(id);

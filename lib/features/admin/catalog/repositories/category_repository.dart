@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../core/services/media_service.dart';
@@ -45,6 +44,7 @@ class CategoryRepository {
   static Future<String> addCategory({
     required String name,
     required String description,
+    required String inPlaceText,
     required Uint8List imageBytes,
     required int order,
     required bool isActive,
@@ -67,6 +67,7 @@ class CategoryRepository {
         name: name.trim(),
         description: description.trim(),
         imageUrl: '', // Will update after upload
+        inPlaceText: inPlaceText.trim(),
         order: finalOrder,
         isActive: isActive,
       );
@@ -100,6 +101,7 @@ class CategoryRepository {
     required String id,
     required String name,
     required String description,
+    required String inPlaceText,
     required int order,
     required bool isActive,
   }) async {
@@ -111,6 +113,7 @@ class CategoryRepository {
       await FirestoreService.updateCategory(id, {
         'name': name.trim(),
         'description': description.trim(),
+        'inPlaceText': inPlaceText.trim(),
         'order': order,
         'isActive': isActive,
       });
@@ -125,6 +128,7 @@ class CategoryRepository {
     required String id,
     required String name,
     required String description,
+    required String inPlaceText,
     required Uint8List imageBytes,
     required int order,
     required bool isActive,
@@ -132,6 +136,12 @@ class CategoryRepository {
     try {
       if (name.trim().isEmpty) {
         throw ArgumentError('Category name cannot be empty');
+      }
+
+      final existing = await getCategory(id);
+
+      if (existing?.imageUrl.isNotEmpty == true) {
+        await _media.deletePublicUrls([existing!.imageUrl]);
       }
 
       // 1. Upload new image
@@ -145,6 +155,7 @@ class CategoryRepository {
       final updateData = {
         'name': name.trim(),
         'description': description.trim(),
+        'inPlaceText': inPlaceText.trim(),
         'order': order,
         'isActive': isActive,
       };
@@ -168,6 +179,11 @@ class CategoryRepository {
     try {
       if (id.isEmpty) {
         throw ArgumentError('Category ID cannot be empty');
+      }
+
+      final existing = await getCategory(id);
+      if (existing?.imageUrl.isNotEmpty == true) {
+        await _media.deletePublicUrls([existing!.imageUrl]);
       }
 
       await FirestoreService.deleteCategory(id);

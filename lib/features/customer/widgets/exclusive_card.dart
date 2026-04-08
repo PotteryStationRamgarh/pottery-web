@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../../core/providers/wishlist_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/product.dart';
 import 'image_placeholder.dart';
@@ -35,6 +37,10 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
     final isCompact = screenWidth < 420;
     final hasDiscount = widget.product.mrp > widget.product.sellingPrice;
     final isSoldOut = widget.product.stockCount <= 0;
+    final isWishlisted = context.watch<WishlistProvider>().isWishlisted(
+      widget.product.id,
+      isExclusive: true,
+    );
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -46,35 +52,20 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image with badges on top
-            _buildImage(isSoldOut),
+            _buildImage(isSoldOut, isWishlisted),
 
             const SizedBox(height: 16),
 
-            // Badge Row
-            Row(
-              children: [
-                Text(
-                  widget.product.editionType.isNotEmpty 
-                      ? widget.product.editionType.toUpperCase() 
-                      : 'LIMITED EDITION',
-                  style: GoogleFonts.jost(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.terracotta,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                if (widget.product.seriesName.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    '• ${widget.product.seriesName}',
-                    style: GoogleFonts.jost(
-                      fontSize: 10,
-                      color: AppTheme.textLight,
-                    ),
-                  ),
-                ],
-              ],
+            Text(
+              widget.product.editionType.isNotEmpty
+                  ? widget.product.editionType.toUpperCase()
+                  : 'LIMITED EDITION',
+              style: GoogleFonts.jost(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.terracotta,
+                letterSpacing: 1.5,
+              ),
             ),
 
             const SizedBox(height: 8),
@@ -134,7 +125,7 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
   // IMAGE SECTION
   // ─────────────────────────────────────────
 
-  Widget _buildImage(bool isSoldOut) {
+  Widget _buildImage(bool isSoldOut, bool isWishlisted) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < 420;
 
@@ -256,6 +247,31 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
               ),
             ),
           ),
+        Positioned(
+          top: isCompact ? 12 : 16,
+          right: isCompact ? 12 : 16,
+          child: Material(
+            color: Colors.white.withOpacity(0.9),
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () {
+                context.read<WishlistProvider>().toggle(
+                  widget.product.id,
+                  isExclusive: true,
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  isWishlisted ? Icons.favorite : Icons.favorite_border,
+                  size: 18,
+                  color: isWishlisted ? AppTheme.terracotta : AppTheme.textDark,
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

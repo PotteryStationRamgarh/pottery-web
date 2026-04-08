@@ -5,6 +5,7 @@ import '../../../core/providers/app_refresh_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../models/product.dart';
+import '../home/home_footer.dart';
 import '../home/widgets/nav_bar.dart';
 import '../../../app/routes.dart';
 import '../../../core/utils/responsive_utils.dart';
@@ -178,6 +179,7 @@ class _CustomerCategoriesGridPageState
                 ),
 
               const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              const SliverToBoxAdapter(child: HomeFooter()),
             ],
           ),
           const Positioned(top: 0, left: 0, right: 0, child: NavBar()),

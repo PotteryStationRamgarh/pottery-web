@@ -7,6 +7,7 @@ import 'core/providers/branding_provider.dart';
 import 'core/providers/exhibition_provider.dart';
 import 'core/providers/app_refresh_provider.dart';
 import 'core/providers/cart_provider.dart';
+import 'core/providers/wishlist_provider.dart';
 import 'core/services/remote_config_service.dart';
 import 'app/app.dart';
 
@@ -27,6 +28,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => BrandingProvider()),
         ChangeNotifierProvider(create: (_) => ExhibitionProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => WishlistProvider()),
       ],
       child: const MyApp(),
     ),

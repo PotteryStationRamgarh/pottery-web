@@ -12,7 +12,6 @@ import 'widgets/hero_section.dart';
 import 'widgets/exclusive_section.dart';
 import 'widgets/exhibition_section.dart';
 import 'widgets/all_product_section.dart';
-import 'widgets/store_banner.dart';
 import 'widgets/categories_section.dart';
 import 'home_footer.dart';
 
@@ -142,7 +141,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
               ),
               const SliverToBoxAdapter(child: CategoriesSection()),
-              const SliverToBoxAdapter(child: StoreBanner()),
               const SliverToBoxAdapter(child: HomeFooter()),
             ],
           ),

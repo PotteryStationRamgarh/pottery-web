@@ -11,6 +11,7 @@ import 'content/exhibition/admin_exhibition_page.dart';
 import 'catalog/categories/admin_categories_list_page.dart';
 import 'catalog/all_products/admin_products_list_page.dart';
 import 'catalog/exclusive_products/admin_exclusive_list_page.dart';
+import 'custom_products/admin_custom_products_page.dart';
 import 'settings/admin_settings_page.dart';
 import '../../core/repositories/exhibition_repository.dart';
 
@@ -32,6 +33,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     const AdminCategoriesListPage(),
     const AdminProductsListPage(),
     const AdminExclusiveListPage(),
+    const AdminCustomProductsPage(),
     const AdminSettingsPage(),
   ];
 
@@ -71,6 +73,8 @@ class _AdminLayoutState extends State<AdminLayout> {
       case 5:
         return 'Exclusives';
       case 6:
+        return 'Custom Products';
+      case 7:
         return 'Settings';
       default:
         return 'Dashboard';
@@ -148,13 +152,20 @@ class _AdminLayoutState extends State<AdminLayout> {
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),
+                _SidebarItem(
+                  icon: Icons.design_services_outlined,
+                  label: 'Custom Products',
+                  index: 6,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
                 const SizedBox(height: 16),
 
                 const _SidebarGroupLabel('SYSTEM'),
                 _SidebarItem(
                   icon: Icons.settings_outlined,
                   label: 'Settings',
-                  index: 6,
+                  index: 7,
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),

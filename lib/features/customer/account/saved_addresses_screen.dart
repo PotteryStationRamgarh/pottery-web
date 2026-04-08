@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/repositories/address_repository.dart';
 import '../../../models/address_model.dart';
+import '../home/home_footer.dart';
 import '../home/widgets/nav_bar.dart';
 
 class SavedAddressesScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class SavedAddressesScreen extends StatefulWidget {
 class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
   List<AddressModel> _addresses = [];
   bool _isLoading = true;
+  final _user = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
@@ -148,7 +150,7 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 80),
+                const HomeFooter(),
               ],
             ),
           ),
@@ -207,6 +209,24 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
                       ),
                     ),
                   ],
+                  if (addr.addressType.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.background,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        addr.addressType.toUpperCase(),
+                        style: GoogleFonts.jost(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textLight,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
               Row(
@@ -225,9 +245,19 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            addr.street,
+            addr.normalizedAddressLine1,
             style: GoogleFonts.jost(color: AppTheme.textDark, height: 1.5),
           ),
+          if (addr.addressLine2.isNotEmpty)
+            Text(
+              addr.addressLine2,
+              style: GoogleFonts.jost(color: AppTheme.textDark, height: 1.5),
+            ),
+          if (addr.landmark.isNotEmpty)
+            Text(
+              "Near ${addr.landmark}",
+              style: GoogleFonts.jost(color: AppTheme.textLight),
+            ),
           Text(
             "${addr.city}, ${addr.state} - ${addr.pincode}",
             style: GoogleFonts.jost(color: AppTheme.textLight),
@@ -239,6 +269,21 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
               const SizedBox(width: 8),
               Text(
                 addr.phone,
+                style: GoogleFonts.jost(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.mail_outline, size: 14, color: AppTheme.textLight),
+              const SizedBox(width: 8),
+              Text(
+                _user?.email ?? 'No email',
                 style: GoogleFonts.jost(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -318,31 +363,44 @@ class AddressFormSheet extends StatefulWidget {
 }
 
 class _AddressFormSheetState extends State<AddressFormSheet> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
-  late TextEditingController _streetController;
+  late TextEditingController _addressLine1Controller;
+  late TextEditingController _addressLine2Controller;
+  late TextEditingController _landmarkController;
   late TextEditingController _cityController;
   late TextEditingController _stateController;
   late TextEditingController _pincodeController;
   bool _isDefault = false;
+  String _addressType = 'Home';
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.address?.name);
     _phoneController = TextEditingController(text: widget.address?.phone);
-    _streetController = TextEditingController(text: widget.address?.street);
+    _addressLine1Controller = TextEditingController(
+      text: widget.address?.normalizedAddressLine1,
+    );
+    _addressLine2Controller = TextEditingController(
+      text: widget.address?.addressLine2,
+    );
+    _landmarkController = TextEditingController(text: widget.address?.landmark);
     _cityController = TextEditingController(text: widget.address?.city);
     _stateController = TextEditingController(text: widget.address?.state);
     _pincodeController = TextEditingController(text: widget.address?.pincode);
     _isDefault = widget.address?.isDefault ?? false;
+    _addressType = widget.address?.addressType ?? 'Home';
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _streetController.dispose();
+    _addressLine1Controller.dispose();
+    _addressLine2Controller.dispose();
+    _landmarkController.dispose();
     _cityController.dispose();
     _stateController.dispose();
     _pincodeController.dispose();
@@ -380,39 +438,98 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
           const SizedBox(height: 32),
           Expanded(
             child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildField("Full Name", _nameController),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(child: _buildField("Phone Number", _phoneController)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildField("Pincode", _pincodeController)),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  _buildField("Street Address / Area", _streetController),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(child: _buildField("City", _cityController)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildField("State", _stateController)),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  SwitchListTile(
-                    title: Text(
-                      "Set as default address",
-                      style: GoogleFonts.jost(fontSize: 14, color: AppTheme.textDark),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildField("Full Name", _nameController, validator: _validateName),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildField(
+                            "Phone Number",
+                            _phoneController,
+                            keyboardType: TextInputType.phone,
+                            validator: _validatePhone,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildField(
+                            "Pincode",
+                            _pincodeController,
+                            keyboardType: TextInputType.number,
+                            validator: _validatePincode,
+                          ),
+                        ),
+                      ],
                     ),
-                    value: _isDefault,
-                    activeColor: AppTheme.terracotta,
-                    onChanged: (val) => setState(() => _isDefault = val),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    _buildField(
+                      "House / Flat / Building",
+                      _addressLine1Controller,
+                      validator: _requiredField('House / Flat / Building'),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildField(
+                      "Street / Area / Colony",
+                      _addressLine2Controller,
+                      validator: _requiredField('Street / Area / Colony'),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildField("Landmark", _landmarkController),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildField(
+                            "City",
+                            _cityController,
+                            validator: _requiredField('City'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildField(
+                            "State",
+                            _stateController,
+                            validator: _requiredField('State'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    DropdownButtonFormField<String>(
+                      value: _addressType,
+                      decoration: AppTheme.inputDecoration(label: 'Address Type'),
+                      items: const ['Home', 'Work', 'Studio']
+                          .map(
+                            (type) => DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _addressType = value);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    SwitchListTile(
+                      title: Text(
+                        "Set as default address",
+                        style: GoogleFonts.jost(fontSize: 14, color: AppTheme.textDark),
+                      ),
+                      value: _isDefault,
+                      activeColor: AppTheme.terracotta,
+                      onChanged: (val) => setState(() => _isDefault = val),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -422,18 +539,29 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
             height: 60,
             child: ElevatedButton(
               onPressed: () {
+                if (!_formKey.currentState!.validate()) {
+                  return;
+                }
+
                 final user = FirebaseAuth.instance.currentUser;
                 if (user == null) return;
 
                 widget.onSave(AddressModel(
                   id: widget.address?.id ?? '',
                   userId: user.uid,
-                  name: _nameController.text,
-                  phone: _phoneController.text,
-                  street: _streetController.text,
-                  city: _cityController.text,
-                  state: _stateController.text,
-                  pincode: _pincodeController.text,
+                  name: _nameController.text.trim(),
+                  phone: _phoneController.text.trim(),
+                  street: [
+                    _addressLine1Controller.text.trim(),
+                    _addressLine2Controller.text.trim(),
+                  ].where((value) => value.isNotEmpty).join(', '),
+                  addressLine1: _addressLine1Controller.text.trim(),
+                  addressLine2: _addressLine2Controller.text.trim(),
+                  landmark: _landmarkController.text.trim(),
+                  city: _cityController.text.trim(),
+                  state: _stateController.text.trim(),
+                  pincode: _pincodeController.text.trim(),
+                  addressType: _addressType,
                   isDefault: _isDefault,
                   createdAt: widget.address?.createdAt ?? DateTime.now(),
                 ));
@@ -458,11 +586,50 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller) {
-    return TextField(
+  Widget _buildField(
+    String label,
+    TextEditingController controller, {
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+  }) {
+    return TextFormField(
       controller: controller,
+      validator: validator,
+      keyboardType: keyboardType,
       decoration: AppTheme.inputDecoration(label: label),
       style: AppTheme.bodyMedium,
     );
+  }
+
+  String? _validateName(String? value) {
+    if (value == null || value.trim().length < 2) {
+      return 'Enter the recipient name.';
+    }
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    final digits = value?.replaceAll(RegExp(r'[^0-9]'), '') ?? '';
+    if (digits.length != 10) {
+      return 'Enter a valid 10-digit phone number.';
+    }
+    return null;
+  }
+
+  String? _validatePincode(String? value) {
+    final digits = value?.trim() ?? '';
+    if (!RegExp(r'^\d{6}$').hasMatch(digits)) {
+      return 'Enter a valid 6-digit pincode.';
+    }
+    return null;
+  }
+
+  String? Function(String?) _requiredField(String label) {
+    return (value) {
+      if (value == null || value.trim().isEmpty) {
+        return '$label is required.';
+      }
+      return null;
+    };
   }
 }

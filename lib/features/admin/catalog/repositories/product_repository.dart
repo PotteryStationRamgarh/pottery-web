@@ -1,10 +1,8 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../core/services/media_service.dart';
 import '../../../../models/product.dart';
-import '../../../../models/product_category.dart';
 
 /// ProductRepository — single source of truth for product operations.
 /// Handles all Firestore interactions and media uploads for products.
@@ -112,7 +110,9 @@ class ProductRepository {
       }
 
       // 2. Handle SKU and auto-generated fields
-      final finalSku = sku.isEmpty ? 'PSR-${DateTime.now().millisecondsSinceEpoch}' : sku;
+      final finalSku = sku.isEmpty
+          ? 'PSR-${DateTime.now().millisecondsSinceEpoch}'
+          : sku;
 
       // 3. Create document with initial data
       final product = Product(
@@ -243,6 +243,11 @@ class ProductRepository {
         throw ArgumentError('At least one image is required');
       }
 
+      final existing = await getProduct(id);
+      if (existing != null && existing.imageUrls.isNotEmpty) {
+        await _media.deletePublicUrls(existing.imageUrls);
+      }
+
       // 1. Upload new images
       final urls = await _media.uploadImages(
         docId: id,
@@ -288,6 +293,11 @@ class ProductRepository {
     try {
       if (id.isEmpty) {
         throw ArgumentError('Product ID cannot be empty');
+      }
+
+      final existing = await getProduct(id);
+      if (existing != null && existing.imageUrls.isNotEmpty) {
+        await _media.deletePublicUrls(existing.imageUrls);
       }
 
       await FirestoreService.deleteProduct(id);

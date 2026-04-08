@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/product.dart';
 
@@ -34,7 +38,19 @@ class CartItem {
 }
 
 class CartProvider with ChangeNotifier {
+  CartProvider() {
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        _items.clear();
+        notifyListeners();
+      } else {
+        _load(user.uid);
+      }
+    });
+  }
+
   final Map<String, CartItem> _items = {};
+  late final StreamSubscription<User?> _authSubscription;
 
   Map<String, CartItem> get items => {..._items};
 
@@ -53,7 +69,8 @@ class CartProvider with ChangeNotifier {
       if (_items.containsKey(product.id)) {
         _items.update(
           product.id,
-          (existing) => existing.copyWith(quantity: existing.quantity + quantity),
+          (existing) =>
+              existing.copyWith(quantity: existing.quantity + quantity),
         );
       } else {
         _items.putIfAbsent(
@@ -73,7 +90,8 @@ class CartProvider with ChangeNotifier {
       if (_items.containsKey(product.id)) {
         _items.update(
           product.id,
-          (existing) => existing.copyWith(quantity: existing.quantity + quantity),
+          (existing) =>
+              existing.copyWith(quantity: existing.quantity + quantity),
         );
       } else {
         _items.putIfAbsent(
@@ -91,11 +109,13 @@ class CartProvider with ChangeNotifier {
       }
     }
     notifyListeners();
+    _persist();
   }
 
   void removeItem(String productId) {
     _items.remove(productId);
     notifyListeners();
+    _persist();
   }
 
   void removeSingleItem(String productId) {
@@ -110,6 +130,7 @@ class CartProvider with ChangeNotifier {
       _items.remove(productId);
     }
     notifyListeners();
+    _persist();
   }
 
   void incrementQuantity(String productId) {
@@ -119,10 +140,72 @@ class CartProvider with ChangeNotifier {
       (existing) => existing.copyWith(quantity: existing.quantity + 1),
     );
     notifyListeners();
+    _persist();
   }
 
   void clear() {
     _items.clear();
     notifyListeners();
+    _persist();
+  }
+
+  Future<void> _load(String uid) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('user_carts')
+          .doc(uid)
+          .get();
+      final rawItems = (doc.data()?['items'] as List?) ?? const [];
+
+      _items.clear();
+      for (final item in rawItems.whereType<Map>()) {
+        final map = Map<String, dynamic>.from(item);
+        final cartItem = CartItem(
+          id: map['id'] as String? ?? '',
+          name: map['name'] as String? ?? '',
+          price: (map['price'] as num?)?.toDouble() ?? 0,
+          imageUrl: map['imageUrl'] as String? ?? '',
+          quantity: map['quantity'] as int? ?? 1,
+          isExclusive: map['isExclusive'] as bool? ?? false,
+          sku: map['sku'] as String?,
+        );
+        if (cartItem.id.isNotEmpty) {
+          _items[cartItem.id] = cartItem;
+        }
+      }
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> _persist() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    await FirebaseFirestore.instance.collection('user_carts').doc(user.uid).set(
+      {
+        'userId': user.uid,
+        'items': _items.values
+            .map(
+              (item) => {
+                'id': item.id,
+                'name': item.name,
+                'price': item.price,
+                'imageUrl': item.imageUrl,
+                'quantity': item.quantity,
+                'isExclusive': item.isExclusive,
+                'sku': item.sku,
+              },
+            )
+            .toList(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    super.dispose();
   }
 }
