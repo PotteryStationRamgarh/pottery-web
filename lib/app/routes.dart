@@ -85,4 +85,6 @@ class Routes {
 
   /// Admin Profile — password and user management
   static const String profile = '/profile';
+
+  static const String aboutUs = '/about-us';
 }

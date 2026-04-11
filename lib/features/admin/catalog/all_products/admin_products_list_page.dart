@@ -13,7 +13,8 @@ import '../widgets/admin_toggle_switch.dart';
 import '../widgets/image_upload_widget.dart';
 
 class AdminProductsListPage extends StatefulWidget {
-  const AdminProductsListPage({super.key});
+  final bool showOnlyIncomplete;
+  const AdminProductsListPage({super.key, this.showOnlyIncomplete = false});
 
   @override
   State<AdminProductsListPage> createState() => _AdminProductsListPageState();
@@ -119,13 +120,27 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
     }
   }
 
+  bool _isIncomplete(Product p) {
+    return p.mrp <= 0 ||
+        p.sellingPrice <= 0 ||
+        p.imageUrls.isEmpty ||
+        p.categoryId.isEmpty;
+  }
+
   void _applyFilter() {
     setState(() {
+      Iterable<Product> base = _allProducts;
+      if (widget.showOnlyIncomplete) {
+        base = base.where(_isIncomplete);
+      } else {
+        base = base.where((p) => !_isIncomplete(p));
+      }
+
       if (_searchQuery.isEmpty) {
-        _filteredProducts = List.from(_allProducts);
+        _filteredProducts = base.toList();
       } else {
         final query = _searchQuery.toLowerCase();
-        _filteredProducts = _allProducts.where((p) {
+        _filteredProducts = base.where((p) {
           final catName = _getCategoryName(p.categoryId).toLowerCase();
           return p.title.toLowerCase().contains(query) ||
               catName.contains(query);
@@ -356,7 +371,12 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Products', style: AppTheme.headingLarge),
+                        Text(
+                          widget.showOnlyIncomplete
+                              ? 'Attention Required'
+                              : 'Products',
+                          style: AppTheme.headingLarge,
+                        ),
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
@@ -382,7 +402,12 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Products', style: AppTheme.headingLarge),
+                        Text(
+                          widget.showOnlyIncomplete
+                              ? 'Attention Required'
+                              : 'Products',
+                          style: AppTheme.headingLarge,
+                        ),
                         ElevatedButton.icon(
                           onPressed: () => _showForm(),
                           icon: const Icon(Icons.add),

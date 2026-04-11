@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -177,8 +178,23 @@ class CustomOrderCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text('${order.email} • ${order.phone}', style: AppTheme.bodySmall),
-            const SizedBox(height: 6),
-            Text('Status: ${order.status}', style: AppTheme.bodySmall),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.terracotta.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                order.status.toUpperCase(),
+                style: GoogleFonts.jost(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.terracotta,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -226,27 +242,52 @@ class CustomOrderReviewForm extends StatelessWidget {
           Text('Size: ${order.size}', style: AppTheme.bodyMedium),
         if (order.inspirationImageUrl.isNotEmpty) ...[
           const SizedBox(height: 16),
+          Text(
+            'Inspiration Image',
+            style: GoogleFonts.jost(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textLight,
+            ),
+          ),
+          const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Image.network(
               order.inspirationImageUrl,
-              height: 180,
               width: double.infinity,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain, // Maintain aspect ratio
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                return Container(
+                  color: AppTheme.background,
+                  child: child,
+                );
+              },
             ),
           ),
         ],
         const SizedBox(height: 20),
         DropdownButtonFormField<String>(
           initialValue: status,
-          decoration: AppTheme.inputDecoration(label: 'Status'),
-          items:
-              const ['pending', 'reviewing', 'quoted', 'accepted', 'rejected']
-                  .map(
-                    (value) =>
-                        DropdownMenuItem(value: value, child: Text(value)),
-                  )
-                  .toList(),
+          items: const [
+            'pending',
+            'reviewing',
+            'quoted',
+            'accepted',
+            'rejected',
+            'in_production',
+            'finished',
+            'packed',
+            'shipped',
+            'delivered'
+          ]
+              .map(
+                (value) => DropdownMenuItem(
+                  value: value,
+                  child: Text(value.replaceAll('_', ' ').toUpperCase()),
+                ),
+              )
+              .toList(),
           onChanged: (value) {
             if (value != null) onStatusChanged(value);
           },

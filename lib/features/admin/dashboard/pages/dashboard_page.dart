@@ -97,6 +97,7 @@ class _DashboardViewState extends State<_DashboardView> {
             const SizedBox(height: 24),
             _StatsRow(dashboard: dashboard),
             const SizedBox(height: 32),
+            // Custom Order Notifications
             FutureBuilder<List<CustomOrderModel>>(
               future: CustomOrderRepository.getCustomOrders(),
               builder: (context, snapshot) {
@@ -105,34 +106,23 @@ class _DashboardViewState extends State<_DashboardView> {
                         .length ??
                     0;
                 if (pendingCount == 0) return const SizedBox.shrink();
-                return Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppTheme.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppTheme.terracotta),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.notifications_active_outlined, color: AppTheme.terracotta),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          '$pendingCount custom product request(s) need review.',
-                          style: AppTheme.bodyMedium,
-                        ),
-                      ),
-                      FilledButton(
-                        onPressed: () => _nav(6),
-                        child: const Text('Open Requests'),
-                      ),
-                    ],
-                  ),
+                return _DashboardNotification(
+                  icon: Icons.notifications_active_outlined,
+                  message: '$pendingCount custom product request(s) need review.',
+                  buttonLabel: 'Open Requests',
+                  onPressed: () => _nav(6),
                 );
               },
             ),
+
+            // Incomplete Product Notifications
+            if (dashboard.incompleteProductCount > 0)
+              _DashboardNotification(
+                icon: Icons.warning_amber_rounded,
+                message: '${dashboard.incompleteProductCount} product(s) in your collection are missing critical details (MRP, Images, etc.).',
+                buttonLabel: 'Fix Issues',
+                onPressed: () => _nav(8),
+              ),
 
             // 2. Main content row (Quick Actions + System Overview)
             if (isPageNarrow)
@@ -480,6 +470,7 @@ class _QuickActionsGrid extends StatelessWidget {
     _ActionItem('Add Category', Icons.category_outlined, 3),
     _ActionItem('Add Exclusive', Icons.star_border_outlined, 5),
     _ActionItem('Custom Requests', Icons.design_services_outlined, 6),
+    _ActionItem('Custom Collection', Icons.collections_bookmark_outlined, 8),
     _ActionItem('Add Exhibition', Icons.event_outlined, 2),
     _ActionItem('Edit Branding', Icons.brush_outlined, 1),
   ];
@@ -512,3 +503,49 @@ class _ActionItem {
   final int navIndex;
   const _ActionItem(this.label, this.icon, this.navIndex);
 }
+
+class _DashboardNotification extends StatelessWidget {
+  final IconData icon;
+  final String message;
+  final String buttonLabel;
+  final VoidCallback onPressed;
+
+  const _DashboardNotification({
+    required this.icon,
+    required this.message,
+    required this.buttonLabel,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.terracotta),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppTheme.terracotta),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTheme.bodyMedium,
+            ),
+          ),
+          const SizedBox(width: 12),
+          FilledButton(
+            onPressed: onPressed,
+            child: Text(buttonLabel),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

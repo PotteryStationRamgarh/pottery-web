@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/repositories/custom_order_repository.dart';
 import '../../../core/repositories/custom_products_config_repository.dart';
@@ -233,49 +234,126 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
         backgroundColor: AppTheme.background,
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            color: Colors.white,
+            child: TabBar(
+              labelColor: AppTheme.terracotta,
+              unselectedLabelColor: AppTheme.textLight,
+              indicatorColor: AppTheme.terracotta,
+              tabs: [
+                Tab(
+                  child: Text(
+                    'ORDERS',
+                    style: GoogleFonts.jost(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+                Tab(
+                  child: Text(
+                    'CONFIG',
+                    style: GoogleFonts.jost(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildOrdersTab(),
+            _buildConfigTab(),
+          ],
+        ),
+      ),
+    );
+  }
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+  Widget _buildOrdersTab() {
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 1000;
+            return isWide
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 5, child: _buildOrdersPanel()),
+                      const SizedBox(width: 24),
+                      Expanded(flex: 7, child: _buildReviewPanel()),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      _buildOrdersPanel(),
+                      const SizedBox(height: 24),
+                      _buildReviewPanel(),
+                    ],
+                  );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConfigTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
         children: [
           CustomProductsSummaryCard(
             isEnabled: _isEnabled,
-            pendingCount: _orders
-                .where((order) => order.status == 'pending')
-                .length,
+            pendingCount:
+                _orders.where((order) => order.status == 'pending').length,
             isSaving: _isSavingConfig,
             onSave: _saveConfig,
           ),
           const SizedBox(height: 24),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 1180;
-              return isWide
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 6, child: _buildConfigPanel()),
-                        const SizedBox(width: 24),
-                        Expanded(flex: 5, child: _buildOrdersPanel()),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        _buildConfigPanel(),
-                        const SizedBox(height: 24),
-                        _buildOrdersPanel(),
-                      ],
-                    );
-            },
-          ),
+          _buildConfigPanel(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildReviewPanel() {
+    if (_selectedOrder == null) {
+      return CustomProductsPanel(
+        title: 'Review Request',
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 60),
+            child: Text(
+              'Select an order to review',
+              style: AppTheme.bodyLarge.copyWith(color: AppTheme.textLight),
+            ),
+          ),
+        ),
+      );
+    }
+    return CustomProductsPanel(
+      title: 'Review Request',
+      child: CustomOrderReviewForm(
+        order: _selectedOrder!,
+        status: _status,
+        notesController: _notesCtrl,
+        priceController: _priceCtrl,
+        proposedDate: _proposedDate,
+        isSaving: _isSavingOrder,
+        onStatusChanged: (value) => setState(() => _status = value),
+        onPickDate: _pickCreationDate,
+        onSave: _saveOrderReview,
       ),
     );
   }
@@ -286,28 +364,55 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ImageUploadWidget(
-            title: 'Hero Image',
-            multiple: false,
-            minHeight: 220,
-            onImagesSelected: (images) {
-              setState(
-                () => _heroImageBytes = images.isEmpty ? null : images.first,
-              );
-            },
+          Text(
+            'Hero Image',
+            style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.w600),
           ),
-          if (_heroImageBytes == null && _config.heroImageUrl.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                _config.heroImageUrl,
-                height: 160,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+          const SizedBox(height: 12),
+          if (_heroImageBytes == null && _config.heroImageUrl.isEmpty)
+            ImageUploadWidget(
+              title: 'Hero Image',
+              multiple: false,
+              minHeight: 220,
+              onImagesSelected: (images) {
+                setState(
+                  () => _heroImageBytes = images.isEmpty ? null : images.first,
+                );
+              },
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: _heroImageBytes != null
+                      ? Image.memory(
+                          _heroImageBytes!,
+                          height: 240,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.network(
+                          _config.heroImageUrl,
+                          height: 240,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _heroImageBytes = null;
+                      _config = _config.copyWith(heroImageUrl: '');
+                    });
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Replace Image'),
+                ),
+              ],
             ),
-          ],
           const SizedBox(height: 24),
           AdminFormField(
             label: 'Hero Title',
@@ -357,41 +462,63 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
   }
 
   Widget _buildOrdersPanel() {
-    return Column(
-      children: [
-        CustomProductsPanel(
-          title: 'Custom Requests',
-          child: _orders.isEmpty
-              ? const Text('No custom requests yet.')
-              : Column(
-                  children: _orders
-                      .map(
-                        (order) => CustomOrderCard(
-                          order: order,
-                          isSelected: order.id == _selectedOrder?.id,
-                          onTap: () => _selectOrder(order),
-                        ),
-                      )
-                      .toList(),
-                ),
-        ),
-        const SizedBox(height: 24),
-        if (_selectedOrder != null)
-          CustomProductsPanel(
-            title: 'Review Request',
-            child: CustomOrderReviewForm(
-              order: _selectedOrder!,
-              status: _status,
-              notesController: _notesCtrl,
-              priceController: _priceCtrl,
-              proposedDate: _proposedDate,
-              isSaving: _isSavingOrder,
-              onStatusChanged: (value) => setState(() => _status = value),
-              onPickDate: _pickCreationDate,
-              onSave: _saveOrderReview,
+    return DefaultTabController(
+      length: 3,
+      child: CustomProductsPanel(
+        title: 'Order Tracking',
+        child: Column(
+          children: [
+            TabBar(
+              labelColor: AppTheme.terracotta,
+              unselectedLabelColor: AppTheme.textLight,
+              indicatorSize: TabBarIndicatorSize.label,
+              labelStyle: GoogleFonts.jost(fontSize: 12, fontWeight: FontWeight.bold),
+              tabs: const [
+                Tab(text: 'REQUESTS'),
+                Tab(text: 'PRODUCTION'),
+                Tab(text: 'HISTORY'),
+              ],
             ),
-          ),
-      ],
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 500,
+              child: TabBarView(
+                children: [
+                  _buildOrdersFilterList(['pending', 'reviewing', 'quoted']),
+                  _buildOrdersFilterList(['accepted', 'in_production', 'finished', 'packed']),
+                  _buildOrdersFilterList(['shipped', 'delivered', 'rejected']),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrdersFilterList(List<String> statuses) {
+    final filtered =
+        _orders.where((o) => statuses.contains(o.status)).toList();
+
+    if (filtered.isEmpty) {
+      return Center(
+        child: Text(
+          'No orders in this stage',
+          style: AppTheme.bodyMedium.copyWith(color: AppTheme.textLight),
+        ),
+      );
+    }
+
+    return ListView(
+      children: filtered
+          .map(
+            (order) => CustomOrderCard(
+              order: order,
+              isSelected: order.id == _selectedOrder?.id,
+              onTap: () => _selectOrder(order),
+            ),
+          )
+          .toList(),
     );
   }
 }

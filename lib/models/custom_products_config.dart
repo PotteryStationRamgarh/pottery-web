@@ -57,4 +57,25 @@ class CustomProductsConfig {
       'isEnabled': isEnabled,
     };
   }
+
+  CustomProductsConfig copyWith({
+    String? heroImageUrl,
+    String? heroTitle,
+    String? heroSubtitle,
+    List<String>? glazeOptions,
+    List<String>? productTypes,
+    String? introText,
+    bool? isEnabled,
+  }) {
+    return CustomProductsConfig(
+      heroImageUrl: heroImageUrl ?? this.heroImageUrl,
+      heroTitle: heroTitle ?? this.heroTitle,
+      heroSubtitle: heroSubtitle ?? this.heroSubtitle,
+      glazeOptions: glazeOptions ?? this.glazeOptions,
+      productTypes: productTypes ?? this.productTypes,
+      introText: introText ?? this.introText,
+      isEnabled: isEnabled ?? this.isEnabled,
+    );
+  }
 }
+

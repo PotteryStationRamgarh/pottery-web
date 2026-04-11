@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/config_provider.dart';
 import '../../../core/utils/responsive_utils.dart';
+import '../../../app/routes.dart';
 
 /// HomeFooter — bottom section of the customer home screen.
 /// Shows brand name, nav links, social links, copyright.
@@ -65,11 +66,7 @@ class HomeFooter extends StatelessWidget {
               ),
               _FooterLink(
                 label: 'About Us',
-                onTap: () => _showTextDialog(
-                  context,
-                  title: 'About Us',
-                  content: config.content.aboutUs,
-                ),
+                onTap: () => Navigator.pushNamed(context, Routes.aboutUs),
               ),
               _FooterLink(
                 label: 'Privacy Policy',

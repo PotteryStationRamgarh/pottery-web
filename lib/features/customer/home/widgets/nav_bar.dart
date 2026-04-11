@@ -116,10 +116,11 @@ class _DesktopNav extends StatelessWidget {
                     ),
                     SizedBox(width: itemSpacing),
 
-                    // About — opens a dialog with aboutUs text from Firestore
+                    // About — navigates to dedicated About Us page
                     _NavItem(
                       label: 'About',
-                      onTap: () => _showAbout(context, config),
+                      isActive: currentRoute == Routes.aboutUs,
+                      onTap: () => _openRoute(context, Routes.aboutUs),
                     ),
                     SizedBox(width: itemSpacing),
 
@@ -296,9 +297,10 @@ class NavDrawer extends StatelessWidget {
               ),
               _DrawerItem(
                 label: 'About',
+                isActive: ModalRoute.of(context)?.settings.name == Routes.aboutUs,
                 onTap: () {
                   Navigator.pop(context);
-                  _showAbout(context, config);
+                  _openRoute(context, Routes.aboutUs);
                 },
               ),
               _DrawerItem(

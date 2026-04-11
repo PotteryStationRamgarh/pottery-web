@@ -13,7 +13,7 @@ class CustomOrderModel {
   final int quantity;
   final String specialNotes;
   final String inspirationImageUrl;
-  final String status; // pending, reviewing, quoted, accepted, rejected
+  final String status; // pending, reviewing, quoted, accepted, rejected, in_production, finished, packed, shipped, delivered
   final double quotedPrice; // 0 by default, admin fills after review
   final String adminNotes;
   final DateTime? proposedCreationDate;

@@ -35,6 +35,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     const AdminExclusiveListPage(),
     const AdminCustomProductsPage(),
     const AdminSettingsPage(),
+    const AdminProductsListPage(showOnlyIncomplete: true),
   ];
 
   @override
@@ -76,6 +77,8 @@ class _AdminLayoutState extends State<AdminLayout> {
         return 'Custom Products';
       case 7:
         return 'Settings';
+      case 8:
+        return 'Attention Required';
       default:
         return 'Dashboard';
     }
@@ -154,8 +157,15 @@ class _AdminLayoutState extends State<AdminLayout> {
                 ),
                 _SidebarItem(
                   icon: Icons.design_services_outlined,
-                  label: 'Custom Products',
+                  label: 'Custom Orders',
                   index: 6,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
+                _SidebarItem(
+                  icon: Icons.collections_bookmark_outlined,
+                  label: 'Custom Collections',
+                  index: 8, // New index
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),

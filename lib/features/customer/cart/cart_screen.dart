@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/cart_provider.dart';
+import '../../../core/repositories/address_repository.dart';
+import '../../../models/address_model.dart';
 import '../../../app/routes.dart';
 import '../home/home_footer.dart';
 import '../home/widgets/nav_bar.dart';
+import 'widgets/address_selection_card.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -15,8 +19,40 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  String _pincodeStatus =
-      ""; // "Checking...", "Delivery available ✓", "Not serviceable ✗"
+  String _pincodeStatus = "";
+  List<AddressModel> _savedAddresses = [];
+  String? _selectedAddressId;
+  bool _isLoadingAddresses = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAddresses();
+  }
+
+  Future<void> _loadAddresses() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() => _isLoadingAddresses = true);
+    try {
+      final addresses = await AddressRepository.getAddressesByUser(user.uid);
+      setState(() {
+        _savedAddresses = addresses;
+        if (addresses.isNotEmpty) {
+          final defaultAddr = addresses.firstWhere(
+            (a) => a.isDefault,
+            orElse: () => addresses.first,
+          );
+          _selectedAddressId = defaultAddr.id;
+        }
+      });
+    } catch (e) {
+      debugPrint('Error loading addresses: $e');
+    } finally {
+      setState(() => _isLoadingAddresses = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -368,6 +404,8 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildAddressSection() {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -383,15 +421,52 @@ class _CartScreenState extends State<CartScreen> {
                 letterSpacing: 1,
               ),
             ),
-            TextButton(
-              onPressed: () =>
-                  Navigator.pushNamed(context, Routes.savedAddresses),
-              child: const Text('Manage Saved Addresses'),
-            ),
+            if (user != null && _savedAddresses.isNotEmpty)
+              TextButton(
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  Routes.savedAddresses,
+                ).then((_) => _loadAddresses()),
+                child: const Text('Manage'),
+              ),
           ],
         ),
         const SizedBox(height: 16),
-        _buildAddressForm(),
+        if (user == null)
+          _buildAddressForm()
+        else if (_isLoadingAddresses)
+          const Center(child: CircularProgressIndicator())
+        else if (_savedAddresses.isEmpty)
+          AddAddressCard(
+            onTap: () => Navigator.pushNamed(
+              context,
+              Routes.savedAddresses,
+            ).then((_) => _loadAddresses()),
+          )
+        else
+          _buildAddressCardsList(),
+      ],
+    );
+  }
+
+  Widget _buildAddressCardsList() {
+    return Column(
+      children: [
+        ..._savedAddresses.map((addr) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: AddressSelectionCard(
+            address: addr,
+            isSelected: _selectedAddressId == addr.id,
+            onTap: () => setState(() => _selectedAddressId = addr.id),
+          ),
+        )),
+        const SizedBox(height: 8),
+        AddAddressCard(
+          onTap: () => Navigator.pushNamed(
+            context,
+            Routes.savedAddresses,
+          ).then((_) => _loadAddresses()),
+        ),
       ],
     );
   }

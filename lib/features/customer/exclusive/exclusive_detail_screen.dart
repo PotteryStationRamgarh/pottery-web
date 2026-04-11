@@ -425,20 +425,22 @@ class _ExclusiveDetailScreenState extends State<ExclusiveDetailScreen> {
                 ? null
                 : () {
                     context.read<CartProvider>().addItem(_product!);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 3),
-                        content: const Text("Added exclusive piece to cart"),
-                        action: SnackBarAction(
-                          label: "VIEW CART",
-                          onPressed: () =>
-                              Navigator.pushNamed(context, Routes.cart),
-                          textColor: Colors.white,
+                    ScaffoldMessenger.of(context)
+                      ..clearSnackBars()
+                      ..showSnackBar(
+                        SnackBar(
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: AppTheme.terracotta,
+                          content: const Text("Added exclusive piece to cart"),
+                          action: SnackBarAction(
+                            label: "VIEW CART",
+                            onPressed: () =>
+                                Navigator.pushNamed(context, Routes.cart),
+                            textColor: Colors.white,
+                          ),
                         ),
-                        backgroundColor: AppTheme.terracotta,
-                      ),
-                    );
+                      );
                   },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.terracotta,

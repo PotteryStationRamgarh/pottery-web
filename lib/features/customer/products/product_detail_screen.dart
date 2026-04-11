@@ -102,7 +102,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 2),
           backgroundColor: AppTheme.terracotta,
           content: Text(
             '${data.title} added to cart',

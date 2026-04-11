@@ -15,6 +15,7 @@ class DashboardProvider extends ChangeNotifier {
 
   int _productCount = 0;
   int _exclusiveCount = 0;
+  int _incompleteProductCount = 0;
   String _exhibitionStatus = 'Loading…';
   AppExhibition _exhibition = AppExhibition.empty();
   List<Exhibition> _futureExhibitions = [];
@@ -25,6 +26,7 @@ class DashboardProvider extends ChangeNotifier {
 
   int get productCount => _productCount;
   int get exclusiveCount => _exclusiveCount;
+  int get incompleteProductCount => _incompleteProductCount;
   String get exhibitionStatus => _exhibitionStatus;
   AppExhibition get exhibition => _exhibition;
   List<Exhibition> get futureExhibitions => _futureExhibitions;
@@ -49,6 +51,13 @@ class DashboardProvider extends ChangeNotifier {
 
       _productCount = products.length;
       _exclusiveCount = exclusives.length;
+
+      _incompleteProductCount = products.where((p) =>
+          p.mrp <= 0 ||
+          p.sellingPrice <= 0 ||
+          p.imageUrls.isEmpty ||
+          p.categoryId.isEmpty
+      ).length;
 
       if (current != null) {
         _exhibition = AppExhibition(

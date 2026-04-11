@@ -22,6 +22,7 @@ import '../features/customer/account/wishlist_screen.dart';
 import '../features/customer/account/my_account_screen.dart';
 import '../features/customer/account/saved_addresses_screen.dart';
 import '../features/customer/orders/custom_order_screen.dart';
+import '../features/customer/about_us/about_us_screen.dart';
 
 /// Root of the entire app.
 /// All screens are registered here as named routes.
@@ -114,6 +115,8 @@ class MyApp extends StatelessWidget {
 
         // Admin Profile Page
         Routes.profile: (context) => const AdminProfilePage(),
+
+        Routes.aboutUs: (context) => const AboutUsScreen(),
       },
     );
   }
