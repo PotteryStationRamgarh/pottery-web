@@ -28,11 +28,13 @@ class WishlistScreen extends StatelessWidget {
             builder: (context, snapshot) {
               final ids = context.watch<WishlistProvider>().items;
               final data = snapshot.data;
-              final products = data?.products
+              final products =
+                  data?.products
                       .where((p) => ids.contains('product:${p.id}'))
                       .toList() ??
                   const <Product>[];
-              final exclusives = data?.exclusiveProducts
+              final exclusives =
+                  data?.exclusiveProducts
                       .where((p) => ids.contains('exclusive:${p.id}'))
                       .toList() ??
                   const <ExclusiveProduct>[];
@@ -61,11 +63,15 @@ class WishlistScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 40),
-                            if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done)
+                            if (!snapshot.hasData &&
+                                snapshot.connectionState !=
+                                    ConnectionState.done)
                               const Center(child: CircularProgressIndicator())
                             else if (products.isEmpty && exclusives.isEmpty)
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 80),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 80,
+                                ),
                                 child: Center(
                                   child: Text(
                                     'No products saved to wishlist yet.',
@@ -75,46 +81,61 @@ class WishlistScreen extends StatelessWidget {
                               )
                             else ...[
                               if (products.isNotEmpty) ...[
-                                Text('Products', style: AppTheme.serifHeadingMedium),
+                                Text(
+                                  'Products',
+                                  style: AppTheme.serifHeadingMedium,
+                                ),
                                 const SizedBox(height: 24),
                                 GridView.builder(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: isDesktop ? 4 : 2,
-                                    crossAxisSpacing: 24,
-                                    mainAxisSpacing: 32,
-                                    childAspectRatio: 0.72,
-                                  ),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: isDesktop ? 4 : 2,
+                                        crossAxisSpacing: 24,
+                                        mainAxisSpacing: 32,
+                                        childAspectRatio: 0.72,
+                                      ),
                                   itemCount: products.length,
-                                  itemBuilder: (context, index) => ProductCard(product: products[index]),
+                                  itemBuilder: (context, index) =>
+                                      ProductCard(product: products[index]),
                                 ),
                                 const SizedBox(height: 48),
                               ],
                               if (exclusives.isNotEmpty) ...[
-                                Text('Exclusive Pieces', style: AppTheme.serifHeadingMedium),
+                                Text(
+                                  'Exclusive Pieces',
+                                  style: AppTheme.serifHeadingMedium,
+                                ),
                                 const SizedBox(height: 24),
                                 GridView.builder(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: isDesktop ? 3 : 1,
-                                    crossAxisSpacing: 24,
-                                    mainAxisSpacing: 32,
-                                    childAspectRatio: isDesktop ? 0.58 : 0.8,
-                                  ),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: isDesktop ? 3 : 1,
+                                        crossAxisSpacing: 24,
+                                        mainAxisSpacing: 32,
+                                        childAspectRatio: isDesktop
+                                            ? 0.58
+                                            : 0.8,
+                                      ),
                                   itemCount: exclusives.length,
-                                  itemBuilder: (context, index) => ExclusiveCard(
-                                    product: exclusives[index],
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ExclusiveDetailScreen(product: exclusives[index]),
-                                        ),
-                                      );
-                                    },
-                                  ),
+                                  itemBuilder: (context, index) =>
+                                      ExclusiveCard(
+                                        product: exclusives[index],
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  ExclusiveDetailScreen(
+                                                    product: exclusives[index],
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                      ),
                                 ),
                               ],
                             ],

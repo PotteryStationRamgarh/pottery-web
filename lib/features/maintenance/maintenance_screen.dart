@@ -33,14 +33,14 @@ class MaintenanceScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppTheme.lightBrown.withOpacity(0.25),
+                    color: AppTheme.lightBrown.withValues(alpha: 0.25),
                     width: 1,
                   ),
                 ),
                 child: Icon(
                   Icons.handyman_outlined,
                   size: 34,
-                  color: AppTheme.lightBrown.withOpacity(0.6),
+                  color: AppTheme.lightBrown.withValues(alpha: 0.6),
                 ),
               ),
 
@@ -68,7 +68,7 @@ class MaintenanceScreen extends StatelessWidget {
                 style: GoogleFonts.jost(
                   fontSize: 14,
                   fontWeight: FontWeight.w300,
-                  color: AppTheme.lightBrown.withOpacity(0.45),
+                  color: AppTheme.lightBrown.withValues(alpha: 0.45),
                   letterSpacing: 0.3,
                   height: 1.8,
                 ),
@@ -83,7 +83,7 @@ class MaintenanceScreen extends StatelessWidget {
                 style: GoogleFonts.jost(
                   fontSize: 10,
                   fontWeight: FontWeight.w300,
-                  color: AppTheme.lightBrown.withOpacity(0.25),
+                  color: AppTheme.lightBrown.withValues(alpha: 0.25),
                   letterSpacing: 4,
                 ),
               ),

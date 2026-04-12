@@ -100,7 +100,10 @@ class MyApp extends StatelessWidget {
             return ProductDetailScreen(productId: args);
           }
           if (args is Map<String, dynamic>) {
-            return ProductDetailScreen(productId: args['id'], product: args['product']);
+            return ProductDetailScreen(
+              productId: args['id'],
+              product: args['product'],
+            );
           }
           return const ProductDetailScreen();
         },

@@ -123,7 +123,7 @@ class ExclusiveSection extends StatelessWidget {
           style: GoogleFonts.jost(
             fontSize: 10,
             fontWeight: FontWeight.w500,
-            color: AppTheme.primaryBrown.withOpacity(0.55),
+            color: AppTheme.primaryBrown.withValues(alpha: 0.55),
             letterSpacing: 3.5,
           ),
         ),
@@ -402,7 +402,7 @@ class _ShimmerCardState extends State<_ShimmerCard>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) => Column(
+      builder: (_, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Image placeholder — same 4:5 ratio as real card
@@ -410,7 +410,7 @@ class _ShimmerCardState extends State<_ShimmerCard>
             aspectRatio: 4 / 5,
             child: Container(
               decoration: BoxDecoration(
-                color: AppTheme.divider.withOpacity(_anim.value),
+                color: AppTheme.divider.withValues(alpha: _anim.value),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(32),
                   bottomRight: Radius.circular(32),
@@ -428,7 +428,7 @@ class _ShimmerCardState extends State<_ShimmerCard>
             height: 18,
             width: 160,
             decoration: BoxDecoration(
-              color: AppTheme.divider.withOpacity(_anim.value),
+              color: AppTheme.divider.withValues(alpha: _anim.value),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -440,7 +440,7 @@ class _ShimmerCardState extends State<_ShimmerCard>
             height: 13,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppTheme.divider.withOpacity(_anim.value * 0.7),
+              color: AppTheme.divider.withValues(alpha: _anim.value * 0.7),
               borderRadius: BorderRadius.circular(4),
             ),
           ),

@@ -43,7 +43,7 @@ class ImageGallery extends StatefulWidget {
     return showDialog(
       context: context,
       // Nearly black background — keeps focus on image
-      barrierColor: Colors.black.withOpacity(0.93),
+      barrierColor: Colors.black.withValues(alpha: 0.93),
       builder: (_) => ImageGallery(
         images: images,
         title: title,
@@ -152,16 +152,16 @@ class _ImageGalleryState extends State<ImageGallery> {
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 1.5,
-                              color: AppTheme.lightBrown.withOpacity(0.5),
+                              color: AppTheme.lightBrown.withValues(alpha: 0.5),
                             ),
                           ),
                         );
                       },
                       // Error state if image fails
-                      errorBuilder: (_, __, ___) => Icon(
+                      errorBuilder: (_, _, _) => Icon(
                         Icons.broken_image_outlined,
                         size: 48,
-                        color: Colors.white.withOpacity(0.25),
+                        color: Colors.white.withValues(alpha: 0.25),
                       ),
                     ),
                   ),
@@ -180,7 +180,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                 },
                 icon: const Icon(Icons.close, color: Colors.white, size: 24),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.1),
+                  backgroundColor: Colors.white.withValues(alpha: 0.1),
                   shape: const CircleBorder(),
                 ),
               ),
@@ -199,7 +199,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 17,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.88),
+                      color: Colors.white.withValues(alpha: 0.88),
                     ),
                   ),
                   // Counter — only show if more than one image
@@ -208,7 +208,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                       '${_currentIndex + 1} / ${widget.images.length}',
                       style: GoogleFonts.jost(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.45),
+                        color: Colors.white.withValues(alpha: 0.45),
                         letterSpacing: 1,
                       ),
                     ),
@@ -231,7 +231,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                       size: 20,
                     ),
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.1),
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                       shape: const CircleBorder(),
                     ),
                   ),
@@ -254,7 +254,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                       size: 20,
                     ),
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.1),
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                       shape: const CircleBorder(),
                     ),
                   ),
@@ -281,7 +281,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                       decoration: BoxDecoration(
                         color: index == _currentIndex
                             ? Colors.white
-                            : Colors.white.withOpacity(0.3),
+                            : Colors.white.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),

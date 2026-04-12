@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pottery_web/firebase_options.dart';
 
+import 'system_email_service.dart';
+
 /// FirebaseService handles global Firebase operations.
 /// Role fetching lives here because it is a core utility
 /// used by SplashScreen — not specific to any single feature.
@@ -73,17 +75,66 @@ class FirebaseService {
   static Future<void> createUserDocument({
     required String uid,
     required String email,
+    String displayName = '',
   }) async {
     try {
-      await _db.collection('users').doc(uid).set({
+      final docRef = _db.collection('users').doc(uid);
+      final existing = await docRef.get();
+      final isNewUser = !existing.exists;
+
+      await docRef.set({
         'email': email,
+        'displayName': displayName,
         'role':
             'customer', // Default role — change to admin manually in Firestore
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+        'phoneNumber': existing.data()?['phoneNumber'] ?? '',
+        'phoneVerificationStatus':
+            existing.data()?['phoneVerificationStatus'] ?? 'not_started',
+        'createdAt':
+            existing.data()?['createdAt'] ?? FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (isNewUser) {
+        await SystemEmailService.queueEmail(
+          to: email,
+          from: SystemEmailService.noReplyAddress,
+          subject: 'Welcome to Pottery Station Ramgarh',
+          body:
+              'Your account is ready. You can browse freely and place orders once you sign in.',
+          type: 'welcome',
+          relatedEntityId: uid,
+          relatedEntityType: 'user',
+        );
+      }
       debugPrint('User document created for $email');
     } catch (e) {
       debugPrint('Error creating user document: $e');
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getUserProfile(String uid) async {
+    try {
+      final doc = await _db.collection('users').doc(uid).get();
+      return doc.data() ?? <String, dynamic>{};
+    } catch (e) {
+      debugPrint('Error fetching user profile: $e');
+      return <String, dynamic>{};
+    }
+  }
+
+  static Future<void> updateUserProfile(
+    String uid,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      await _db.collection('users').doc(uid).set({
+        ...data,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Error updating user profile: $e');
       rethrow;
     }
   }

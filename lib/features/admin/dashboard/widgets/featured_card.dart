@@ -23,8 +23,9 @@ class FeaturedCard extends StatelessWidget {
               child: Image.network(
                 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?q=80&w=1200&auto=format&fit=crop',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    Container(color: AppTheme.primaryBrown.withOpacity(0.15)),
+                errorBuilder: (_, _, _) => Container(
+                  color: AppTheme.primaryBrown.withValues(alpha: 0.15),
+                ),
               ),
             ),
             // Gradient overlay
@@ -36,7 +37,7 @@ class FeaturedCard extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.55),
+                      Colors.black.withValues(alpha: 0.55),
                     ],
                   ),
                 ),
@@ -67,7 +68,7 @@ class FeaturedCard extends StatelessWidget {
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.92),
+                        color: Colors.white.withValues(alpha: 0.92),
                         borderRadius: BorderRadius.circular(30),
                       ),
                       child: Text(

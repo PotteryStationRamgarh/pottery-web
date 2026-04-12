@@ -25,8 +25,9 @@ class FirestoreService {
           .collection('app_config')
           .doc('branding')
           .get(_getOptions(forceRefresh));
-      if (doc.exists && doc.data() != null)
+      if (doc.exists && doc.data() != null) {
         return AppBranding.fromMap(doc.data()!);
+      }
       return AppBranding.empty();
     } catch (e) {
       debugPrint('getBranding error: $e');
@@ -40,8 +41,9 @@ class FirestoreService {
           .collection('app_config')
           .doc('contact')
           .get(_getOptions(forceRefresh));
-      if (doc.exists && doc.data() != null)
+      if (doc.exists && doc.data() != null) {
         return AppContact.fromMap(doc.data()!);
+      }
       return AppContact.empty();
     } catch (e) {
       debugPrint('getContact error: $e');
@@ -55,8 +57,9 @@ class FirestoreService {
           .collection('app_config')
           .doc('content')
           .get(_getOptions(forceRefresh));
-      if (doc.exists && doc.data() != null)
+      if (doc.exists && doc.data() != null) {
         return AppContent.fromMap(doc.data()!);
+      }
       return AppContent.empty();
     } catch (e) {
       debugPrint('getContent error: $e');
@@ -70,8 +73,9 @@ class FirestoreService {
           .collection('app_config')
           .doc('social')
           .get(_getOptions(forceRefresh));
-      if (doc.exists && doc.data() != null)
+      if (doc.exists && doc.data() != null) {
         return AppSocial.fromMap(doc.data()!);
+      }
       return AppSocial.empty();
     } catch (e) {
       debugPrint('getSocial error: $e');
@@ -85,8 +89,9 @@ class FirestoreService {
           .collection('app_config')
           .doc('features')
           .get(_getOptions(forceRefresh));
-      if (doc.exists && doc.data() != null)
+      if (doc.exists && doc.data() != null) {
         return AppFeatures.fromMap(doc.data()!);
+      }
       return AppFeatures.empty();
     } catch (e) {
       debugPrint('getFeatures error: $e');
@@ -288,7 +293,10 @@ class FirestoreService {
     String id,
     Map<String, dynamic> data,
   ) async {
-    await _db.collection('categories').doc(id).set(data, SetOptions(merge: true));
+    await _db
+        .collection('categories')
+        .doc(id)
+        .set(data, SetOptions(merge: true));
   }
 
   static Future<void> deleteCategory(String id) async {

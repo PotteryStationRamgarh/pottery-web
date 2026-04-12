@@ -23,7 +23,7 @@ class SystemStatusCard extends StatelessWidget {
         border: Border.all(color: AppTheme.divider),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBrown.withOpacity(0.04),
+            color: AppTheme.primaryBrown.withValues(alpha: 0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),

@@ -193,7 +193,7 @@ class AppTheme {
       primary: primaryBrown,
       secondary: lightBrown,
       error: errorRed,
-      background: background,
+      surface: background,
     ),
     textTheme: GoogleFonts.jostTextTheme(),
     inputDecorationTheme: InputDecorationTheme(

@@ -45,7 +45,9 @@ class AddressSelectionCard extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                  isSelected
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
                   color: isSelected ? AppTheme.terracotta : AppTheme.textLight,
                   size: 20,
                 ),
@@ -61,7 +63,10 @@ class AddressSelectionCard extends StatelessWidget {
                 if (address.addressType.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.background,
                       borderRadius: BorderRadius.circular(4),
@@ -136,7 +141,11 @@ class AddAddressCard extends StatelessWidget {
                 color: AppTheme.terracotta.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.add, color: AppTheme.terracotta, size: 24),
+              child: const Icon(
+                Icons.add,
+                color: AppTheme.terracotta,
+                size: 24,
+              ),
             ),
             const SizedBox(height: 16),
             Text(

@@ -82,7 +82,7 @@ class ImageUploadCard extends StatelessWidget {
                   horizontal: 16,
                   vertical: 10,
                 ),
-                backgroundColor: AppTheme.primaryBrown.withOpacity(0.08),
+                backgroundColor: AppTheme.primaryBrown.withValues(alpha: 0.08),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

@@ -3,9 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/services/auth_gate_service.dart';
 import '../../../core/providers/cart_provider.dart';
 import '../../../core/repositories/address_repository.dart';
+import '../../../core/repositories/order_repository.dart';
 import '../../../models/address_model.dart';
+import '../../../models/order_model.dart';
 import '../../../app/routes.dart';
 import '../home/home_footer.dart';
 import '../home/widgets/nav_bar.dart';
@@ -23,6 +26,7 @@ class _CartScreenState extends State<CartScreen> {
   List<AddressModel> _savedAddresses = [];
   String? _selectedAddressId;
   bool _isLoadingAddresses = false;
+  bool _isPlacingOrder = false;
 
   @override
   void initState() {
@@ -406,6 +410,92 @@ class _CartScreenState extends State<CartScreen> {
   Widget _buildAddressSection() {
     final user = FirebaseAuth.instance.currentUser;
 
+    if (user == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Sign in to continue",
+            style: GoogleFonts.jost(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textLight,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "Your cart is saved locally. Sign in to attach it to your account and complete the order.",
+            style: AppTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () =>
+                  AuthGateService.requireLogin(context, routeName: Routes.cart),
+              child: const Text('SIGN IN TO CHECK OUT'),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_isLoadingAddresses) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40.0),
+          child: CircularProgressIndicator(color: AppTheme.terracotta),
+        ),
+      );
+    }
+
+    if (_savedAddresses.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Shipping Address",
+                style: GoogleFonts.jost(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textLight,
+                  letterSpacing: 1,
+                ),
+              ),
+              Text(
+                "NEW ADDRESS",
+                style: GoogleFonts.jost(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.terracotta,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildAddressForm(),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Checkbox(
+                value: true,
+                onChanged: (_) {},
+                activeColor: AppTheme.terracotta,
+              ),
+              Text(
+                "Save this address for future curated purchases",
+                style: GoogleFonts.jost(fontSize: 12, color: AppTheme.textDark),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -413,7 +503,7 @@ class _CartScreenState extends State<CartScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Shipping Address",
+              "Select Shipping Address",
               style: GoogleFonts.jost(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -421,46 +511,27 @@ class _CartScreenState extends State<CartScreen> {
                 letterSpacing: 1,
               ),
             ),
-            if (user != null && _savedAddresses.isNotEmpty)
-              TextButton(
-                onPressed: () => Navigator.pushNamed(
-                  context,
-                  Routes.savedAddresses,
-                ).then((_) => _loadAddresses()),
-                child: const Text('Manage'),
-              ),
+            TextButton(
+              onPressed: () => Navigator.pushNamed(
+                context,
+                Routes.savedAddresses,
+              ).then((_) => _loadAddresses()),
+              child: const Text('Manage'),
+            ),
           ],
         ),
         const SizedBox(height: 16),
-        if (user == null)
-          _buildAddressForm()
-        else if (_isLoadingAddresses)
-          const Center(child: CircularProgressIndicator())
-        else if (_savedAddresses.isEmpty)
-          AddAddressCard(
-            onTap: () => Navigator.pushNamed(
-              context,
-              Routes.savedAddresses,
-            ).then((_) => _loadAddresses()),
-          )
-        else
-          _buildAddressCardsList(),
-      ],
-    );
-  }
-
-  Widget _buildAddressCardsList() {
-    return Column(
-      children: [
-        ..._savedAddresses.map((addr) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: AddressSelectionCard(
-            address: addr,
-            isSelected: _selectedAddressId == addr.id,
-            onTap: () => setState(() => _selectedAddressId = addr.id),
+        ..._savedAddresses.map(
+          (addr) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: AddressSelectionCard(
+              address: addr,
+              isSelected: _selectedAddressId == addr.id,
+              onTap: () => setState(() => _selectedAddressId = addr.id),
+            ),
           ),
-        )),
-        const SizedBox(height: 8),
+        ),
+        const SizedBox(height: 12),
         AddAddressCard(
           onTap: () => Navigator.pushNamed(
             context,
@@ -609,12 +680,7 @@ class _CartScreenState extends State<CartScreen> {
       width: double.infinity,
       height: 60,
       child: ElevatedButton(
-        onPressed: () {
-          // TODO: Implement actual order creation
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Processing your acquisition...")),
-          );
-        },
+        onPressed: _isPlacingOrder ? null : _handleCompletePurchase,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.terracotta,
           foregroundColor: Colors.white,
@@ -624,7 +690,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
         child: Text(
-          "COMPLETE PURCHASE",
+          _isPlacingOrder ? "PLACING ORDER..." : "COMPLETE PURCHASE",
           style: GoogleFonts.jost(
             fontSize: 14,
             fontWeight: FontWeight.bold,
@@ -633,5 +699,90 @@ class _CartScreenState extends State<CartScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleCompletePurchase() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      AuthGateService.requireLogin(context, routeName: Routes.cart);
+      return;
+    }
+
+    if (_selectedAddressId == null || _selectedAddressId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Select or add a shipping address first.'),
+        ),
+      );
+      return;
+    }
+
+    final address = _savedAddresses.cast<AddressModel?>().firstWhere(
+      (item) => item?.id == _selectedAddressId,
+      orElse: () => null,
+    );
+    if (address == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('The selected address could not be loaded.'),
+        ),
+      );
+      return;
+    }
+
+    final cart = context.read<CartProvider>();
+    final items = cart.items.values
+        .map(
+          (item) => OrderItem(
+            productId: item.id,
+            title: item.name,
+            imageUrl: item.imageUrl,
+            qty: item.quantity,
+            sellingPrice: item.price,
+            sku: item.sku ?? '',
+            isExclusive: item.isExclusive,
+          ),
+        )
+        .toList();
+
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Your cart is empty.')));
+      return;
+    }
+
+    setState(() => _isPlacingOrder = true);
+    try {
+      final order = await OrderRepository.createOrder(
+        userId: user.uid,
+        customerEmail: user.email ?? '',
+        customerPhone: address.phone,
+        address: address,
+        items: items,
+        totalAmount: cart.totalAmount,
+      );
+
+      cart.clear();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppTheme.successGreen,
+          content: Text(
+            'Order ${order.id.substring(0, 8).toUpperCase()} placed. Payment and delivery are in demo mode.',
+          ),
+        ),
+      );
+      Navigator.pushNamed(context, Routes.myAccount);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to place order: $e')));
+    } finally {
+      if (mounted) setState(() => _isPlacingOrder = false);
+    }
   }
 }

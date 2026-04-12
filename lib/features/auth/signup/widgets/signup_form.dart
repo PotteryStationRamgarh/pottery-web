@@ -169,10 +169,12 @@ class _SignupFormState extends State<SignupForm> {
               ),
             ),
             validator: (value) {
-              if (value == null || value.isEmpty)
+              if (value == null || value.isEmpty) {
                 return 'Please confirm your password';
-              if (value != widget.passwordController.text)
+              }
+              if (value != widget.passwordController.text) {
                 return 'Passwords do not match';
+              }
               return null;
             },
           ),

@@ -24,7 +24,7 @@ class StatCard extends StatelessWidget {
     final bg = accentColor ?? AppTheme.white;
     final fg = _isDark ? AppTheme.white : AppTheme.textDark;
     final fgSub = _isDark
-        ? AppTheme.white.withOpacity(0.75)
+        ? AppTheme.white.withValues(alpha: 0.75)
         : AppTheme.textLight;
 
     return Container(
@@ -37,7 +37,7 @@ class StatCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBrown.withOpacity(0.06),
+            color: AppTheme.primaryBrown.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),

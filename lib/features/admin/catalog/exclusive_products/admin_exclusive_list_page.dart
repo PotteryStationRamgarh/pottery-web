@@ -495,7 +495,9 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                               child: Icon(
                                 Icons.verified_outlined,
                                 size: 14,
-                                color: AppTheme.primaryBrown.withOpacity(0.7),
+                                color: AppTheme.primaryBrown.withValues(
+                                  alpha: 0.7,
+                                ),
                               ),
                             ),
                         ],
@@ -512,7 +514,7 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                   decoration: BoxDecoration(
                     color:
                         (product.isActive ? AppTheme.successGreen : Colors.grey)
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -543,10 +545,11 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                 ] else ...[
                   PopupMenuButton<String>(
                     onSelected: (val) {
-                      if (val == 'edit')
+                      if (val == 'edit') {
                         _showForm(product);
-                      else if (val == 'delete')
+                      } else if (val == 'delete') {
                         _deleteExclusive(product);
+                      }
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'edit', child: Text('Edit')),
@@ -706,7 +709,8 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                           child: AdminToggleSwitch(
                             label: 'Authenticity Cert',
                             value: _hasCertificate,
-                            onChanged: (val) => setState(() => _hasCertificate = val),
+                            onChanged: (val) =>
+                                setState(() => _hasCertificate = val),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -868,7 +872,8 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                         setState(() => _careInstructions.add(val));
                         _careInputCtrl.clear();
                       },
-                      onRemove: (idx) => setState(() => _careInstructions.removeAt(idx)),
+                      onRemove: (idx) =>
+                          setState(() => _careInstructions.removeAt(idx)),
                     ),
                     const SizedBox(height: 24),
                     _buildDynamicList(
@@ -922,10 +927,7 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -954,18 +956,26 @@ class _AdminExclusiveListPageState extends State<AdminExclusiveListPage> {
                   onSubmitted: (val) {
                     if (val.trim().isNotEmpty) onAdd(val.trim());
                   },
-                  decoration: AppTheme.inputDecoration(
-                    label: '',
-                    hint: hint,
-                  ).copyWith(contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                  decoration: AppTheme.inputDecoration(label: '', hint: hint)
+                      .copyWith(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
                 onPressed: () {
-                  if (controller.text.trim().isNotEmpty) onAdd(controller.text.trim());
+                  if (controller.text.trim().isNotEmpty) {
+                    onAdd(controller.text.trim());
+                  }
                 },
-                icon: const Icon(Icons.add_circle, color: AppTheme.primaryBrown),
+                icon: const Icon(
+                  Icons.add_circle,
+                  color: AppTheme.primaryBrown,
+                ),
               ),
             ],
           ),

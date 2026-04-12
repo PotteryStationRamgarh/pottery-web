@@ -29,7 +29,7 @@ class ImagePlaceholder extends StatelessWidget {
       aspectRatio: aspectRatio,
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.divider.withOpacity(0.4),
+          color: AppTheme.divider.withValues(alpha: 0.4),
           borderRadius: borderRadius,
         ),
         child: Column(
@@ -38,14 +38,14 @@ class ImagePlaceholder extends StatelessWidget {
             Icon(
               icon,
               size: 26,
-              color: AppTheme.greyPlaceholder.withOpacity(0.4),
+              color: AppTheme.greyPlaceholder.withValues(alpha: 0.4),
             ),
             const SizedBox(height: 8),
             Text(
               'Image Not Available',
               style: GoogleFonts.jost(
                 fontSize: 10,
-                color: AppTheme.greyPlaceholder.withOpacity(0.6),
+                color: AppTheme.greyPlaceholder.withValues(alpha: 0.6),
                 fontWeight: FontWeight.w400,
                 letterSpacing: 0.2,
               ),
@@ -94,14 +94,14 @@ class NetworkImageWithPlaceholder extends StatelessWidget {
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Container(
-          color: AppTheme.divider.withOpacity(0.25),
+          color: AppTheme.divider.withValues(alpha: 0.25),
           child: Center(
             child: SizedBox(
               width: 18,
               height: 18,
               child: CircularProgressIndicator(
                 strokeWidth: 1.5,
-                color: AppTheme.lightBrown.withOpacity(0.4),
+                color: AppTheme.lightBrown.withValues(alpha: 0.4),
                 value: loadingProgress.expectedTotalBytes != null
                     ? loadingProgress.cumulativeBytesLoaded /
                           loadingProgress.expectedTotalBytes!
@@ -115,21 +115,21 @@ class NetworkImageWithPlaceholder extends StatelessWidget {
       // Broken image icon if URL fails or image deleted
       errorBuilder: (context, error, stackTrace) {
         return Container(
-          color: AppTheme.divider.withOpacity(0.25),
+          color: AppTheme.divider.withValues(alpha: 0.25),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.broken_image_outlined,
                 size: 24,
-                color: AppTheme.greyPlaceholder.withOpacity(0.35),
+                color: AppTheme.greyPlaceholder.withValues(alpha: 0.35),
               ),
               const SizedBox(height: 6),
               Text(
                 'Image Not Available',
                 style: GoogleFonts.jost(
                   fontSize: 9,
-                  color: AppTheme.greyPlaceholder.withOpacity(0.55),
+                  color: AppTheme.greyPlaceholder.withValues(alpha: 0.55),
                 ),
               ),
             ],

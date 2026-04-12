@@ -17,12 +17,12 @@ class MaintenanceToggleCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       decoration: BoxDecoration(
         color: isEnabled
-            ? AppTheme.terracotta.withOpacity(0.08)
+            ? AppTheme.terracotta.withValues(alpha: 0.08)
             : AppTheme.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isEnabled
-              ? AppTheme.terracotta.withOpacity(0.3)
+              ? AppTheme.terracotta.withValues(alpha: 0.3)
               : AppTheme.divider,
         ),
       ),
@@ -32,7 +32,7 @@ class MaintenanceToggleCard extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: isEnabled
-                  ? AppTheme.terracotta.withOpacity(0.12)
+                  ? AppTheme.terracotta.withValues(alpha: 0.12)
                   : AppTheme.background,
               borderRadius: BorderRadius.circular(12),
             ),
@@ -66,7 +66,7 @@ class MaintenanceToggleCard extends StatelessWidget {
           Switch.adaptive(
             value: isEnabled,
             onChanged: onChanged,
-            activeColor: AppTheme.terracotta,
+            activeThumbColor: AppTheme.terracotta,
           ),
         ],
       ),

@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../services/local_session_service.dart';
 
 class WishlistProvider with ChangeNotifier {
   WishlistProvider() {
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user == null) {
-        _items.clear();
-        notifyListeners();
+        _loadGuest();
       } else {
         _load(user.uid);
       }
@@ -41,6 +41,7 @@ class WishlistProvider with ChangeNotifier {
 
   Future<void> _load(String uid) async {
     try {
+      final localValues = await LocalSessionService.readGuestWishlist();
       final doc = await FirebaseFirestore.instance
           .collection('user_wishlists')
           .doc(uid)
@@ -52,14 +53,22 @@ class WishlistProvider with ChangeNotifier {
           <String>{};
       _items
         ..clear()
-        ..addAll(values);
+        ..addAll(values)
+        ..addAll(localValues);
+      if (localValues.isNotEmpty) {
+        await _persist();
+        await LocalSessionService.clearGuestWishlist();
+      }
       notifyListeners();
     } catch (_) {}
   }
 
   Future<void> _persist() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      await LocalSessionService.writeGuestWishlist(_items);
+      return;
+    }
 
     await FirebaseFirestore.instance
         .collection('user_wishlists')
@@ -69,6 +78,14 @@ class WishlistProvider with ChangeNotifier {
           'items': _items.toList(),
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
+  }
+
+  Future<void> _loadGuest() async {
+    final values = await LocalSessionService.readGuestWishlist();
+    _items
+      ..clear()
+      ..addAll(values);
+    notifyListeners();
   }
 
   @override

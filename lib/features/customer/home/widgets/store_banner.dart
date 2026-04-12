@@ -59,7 +59,7 @@ class StoreBanner extends StatelessWidget {
                       style: GoogleFonts.jost(
                         fontSize: 10,
                         fontWeight: FontWeight.w300,
-                        color: AppTheme.lightBrown.withOpacity(0.35),
+                        color: AppTheme.lightBrown.withValues(alpha: 0.35),
                         letterSpacing: 4,
                       ),
                     ),
@@ -89,7 +89,7 @@ class StoreBanner extends StatelessWidget {
                       style: GoogleFonts.jost(
                         fontSize: 16,
                         fontWeight: FontWeight.w300,
-                        color: AppTheme.white.withOpacity(0.8),
+                        color: AppTheme.white.withValues(alpha: 0.8),
                         height: 1.75,
                         letterSpacing: 0.3,
                       ),
@@ -128,7 +128,7 @@ class StoreBanner extends StatelessWidget {
                       style: GoogleFonts.jost(
                         fontSize: 10,
                         fontWeight: FontWeight.w300,
-                        color: AppTheme.lightBrown.withOpacity(0.28),
+                        color: AppTheme.lightBrown.withValues(alpha: 0.28),
                         letterSpacing: 3.5,
                       ),
                     ),
@@ -174,9 +174,9 @@ class _CircleButtonState extends State<_CircleButton> {
             shape: BoxShape.circle,
             color: _isHovered
                 ? AppTheme.lightBrown
-                : AppTheme.lightBrown.withOpacity(0.1),
+                : AppTheme.lightBrown.withValues(alpha: 0.1),
             border: Border.all(
-              color: AppTheme.lightBrown.withOpacity(0.22),
+              color: AppTheme.lightBrown.withValues(alpha: 0.22),
               width: 1,
             ),
           ),
@@ -204,7 +204,7 @@ class _BlobPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppTheme.lightBrown.withOpacity(0.03)
+      ..color = AppTheme.lightBrown.withValues(alpha: 0.03)
       ..style = PaintingStyle.fill;
 
     final cx = size.width / 2;

@@ -32,7 +32,7 @@ class AdminToggleSwitch extends StatelessWidget {
         ),
         Switch(
           value: value,
-          activeColor: AppTheme.primaryBrown,
+          activeThumbColor: AppTheme.primaryBrown,
           onChanged: onChanged,
         ),
       ],

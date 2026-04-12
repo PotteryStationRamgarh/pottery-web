@@ -43,9 +43,9 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading addresses: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading addresses: $e')));
       }
     }
   }
@@ -61,27 +61,29 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving address: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving address: $e')));
       }
     }
   }
 
   Future<void> _handleDelete(String id) async {
     try {
-      await AddressRepository.deleteAddress(id);
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+      await AddressRepository.deleteAddress(user.uid, id);
       await _loadAddresses();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Address deleted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Address deleted')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting address: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting address: $e')));
       }
     }
   }
@@ -120,24 +122,30 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
                               constraints: const BoxConstraints(),
                             ),
                             const SizedBox(width: 16),
-                            Text("Saved Addresses", style: AppTheme.serifHeadingLarge),
+                            Text(
+                              "Saved Addresses",
+                              style: AppTheme.serifHeadingLarge,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 48),
                         if (_isLoading)
                           const Center(
-                            child: CircularProgressIndicator(color: AppTheme.terracotta),
+                            child: CircularProgressIndicator(
+                              color: AppTheme.terracotta,
+                            ),
                           )
                         else
                           GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: isDesktop ? 2 : 1,
-                              crossAxisSpacing: 32,
-                              mainAxisSpacing: 32,
-                              mainAxisExtent: 220,
-                            ),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: isDesktop ? 2 : 1,
+                                  crossAxisSpacing: 32,
+                                  mainAxisSpacing: 32,
+                                  mainAxisExtent: 220,
+                                ),
                             itemCount: _addresses.length + 1,
                             itemBuilder: (context, index) {
                               if (index == _addresses.length) {
@@ -168,12 +176,14 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
         ],
-        border: addr.isDefault ? Border.all(color: AppTheme.terracotta, width: 1.5) : null,
+        border: addr.isDefault
+            ? Border.all(color: AppTheme.terracotta, width: 1.5)
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,9 +204,12 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
                   if (addr.isDefault) ...[
                     const SizedBox(width: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppTheme.terracotta.withOpacity(0.1),
+                        color: AppTheme.terracotta.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -212,7 +225,10 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
                   if (addr.addressType.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.background,
                         borderRadius: BorderRadius.circular(4),
@@ -232,11 +248,19 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.textLight),
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: AppTheme.textLight,
+                    ),
                     onPressed: () => _showAddressForm(addr),
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete_outline, size: 18, color: AppTheme.errorRed.withOpacity(0.7)),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 18,
+                      color: AppTheme.errorRed.withValues(alpha: 0.7),
+                    ),
                     onPressed: () => _handleDelete(addr.id),
                   ),
                 ],
@@ -265,7 +289,11 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
           const Spacer(),
           Row(
             children: [
-              const Icon(Icons.phone_outlined, size: 14, color: AppTheme.textLight),
+              const Icon(
+                Icons.phone_outlined,
+                size: 14,
+                color: AppTheme.textLight,
+              ),
               const SizedBox(width: 8),
               Text(
                 addr.phone,
@@ -280,7 +308,11 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.mail_outline, size: 14, color: AppTheme.textLight),
+              const Icon(
+                Icons.mail_outline,
+                size: 14,
+                color: AppTheme.textLight,
+              ),
               const SizedBox(width: 8),
               Text(
                 _user?.email ?? 'No email',
@@ -316,10 +348,14 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.terracotta.withOpacity(0.08),
+                color: AppTheme.terracotta.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.add, color: AppTheme.terracotta, size: 24),
+              child: const Icon(
+                Icons.add,
+                color: AppTheme.terracotta,
+                size: 24,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -442,7 +478,11 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    _buildField("Full Name", _nameController, validator: _validateName),
+                    _buildField(
+                      "Full Name",
+                      _nameController,
+                      validator: _validateName,
+                    ),
                     const SizedBox(height: 20),
                     Row(
                       children: [
@@ -501,8 +541,10 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                     ),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<String>(
-                      value: _addressType,
-                      decoration: AppTheme.inputDecoration(label: 'Address Type'),
+                      initialValue: _addressType,
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Address Type',
+                      ),
                       items: const ['Home', 'Work', 'Studio']
                           .map(
                             (type) => DropdownMenuItem<String>(
@@ -521,10 +563,13 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                     SwitchListTile(
                       title: Text(
                         "Set as default address",
-                        style: GoogleFonts.jost(fontSize: 14, color: AppTheme.textDark),
+                        style: GoogleFonts.jost(
+                          fontSize: 14,
+                          color: AppTheme.textDark,
+                        ),
                       ),
                       value: _isDefault,
-                      activeColor: AppTheme.terracotta,
+                      activeThumbColor: AppTheme.terracotta,
                       onChanged: (val) => setState(() => _isDefault = val),
                       contentPadding: EdgeInsets.zero,
                     ),
@@ -546,30 +591,34 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                 final user = FirebaseAuth.instance.currentUser;
                 if (user == null) return;
 
-                widget.onSave(AddressModel(
-                  id: widget.address?.id ?? '',
-                  userId: user.uid,
-                  name: _nameController.text.trim(),
-                  phone: _phoneController.text.trim(),
-                  street: [
-                    _addressLine1Controller.text.trim(),
-                    _addressLine2Controller.text.trim(),
-                  ].where((value) => value.isNotEmpty).join(', '),
-                  addressLine1: _addressLine1Controller.text.trim(),
-                  addressLine2: _addressLine2Controller.text.trim(),
-                  landmark: _landmarkController.text.trim(),
-                  city: _cityController.text.trim(),
-                  state: _stateController.text.trim(),
-                  pincode: _pincodeController.text.trim(),
-                  addressType: _addressType,
-                  isDefault: _isDefault,
-                  createdAt: widget.address?.createdAt ?? DateTime.now(),
-                ));
+                widget.onSave(
+                  AddressModel(
+                    id: widget.address?.id ?? '',
+                    userId: user.uid,
+                    name: _nameController.text.trim(),
+                    phone: _phoneController.text.trim(),
+                    street: [
+                      _addressLine1Controller.text.trim(),
+                      _addressLine2Controller.text.trim(),
+                    ].where((value) => value.isNotEmpty).join(', '),
+                    addressLine1: _addressLine1Controller.text.trim(),
+                    addressLine2: _addressLine2Controller.text.trim(),
+                    landmark: _landmarkController.text.trim(),
+                    city: _cityController.text.trim(),
+                    state: _stateController.text.trim(),
+                    pincode: _pincodeController.text.trim(),
+                    addressType: _addressType,
+                    isDefault: _isDefault,
+                    createdAt: widget.address?.createdAt ?? DateTime.now(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.terracotta,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 0,
               ),
               child: Text(

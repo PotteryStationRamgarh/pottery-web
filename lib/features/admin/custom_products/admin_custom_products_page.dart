@@ -14,7 +14,8 @@ import '../../../models/custom_products_config.dart';
 import 'widgets/custom_products_widgets.dart';
 
 class AdminCustomProductsPage extends StatefulWidget {
-  const AdminCustomProductsPage({super.key});
+  final int initialIndex;
+  const AdminCustomProductsPage({super.key, this.initialIndex = 0});
 
   @override
   State<AdminCustomProductsPage> createState() =>
@@ -22,7 +23,7 @@ class AdminCustomProductsPage extends StatefulWidget {
 }
 
 class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
-  bool _isLoading = true;
+  // _isLoading removed as it was unused
   bool _isSavingConfig = false;
   bool _isSavingOrder = false;
   late CustomProductsConfig _config;
@@ -41,7 +42,7 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
   List<String> _productTypes = [];
   List<String> _glazeOptions = [];
   bool _isEnabled = true;
-  String _status = 'pending';
+  String _status = 'submitted';
   DateTime? _proposedDate;
 
   @override
@@ -70,7 +71,7 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
   }
 
   Future<void> _load() async {
-    setState(() => _isLoading = true);
+    // _isLoading = true; (Removed)
     final results = await Future.wait([
       CustomOrderRepository.getCustomOrders(),
       CustomProductsConfigRepository.getConfig(),
@@ -91,7 +92,7 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
       _selectedOrder = null;
     }
 
-    if (mounted) setState(() => _isLoading = false);
+    // _isLoading = false; (Removed)
   }
 
   void _syncConfigFields() {
@@ -154,7 +155,7 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
 
     setState(() => _isSavingOrder = true);
     try {
-      await CustomOrderRepository.updateCustomOrder(
+      await CustomOrderRepository.reviewCustomOrder(
         CustomOrderModel(
           id: order.id,
           userId: order.userId,
@@ -176,9 +177,16 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
           razorpayOrderId: order.razorpayOrderId,
           razorpayPaymentId: order.razorpayPaymentId,
           paymentStatus: order.paymentStatus,
+          cleanupAfter: _status == 'rejected'
+              ? DateTime.now().add(const Duration(days: 30))
+              : null,
           createdAt: order.createdAt,
           updatedAt: DateTime.now(),
+          statusHistory: order.statusHistory,
         ),
+        note: _notesCtrl.text.trim().isEmpty
+            ? 'Status changed to ${CustomOrderModel.normalizeStatus(_status).replaceAll('_', ' ')}'
+            : _notesCtrl.text.trim(),
       );
 
       _showMessage('Custom order review saved');
@@ -235,6 +243,7 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
+      initialIndex: widget.initialIndex,
       length: 2,
       child: Scaffold(
         backgroundColor: AppTheme.background,
@@ -269,12 +278,7 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
             ),
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildOrdersTab(),
-            _buildConfigTab(),
-          ],
-        ),
+        body: TabBarView(children: [_buildOrdersTab(), _buildConfigTab()]),
       ),
     );
   }
@@ -315,8 +319,9 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
         children: [
           CustomProductsSummaryCard(
             isEnabled: _isEnabled,
-            pendingCount:
-                _orders.where((order) => order.status == 'pending').length,
+            pendingCount: _orders
+                .where((order) => order.status == 'submitted')
+                .length,
             isSaving: _isSavingConfig,
             onSave: _saveConfig,
           ),
@@ -472,7 +477,10 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
               labelColor: AppTheme.terracotta,
               unselectedLabelColor: AppTheme.textLight,
               indicatorSize: TabBarIndicatorSize.label,
-              labelStyle: GoogleFonts.jost(fontSize: 12, fontWeight: FontWeight.bold),
+              labelStyle: GoogleFonts.jost(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
               tabs: const [
                 Tab(text: 'REQUESTS'),
                 Tab(text: 'PRODUCTION'),
@@ -484,9 +492,17 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
               height: 500,
               child: TabBarView(
                 children: [
-                  _buildOrdersFilterList(['pending', 'reviewing', 'quoted']),
-                  _buildOrdersFilterList(['accepted', 'in_production', 'finished', 'packed']),
-                  _buildOrdersFilterList(['shipped', 'delivered', 'rejected']),
+                  _buildOrdersFilterList(['submitted', 'in_review', 'quoted']),
+                  _buildOrdersFilterList([
+                    'confirmed',
+                    'in_production',
+                    'ready_to_dispatch',
+                  ]),
+                  _buildOrdersFilterList([
+                    'in_transit',
+                    'delivered',
+                    'rejected',
+                  ]),
                 ],
               ),
             ),
@@ -497,8 +513,7 @@ class _AdminCustomProductsPageState extends State<AdminCustomProductsPage> {
   }
 
   Widget _buildOrdersFilterList(List<String> statuses) {
-    final filtered =
-        _orders.where((o) => statuses.contains(o.status)).toList();
+    final filtered = _orders.where((o) => statuses.contains(o.status)).toList();
 
     if (filtered.isEmpty) {
       return Center(

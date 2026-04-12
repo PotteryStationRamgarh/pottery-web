@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/config_provider.dart';
 import '../../../core/utils/responsive_utils.dart';
@@ -89,7 +90,7 @@ class HomeFooter extends StatelessWidget {
 
           const SizedBox(height: 40),
 
-          Divider(color: AppTheme.divider.withOpacity(0.5)),
+          Divider(color: AppTheme.divider.withValues(alpha: 0.5)),
 
           const SizedBox(height: 24),
 
@@ -102,7 +103,7 @@ class HomeFooter extends StatelessWidget {
             style: GoogleFonts.jost(
               fontSize: 11,
               fontWeight: FontWeight.w300,
-              color: AppTheme.textLight.withOpacity(0.45),
+              color: AppTheme.textLight.withValues(alpha: 0.45),
               letterSpacing: 0.4,
               height: 1.6,
             ),
@@ -131,23 +132,18 @@ class HomeFooter extends StatelessWidget {
     );
   }
 
-  void _openSocial(BuildContext context, String url) {
+  Future<void> _openSocial(BuildContext context, String url) async {
     if (url.isEmpty || url == 'Coming Soon') {
       _showComingSoon(context);
     } else {
-      // In a real production app, use url_launcher package here.
-      // For now, we show a success message with the link info
-      // or implement web-specific launch if needed.
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Opening $url...',
-            style: GoogleFonts.jost(fontSize: 13, color: AppTheme.white),
-          ),
-          backgroundColor: AppTheme.primaryBrown,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      final uri = Uri.tryParse(url);
+      if (uri == null ||
+          !await launchUrl(uri, mode: LaunchMode.platformDefault)) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to open that link right now.')),
+        );
+      }
     }
   }
 
@@ -280,7 +276,7 @@ class _FooterLinkState extends State<_FooterLink> {
               letterSpacing: 1.5,
               color: _isHovered
                   ? AppTheme.primaryBrown
-                  : AppTheme.textLight.withOpacity(0.55),
+                  : AppTheme.textLight.withValues(alpha: 0.55),
             ),
           ),
         ),

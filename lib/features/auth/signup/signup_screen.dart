@@ -125,7 +125,7 @@ class _SignupScreenState extends State<SignupScreen>
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primaryBrown.withOpacity(0.12),
+                color: AppTheme.primaryBrown.withValues(alpha: 0.12),
                 blurRadius: 40,
                 offset: const Offset(0, 12),
               ),
@@ -200,7 +200,7 @@ class _SignupScreenState extends State<SignupScreen>
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.primaryBrown.withOpacity(0.08),
+                  color: AppTheme.primaryBrown.withValues(alpha: 0.08),
                   blurRadius: 32,
                   offset: const Offset(0, 6),
                 ),

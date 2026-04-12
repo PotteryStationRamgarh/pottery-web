@@ -31,7 +31,9 @@ class _ExclusiveListScreenState extends State<ExclusiveListScreen> {
     final products = await HomeRepository.getExclusiveProducts();
     if (mounted) {
       setState(() {
-        _products = products.where(StorefrontFilters.showExclusiveProduct).toList();
+        _products = products
+            .where(StorefrontFilters.showExclusiveProduct)
+            .toList();
         _isLoading = false;
       });
     }

@@ -15,10 +15,10 @@ Analyzing pottery_web...
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/pottery_placeholder.dart:31:61 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/pottery_placeholder.dart:37:44 • deprecated_member_use
    info • The import of '../../../../models/product_category.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../models/product.dart' • lib/features/admin/catalog/all_products/admin_products_list_page.dart:9:8 • unnecessary_import
-   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/catalog/all_products/admin_products_list_page.dart:512:30 • deprecated_member_use
-   info • Statements in an if should be enclosed in a block • lib/features/admin/catalog/all_products/admin_products_list_page.dart:544:25 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/admin/catalog/all_products/admin_products_list_page.dart:546:25 • curly_braces_in_flow_control_structures
-   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/admin/catalog/all_products/admin_products_list_page.dart:1076:11 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/catalog/all_products/admin_products_list_page.dart:537:30 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/features/admin/catalog/all_products/admin_products_list_page.dart:569:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/admin/catalog/all_products/admin_products_list_page.dart:571:25 • curly_braces_in_flow_control_structures
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/admin/catalog/all_products/admin_products_list_page.dart:1101:11 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/catalog/exclusive_products/admin_exclusive_list_page.dart:498:62 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/catalog/exclusive_products/admin_exclusive_list_page.dart:515:30 • deprecated_member_use
    info • Statements in an if should be enclosed in a block • lib/features/admin/catalog/exclusive_products/admin_exclusive_list_page.dart:547:25 • curly_braces_in_flow_control_structures
@@ -36,8 +36,9 @@ Analyzing pottery_web...
    info • Statements in an if should be enclosed in a block • lib/features/admin/content/exhibition/admin_exhibition_page.dart:537:25 • curly_braces_in_flow_control_structures
    info • Statements in an if should be enclosed in a block • lib/features/admin/content/exhibition/admin_exhibition_page.dart:539:25 • curly_braces_in_flow_control_structures
    info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/features/admin/content/exhibition/admin_exhibition_page.dart:717:13 • deprecated_member_use
-   info • The local variable '_fmt' starts with an underscore • lib/features/admin/dashboard/pages/dashboard_page.dart:386:12 • no_leading_underscores_for_local_identifiers
-   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/dashboard/pages/dashboard_page.dart:459:22 • deprecated_member_use
+warning • The value of the field '_isLoading' isn't used • lib/features/admin/custom_products/admin_custom_products_page.dart:25:8 • unused_field
+   info • The local variable '_fmt' starts with an underscore • lib/features/admin/dashboard/pages/dashboard_page.dart:376:12 • no_leading_underscores_for_local_identifiers
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/dashboard/pages/dashboard_page.dart:449:22 • deprecated_member_use
    info • Unnecessary use of multiple underscores • lib/features/admin/dashboard/widgets/featured_card.dart:26:35 • unnecessary_underscores
    info • Unnecessary use of multiple underscores • lib/features/admin/dashboard/widgets/featured_card.dart:26:39 • unnecessary_underscores
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/dashboard/widgets/featured_card.dart:27:60 • deprecated_member_use
@@ -100,9 +101,9 @@ Analyzing pottery_web...
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/gallery/gallery_screen.dart:239:50 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/gallery/gallery_screen.dart:269:53 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/gallery/gallery_screen.dart:289:53 • deprecated_member_use
-   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/home_footer.dart:95:43 • deprecated_member_use
-   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/home_footer.dart:108:41 • deprecated_member_use
-   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/home_footer.dart:286:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/home_footer.dart:92:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/home_footer.dart:105:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/home_footer.dart:283:40 • deprecated_member_use
 warning • Unused import: '../../../admin/catalog/repositories/product_repository.dart' • lib/features/customer/home/widgets/all_product_section.dart:8:8 • unused_import
 warning • Unused import: '../../../admin/catalog/repositories/category_repository.dart' • lib/features/customer/home/widgets/all_product_section.dart:9:8 • unused_import
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/widgets/all_product_section.dart:87:46 • deprecated_member_use
@@ -135,6 +136,7 @@ warning • Unused import: '../../../admin/catalog/repositories/category_reposit
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/widgets/hero_section.dart:399:45 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/widgets/nav_bar.dart:38:36 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/widgets/nav_bar.dart:41:37 • deprecated_member_use
+warning • The declaration '_showAbout' isn't referenced • lib/features/customer/home/widgets/nav_bar.dart:464:6 • unused_element
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/widgets/store_banner.dart:62:52 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/widgets/store_banner.dart:92:47 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/customer/home/widgets/store_banner.dart:131:52 • deprecated_member_use
@@ -176,3 +178,4 @@ warning • Unused import: '../../../admin/catalog/repositories/category_reposit
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/splash/splash_screen.dart:135:46 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/splash/splash_screen.dart:145:46 • deprecated_member_use
 
+177 issues found. (ran in 2.4s)

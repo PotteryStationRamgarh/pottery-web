@@ -22,7 +22,7 @@ class ErrorBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppTheme.errorRed.withOpacity(0.08),
+          color: AppTheme.errorRed.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
           border: Border(left: BorderSide(color: AppTheme.errorRed, width: 4)),
         ),
@@ -45,7 +45,7 @@ class ErrorBanner extends StatelessWidget {
               onTap: onDismiss,
               child: Icon(
                 Icons.close_rounded,
-                color: AppTheme.errorRed.withOpacity(0.6),
+                color: AppTheme.errorRed.withValues(alpha: 0.6),
                 size: 18,
               ),
             ),

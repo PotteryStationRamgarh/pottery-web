@@ -271,10 +271,11 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart)
+        if (isStart) {
           _startDate = picked;
-        else
+        } else {
           _endDate = picked;
+        }
       });
     }
   }
@@ -502,7 +503,7 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -533,10 +534,11 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
                 ] else ...[
                   PopupMenuButton<String>(
                     onSelected: (val) {
-                      if (val == 'edit')
+                      if (val == 'edit') {
                         _showForm(exhibition);
-                      else if (val == 'delete')
+                      } else if (val == 'delete') {
                         _deleteExhibition(exhibition);
+                      }
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'edit', child: Text('Edit')),
@@ -714,7 +716,7 @@ class _AdminExhibitionPageState extends State<AdminExhibitionPage> {
               'Show this exhibition on the customer home screen',
               style: AppTheme.bodySmall,
             ),
-            activeColor: AppTheme.successGreen,
+            activeThumbColor: AppTheme.successGreen,
             value: _isActive,
             onChanged: (val) => setState(() => _isActive = val),
             contentPadding: EdgeInsets.zero,

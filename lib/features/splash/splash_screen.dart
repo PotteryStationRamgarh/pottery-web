@@ -2,11 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../../../app/routes.dart';
-import '../../../../core/services/firebase_service.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/providers/config_provider.dart';
-import '../../../../core/providers/branding_provider.dart';
+import '../../app/routes.dart';
+import '../../core/providers/branding_provider.dart';
+import '../../core/providers/config_provider.dart';
+import '../../core/services/auth_gate_service.dart';
+import '../../core/services/firebase_service.dart';
+import '../../core/services/storefront_cleanup_service.dart';
+import '../../core/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -72,6 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
         final role = await FirebaseService.getUserRole(user.uid);
         if (!mounted) return;
         if (role == 'admin') {
+          StorefrontCleanupService.runMaintenanceIfDue();
           Navigator.pushReplacementNamed(context, Routes.adminDashboard);
           return;
         }
@@ -81,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     if (user == null) {
-      Navigator.pushReplacementNamed(context, Routes.signin);
+      Navigator.pushReplacementNamed(context, Routes.customerHome);
       return;
     }
 
@@ -101,9 +104,19 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (role == 'admin') {
+      StorefrontCleanupService.runMaintenanceIfDue();
       Navigator.pushReplacementNamed(context, Routes.adminDashboard);
     } else {
-      Navigator.pushReplacementNamed(context, Routes.customerHome);
+      final pending = AuthGateService.consumePendingNavigation();
+      if (pending != null) {
+        Navigator.pushReplacementNamed(
+          context,
+          pending.routeName,
+          arguments: pending.arguments,
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, Routes.customerHome);
+      }
     }
   }
 
@@ -132,7 +145,7 @@ class _SplashScreenState extends State<SplashScreen>
                 style: GoogleFonts.jost(
                   fontSize: 12,
                   fontWeight: FontWeight.w300,
-                  color: AppTheme.lightBrown.withOpacity(0.5),
+                  color: AppTheme.lightBrown.withValues(alpha: 0.5),
                   letterSpacing: 6,
                 ),
               ),
@@ -142,7 +155,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 1.5,
-                  color: AppTheme.lightBrown.withOpacity(0.4),
+                  color: AppTheme.lightBrown.withValues(alpha: 0.4),
                 ),
               ),
             ],

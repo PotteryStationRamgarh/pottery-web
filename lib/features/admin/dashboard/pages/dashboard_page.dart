@@ -101,14 +101,16 @@ class _DashboardViewState extends State<_DashboardView> {
             FutureBuilder<List<CustomOrderModel>>(
               future: CustomOrderRepository.getCustomOrders(),
               builder: (context, snapshot) {
-                final pendingCount = snapshot.data
-                        ?.where((order) => order.status == 'pending')
+                final pendingCount =
+                    snapshot.data
+                        ?.where((order) => order.status == 'submitted')
                         .length ??
                     0;
                 if (pendingCount == 0) return const SizedBox.shrink();
                 return _DashboardNotification(
                   icon: Icons.notifications_active_outlined,
-                  message: '$pendingCount custom product request(s) need review.',
+                  message:
+                      '$pendingCount custom product request(s) need review.',
                   buttonLabel: 'Open Requests',
                   onPressed: () => _nav(6),
                 );
@@ -119,7 +121,8 @@ class _DashboardViewState extends State<_DashboardView> {
             if (dashboard.incompleteProductCount > 0)
               _DashboardNotification(
                 icon: Icons.warning_amber_rounded,
-                message: '${dashboard.incompleteProductCount} product(s) in your collection are missing critical details (MRP, Images, etc.).',
+                message:
+                    '${dashboard.incompleteProductCount} product(s) in your collection are missing critical details (MRP, Images, etc.).',
                 buttonLabel: 'Fix Issues',
                 onPressed: () => _nav(8),
               ),
@@ -373,7 +376,7 @@ class _ExhibitionWidget extends StatelessWidget {
   }
 
   Widget _buildExhibitionDetails(DashboardProvider d) {
-    String _fmt(DateTime dt) {
+    String fmt(DateTime dt) {
       final dd = dt.day.toString().padLeft(2, '0');
       final mm = dt.month.toString().padLeft(2, '0');
       final yy = dt.year.toString().substring(2);
@@ -407,7 +410,7 @@ class _ExhibitionWidget extends StatelessWidget {
         _ExhibitionInfoLine(
           icon: Icons.calendar_today_outlined,
           text: d.exhibition.startDate != null
-              ? '${_fmt(d.exhibition.startDate!)} – ${_fmt(d.exhibition.endDate!)}'
+              ? '${fmt(d.exhibition.startDate!)} – ${fmt(d.exhibition.endDate!)}'
               : 'Dates not set',
         ),
       ],
@@ -446,7 +449,7 @@ class _StatusBadgeSmall extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -532,20 +535,11 @@ class _DashboardNotification extends StatelessWidget {
         children: [
           Icon(icon, color: AppTheme.terracotta),
           const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: AppTheme.bodyMedium,
-            ),
-          ),
+          Expanded(child: Text(message, style: AppTheme.bodyMedium)),
           const SizedBox(width: 12),
-          FilledButton(
-            onPressed: onPressed,
-            child: Text(buttonLabel),
-          ),
+          FilledButton(onPressed: onPressed, child: Text(buttonLabel)),
         ],
       ),
     );
   }
 }
-

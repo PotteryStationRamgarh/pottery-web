@@ -103,6 +103,25 @@ class MediaService {
     }
   }
 
+  String? extractObjectPath(String url) {
+    return _extractObjectPath(url);
+  }
+
+  String publicUrlForPath(String path) => '$_publicUrlBase/$path';
+
+  Future<List<String>> listAllObjectPaths({String prefix = ''}) async {
+    final minio = _createMinio();
+    final result = await minio.listAllObjects(
+      _bucket,
+      prefix: prefix,
+      recursive: true,
+    );
+    return result.objects
+        .map((object) => object.key ?? '')
+        .where((key) => key.trim().isNotEmpty)
+        .toList();
+  }
+
   String? _extractObjectPath(String url) {
     final trimmed = url.trim();
     if (trimmed.isEmpty || !trimmed.startsWith(_publicUrlBase)) return null;

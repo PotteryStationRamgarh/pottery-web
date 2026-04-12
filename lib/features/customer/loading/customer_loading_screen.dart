@@ -128,7 +128,7 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _textLogo(),
+                  errorBuilder: (_, _, _) => _textLogo(),
                 ),
               )
             else
@@ -153,7 +153,7 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
               style: GoogleFonts.jost(
                 fontSize: 11,
                 fontWeight: FontWeight.w300,
-                color: AppTheme.lightBrown.withOpacity(0.45),
+                color: AppTheme.lightBrown.withValues(alpha: 0.45),
                 letterSpacing: 6,
               ),
             ),
@@ -165,7 +165,7 @@ class _CustomerLoadingScreenState extends State<CustomerLoadingScreen>
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppTheme.lightBrown.withOpacity(0.5),
+                color: AppTheme.lightBrown.withValues(alpha: 0.5),
               ),
             ),
           ],

@@ -5,8 +5,6 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../models/product.dart';
 import '../../widgets/product_card.dart';
-import '../../../admin/catalog/repositories/product_repository.dart';
-import '../../../admin/catalog/repositories/category_repository.dart';
 
 /// AllProductsSection — grid of all active products from Firestore.
 /// Shown below the exhibition section on the home screen.
@@ -84,7 +82,7 @@ class AllProductsSection extends StatelessWidget {
               style: GoogleFonts.jost(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.primaryBrown.withOpacity(0.55),
+                color: AppTheme.primaryBrown.withValues(alpha: 0.55),
                 letterSpacing: 3.5,
               ),
             ),
@@ -145,9 +143,7 @@ class AllProductsSection extends StatelessWidget {
       itemCount: products.take(4).length,
       itemBuilder: (context, index) {
         final product = products.take(4).toList()[index];
-        return ProductCard(
-          product: product,
-        );
+        return ProductCard(product: product);
       },
     );
   }
@@ -167,7 +163,7 @@ class AllProductsSection extends StatelessWidget {
         childAspectRatio: 0.72,
       ),
       itemCount: isMobile ? 4 : (isTablet ? 6 : 8),
-      itemBuilder: (_, __) => _ShimmerCard(),
+      itemBuilder: (_, _) => _ShimmerCard(),
     );
   }
 
@@ -315,7 +311,7 @@ class _ShimmerCardState extends State<_ShimmerCard>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) => Column(
+      builder: (_, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Square image placeholder
@@ -323,7 +319,7 @@ class _ShimmerCardState extends State<_ShimmerCard>
             aspectRatio: 1.0,
             child: Container(
               decoration: BoxDecoration(
-                color: AppTheme.divider.withOpacity(_anim.value),
+                color: AppTheme.divider.withValues(alpha: _anim.value),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
@@ -339,7 +335,7 @@ class _ShimmerCardState extends State<_ShimmerCard>
             height: 13,
             width: 100,
             decoration: BoxDecoration(
-              color: AppTheme.divider.withOpacity(_anim.value),
+              color: AppTheme.divider.withValues(alpha: _anim.value),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -349,7 +345,7 @@ class _ShimmerCardState extends State<_ShimmerCard>
             height: 11,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppTheme.divider.withOpacity(_anim.value * 0.7),
+              color: AppTheme.divider.withValues(alpha: _anim.value * 0.7),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -359,7 +355,7 @@ class _ShimmerCardState extends State<_ShimmerCard>
             height: 11,
             width: 70,
             decoration: BoxDecoration(
-              color: AppTheme.divider.withOpacity(_anim.value * 0.5),
+              color: AppTheme.divider.withValues(alpha: _anim.value * 0.5),
               borderRadius: BorderRadius.circular(4),
             ),
           ),

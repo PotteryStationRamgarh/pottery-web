@@ -118,7 +118,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               ),
                             );
                           },
-                          errorBuilder: (_, __, ___) => const Center(
+                          errorBuilder: (_, _, _) => const Center(
                             child: Icon(
                               Icons.broken_image_outlined,
                               color: AppTheme.greyPlaceholder,
@@ -148,8 +148,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.5),
-                      Colors.black.withOpacity(0.0),
+                      Colors.black.withValues(alpha: 0.5),
+                      Colors.black.withValues(alpha: 0.0),
                     ],
                   ),
                 ),
@@ -219,7 +219,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       shrinkWrap: true,
                       scrollDirection: Axis.horizontal,
                       itemCount: images.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 10),
+                      separatorBuilder: (_, _) => const SizedBox(width: 10),
                       itemBuilder: (context, index) => GestureDetector(
                         onTap: () {
                           _pageController.animateToPage(
@@ -236,7 +236,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             border: Border.all(
                               color: _currentPage == index
                                   ? Colors.white
-                                  : Colors.white.withOpacity(0.3),
+                                  : Colors.white.withValues(alpha: 0.3),
                               width: 2,
                             ),
                             image: DecorationImage(
@@ -266,7 +266,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       size: 20,
                     ),
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.1),
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                       shape: const CircleBorder(),
                     ),
                   ),
@@ -286,7 +286,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       size: 20,
                     ),
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.1),
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                       shape: const CircleBorder(),
                     ),
                   ),

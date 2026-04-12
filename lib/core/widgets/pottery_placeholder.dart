@@ -23,18 +23,22 @@ class PotteryPlaceholder extends StatelessWidget {
     Widget content = Container(
       width: width,
       height: height,
-      color: AppTheme.lightBrown.withOpacity(0.1),
+      color: AppTheme.lightBrown.withValues(alpha: 0.1),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 32, color: AppTheme.lightBrown.withOpacity(0.4)),
+            Icon(
+              icon,
+              size: 32,
+              color: AppTheme.lightBrown.withValues(alpha: 0.4),
+            ),
             const SizedBox(height: 8),
             Text(
               'Image Not Available',
               style: GoogleFonts.jost(
                 fontSize: 10,
-                color: AppTheme.lightBrown.withOpacity(0.45),
+                color: AppTheme.lightBrown.withValues(alpha: 0.45),
                 letterSpacing: 0.5,
               ),
             ),

@@ -6,7 +6,6 @@ import '../../../../core/providers/app_refresh_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../models/product.dart';
-import '../../../../models/product_category.dart';
 import '../repositories/product_repository.dart';
 import '../widgets/admin_form_field.dart';
 import '../widgets/admin_toggle_switch.dart';
@@ -124,7 +123,9 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
     return p.mrp <= 0 ||
         p.sellingPrice <= 0 ||
         p.imageUrls.isEmpty ||
-        p.categoryId.isEmpty;
+        p.categoryId.isEmpty ||
+        p.description.trim().isEmpty ||
+        p.stockCount < 0;
   }
 
   void _applyFilter() {
@@ -534,7 +535,7 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                   decoration: BoxDecoration(
                     color:
                         (product.isActive ? AppTheme.successGreen : Colors.grey)
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -565,10 +566,11 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                 ] else ...[
                   PopupMenuButton<String>(
                     onSelected: (val) {
-                      if (val == 'edit')
+                      if (val == 'edit') {
                         _showForm(product);
-                      else if (val == 'delete')
+                      } else if (val == 'delete') {
                         _deleteProduct(product);
+                      }
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'edit', child: Text('Edit')),
@@ -720,7 +722,8 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                               AdminToggleSwitch(
                                 label: 'Is Active',
                                 value: _isActive,
-                                onChanged: (val) => setState(() => _isActive = val),
+                                onChanged: (val) =>
+                                    setState(() => _isActive = val),
                               ),
                             ],
                           );
@@ -838,20 +841,32 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                                       height: 8,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: (int.tryParse(_stockCountCtrl.text) ?? 0) > 0
+                                        color:
+                                            (int.tryParse(
+                                                      _stockCountCtrl.text,
+                                                    ) ??
+                                                    0) >
+                                                0
                                             ? AppTheme.successGreen
                                             : Colors.red,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      (int.tryParse(_stockCountCtrl.text) ?? 0) > 0
+                                      (int.tryParse(_stockCountCtrl.text) ??
+                                                  0) >
+                                              0
                                           ? 'IN STOCK'
                                           : 'OUT OF STOCK',
                                       style: GoogleFonts.jost(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: (int.tryParse(_stockCountCtrl.text) ?? 0) > 0
+                                        color:
+                                            (int.tryParse(
+                                                      _stockCountCtrl.text,
+                                                    ) ??
+                                                    0) >
+                                                0
                                             ? AppTheme.successGreen
                                             : Colors.red,
                                       ),
@@ -956,7 +971,8 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                         setState(() => _careInstructions.add(val));
                         _careInputCtrl.clear();
                       },
-                      onRemove: (idx) => setState(() => _careInstructions.removeAt(idx)),
+                      onRemove: (idx) =>
+                          setState(() => _careInstructions.removeAt(idx)),
                     ),
                     const SizedBox(height: 24),
                     _buildDynamicList(
@@ -1010,10 +1026,7 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
       children: [
         Text(
           title,
-          style: GoogleFonts.jost(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.jost(fontSize: 12, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -1042,18 +1055,26 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
                   onSubmitted: (val) {
                     if (val.trim().isNotEmpty) onAdd(val.trim());
                   },
-                  decoration: AppTheme.inputDecoration(
-                    label: '',
-                    hint: hint,
-                  ).copyWith(contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                  decoration: AppTheme.inputDecoration(label: '', hint: hint)
+                      .copyWith(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
                 onPressed: () {
-                  if (controller.text.trim().isNotEmpty) onAdd(controller.text.trim());
+                  if (controller.text.trim().isNotEmpty) {
+                    onAdd(controller.text.trim());
+                  }
                 },
-                icon: const Icon(Icons.add_circle, color: AppTheme.primaryBrown),
+                icon: const Icon(
+                  Icons.add_circle,
+                  color: AppTheme.primaryBrown,
+                ),
               ),
             ],
           ),
@@ -1098,7 +1119,7 @@ class _AdminProductsListPageState extends State<AdminProductsListPage> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedCategoryId,
+          initialValue: _selectedCategoryId,
           decoration: AppTheme.inputDecoration(
             label: 'Category',
             hint: 'Select category',

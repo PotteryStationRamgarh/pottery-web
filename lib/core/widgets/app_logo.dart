@@ -40,7 +40,7 @@ class AppLogo extends StatelessWidget {
         height: size,
         fit: BoxFit.contain,
         // If image fails to load — fall back to icon placeholder
-        errorBuilder: (_, __, ___) => _iconPlaceholder(),
+        errorBuilder: (_, _, _) => _iconPlaceholder(),
       );
     }
 
@@ -58,8 +58,8 @@ class AppLogo extends StatelessWidget {
       padding: EdgeInsets.all(size * 0.1),
       decoration: BoxDecoration(
         color: lightMode
-            ? Colors.white.withOpacity(0.1)
-            : Colors.black.withOpacity(0.05),
+            ? Colors.white.withValues(alpha: 0.1)
+            : Colors.black.withValues(alpha: 0.05),
         shape: BoxShape.circle,
       ),
       child: Center(

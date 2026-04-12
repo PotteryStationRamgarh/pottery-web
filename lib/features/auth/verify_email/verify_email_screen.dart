@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app/routes.dart';
+import '../../../core/services/auth_gate_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/responsive_utils.dart';
 import 'verify_email_controller.dart';
@@ -92,7 +93,16 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
     if (role == 'admin') {
       Navigator.pushReplacementNamed(context, Routes.adminDashboard);
     } else {
-      Navigator.pushReplacementNamed(context, Routes.customerHome);
+      final pending = AuthGateService.consumePendingNavigation();
+      if (pending != null) {
+        Navigator.pushReplacementNamed(
+          context,
+          pending.routeName,
+          arguments: pending.arguments,
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, Routes.customerHome);
+      }
     }
   }
 
@@ -134,7 +144,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primaryBrown.withOpacity(0.08),
+                color: AppTheme.primaryBrown.withValues(alpha: 0.08),
                 blurRadius: 40,
                 offset: const Offset(0, 8),
               ),
@@ -179,7 +189,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primaryBrown.withOpacity(0.08),
+                color: AppTheme.primaryBrown.withValues(alpha: 0.08),
                 blurRadius: 32,
                 offset: const Offset(0, 6),
               ),

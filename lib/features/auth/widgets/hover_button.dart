@@ -43,13 +43,13 @@ class _HoverButtonState extends State<HoverButton> {
             ? BoxDecoration(
                 // Outlined style for secondary action
                 color: _isHovered
-                    ? AppTheme.primaryBrown.withOpacity(0.06)
+                    ? AppTheme.primaryBrown.withValues(alpha: 0.06)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isDisabled
                       ? AppTheme.divider
-                      : AppTheme.primaryBrown.withOpacity(0.5),
+                      : AppTheme.primaryBrown.withValues(alpha: 0.5),
                   width: 1.5,
                 ),
               )
@@ -58,7 +58,7 @@ class _HoverButtonState extends State<HoverButton> {
                 color: isDisabled
                     ? AppTheme.divider
                     : _isHovered
-                    ? AppTheme.primaryBrown.withOpacity(0.85)
+                    ? AppTheme.primaryBrown.withValues(alpha: 0.85)
                     : AppTheme.primaryBrown,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: isDisabled
@@ -66,14 +66,14 @@ class _HoverButtonState extends State<HoverButton> {
                     : _isHovered
                     ? [
                         BoxShadow(
-                          color: AppTheme.primaryBrown.withOpacity(0.3),
+                          color: AppTheme.primaryBrown.withValues(alpha: 0.3),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
                       ]
                     : [
                         BoxShadow(
-                          color: AppTheme.primaryBrown.withOpacity(0.15),
+                          color: AppTheme.primaryBrown.withValues(alpha: 0.15),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         ),

@@ -18,8 +18,9 @@ class AdminBrandingRepository {
   static Future<AppBranding> getBranding() async {
     try {
       final doc = await _db.collection(_col).doc('branding').get();
-      if (doc.exists && doc.data() != null)
+      if (doc.exists && doc.data() != null) {
         return AppBranding.fromMap(doc.data()!);
+      }
       return AppBranding.empty();
     } catch (e) {
       debugPrint('AdminBrandingRepository.getBranding error: $e');
@@ -30,8 +31,9 @@ class AdminBrandingRepository {
   static Future<AppContact> getContact() async {
     try {
       final doc = await _db.collection(_col).doc('contact').get();
-      if (doc.exists && doc.data() != null)
+      if (doc.exists && doc.data() != null) {
         return AppContact.fromMap(doc.data()!);
+      }
       return AppContact.empty();
     } catch (e) {
       debugPrint('AdminBrandingRepository.getContact error: $e');
@@ -42,8 +44,9 @@ class AdminBrandingRepository {
   static Future<AppContent> getContent() async {
     try {
       final doc = await _db.collection(_col).doc('content').get();
-      if (doc.exists && doc.data() != null)
+      if (doc.exists && doc.data() != null) {
         return AppContent.fromMap(doc.data()!);
+      }
       return AppContent.empty();
     } catch (e) {
       debugPrint('AdminBrandingRepository.getContent error: $e');
@@ -54,8 +57,9 @@ class AdminBrandingRepository {
   static Future<AppSocial> getSocial() async {
     try {
       final doc = await _db.collection(_col).doc('social').get();
-      if (doc.exists && doc.data() != null)
+      if (doc.exists && doc.data() != null) {
         return AppSocial.fromMap(doc.data()!);
+      }
       return AppSocial.empty();
     } catch (e) {
       debugPrint('AdminBrandingRepository.getSocial error: $e');

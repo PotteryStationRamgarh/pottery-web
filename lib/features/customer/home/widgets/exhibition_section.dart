@@ -67,7 +67,7 @@ class ExhibitionSection extends StatelessWidget {
   Widget _buildImage(dynamic exhibition) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.divider.withOpacity(0.3),
+        color: AppTheme.divider.withValues(alpha: 0.3),
         borderRadius: const BorderRadius.only(
           topRight: Radius.circular(64),
           bottomLeft: Radius.circular(64),
@@ -84,7 +84,7 @@ class ExhibitionSection extends StatelessWidget {
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: double.infinity,
-                errorBuilder: (_, __, ___) => const ImagePlaceholder(
+                errorBuilder: (_, _, _) => const ImagePlaceholder(
                   aspectRatio: 1.0,
                   icon: Icons.photo_outlined,
                 ),
@@ -118,7 +118,7 @@ class ExhibitionSection extends StatelessWidget {
               style: GoogleFonts.jost(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.primaryBrown.withOpacity(0.55),
+                color: AppTheme.primaryBrown.withValues(alpha: 0.55),
                 letterSpacing: 3.5,
               ),
             ),
@@ -149,10 +149,10 @@ class ExhibitionSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
-              color: AppTheme.primaryBrown.withOpacity(0.07),
+              color: AppTheme.primaryBrown.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: AppTheme.primaryBrown.withOpacity(0.18),
+                color: AppTheme.primaryBrown.withValues(alpha: 0.18),
               ),
             ),
             child: Row(
@@ -258,7 +258,7 @@ class _InfoRow extends StatelessWidget {
           height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppTheme.primaryBrown.withOpacity(0.07),
+            color: AppTheme.primaryBrown.withValues(alpha: 0.07),
           ),
           child: Icon(icon, size: 15, color: AppTheme.primaryBrown),
         ),
@@ -305,9 +305,9 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Text(
         text,

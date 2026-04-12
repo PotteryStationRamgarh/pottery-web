@@ -40,7 +40,7 @@ class _QuickActionCardState extends State<QuickActionCard> {
             boxShadow: _hovered
                 ? [
                     BoxShadow(
-                      color: AppTheme.primaryBrown.withOpacity(0.25),
+                      color: AppTheme.primaryBrown.withValues(alpha: 0.25),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -55,7 +55,7 @@ class _QuickActionCardState extends State<QuickActionCard> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: _hovered
-                      ? AppTheme.white.withOpacity(0.15)
+                      ? AppTheme.white.withValues(alpha: 0.15)
                       : AppTheme.background,
                   shape: BoxShape.circle,
                 ),

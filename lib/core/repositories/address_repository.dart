@@ -12,8 +12,9 @@ class AddressRepository {
       if (userId.isEmpty) return [];
 
       final snap = await _db
+          .collection('users')
+          .doc(userId)
           .collection('addresses')
-          .where('userId', isEqualTo: userId)
           .orderBy('createdAt', descending: true)
           .get();
 
@@ -26,16 +27,18 @@ class AddressRepository {
 
   static Future<void> saveAddress(AddressModel address) async {
     try {
-      final docRef = address.id.isEmpty
-          ? _db.collection('addresses').doc()
-          : _db.collection('addresses').doc(address.id);
+      if (address.userId.isEmpty) return;
+
+      final colRef = _db
+          .collection('users')
+          .doc(address.userId)
+          .collection('addresses');
+
+      final docRef = address.id.isEmpty ? colRef.doc() : colRef.doc(address.id);
 
       if (address.isDefault) {
         final batch = _db.batch();
-        final snap = await _db
-            .collection('addresses')
-            .where('userId', isEqualTo: address.userId)
-            .get();
+        final snap = await colRef.get();
 
         for (final doc in snap.docs) {
           batch.update(doc.reference, {'isDefault': false});
@@ -52,10 +55,15 @@ class AddressRepository {
     }
   }
 
-  static Future<void> deleteAddress(String addressId) async {
+  static Future<void> deleteAddress(String userId, String addressId) async {
     try {
-      if (addressId.isEmpty) return;
-      await _db.collection('addresses').doc(addressId).delete();
+      if (userId.isEmpty || addressId.isEmpty) return;
+      await _db
+          .collection('users')
+          .doc(userId)
+          .collection('addresses')
+          .doc(addressId)
+          .delete();
     } catch (e) {
       debugPrint('AddressRepository.deleteAddress error: $e');
       rethrow;
@@ -66,21 +74,18 @@ class AddressRepository {
     try {
       if (userId.isEmpty || addressId.isEmpty) return;
 
+      final colRef = _db
+          .collection('users')
+          .doc(userId)
+          .collection('addresses');
       final batch = _db.batch();
 
-      // Set all addresses for this user to isDefault: false
-      final snap = await _db
-          .collection('addresses')
-          .where('userId', isEqualTo: userId)
-          .get();
-
+      final snap = await colRef.get();
       for (final doc in snap.docs) {
         batch.update(doc.reference, {'isDefault': false});
       }
 
-      // Set current address to isDefault: true
-      batch.update(_db.collection('addresses').doc(addressId), {'isDefault': true});
-
+      batch.update(colRef.doc(addressId), {'isDefault': true});
       await batch.commit();
     } catch (e) {
       debugPrint('AddressRepository.setDefault error: $e');

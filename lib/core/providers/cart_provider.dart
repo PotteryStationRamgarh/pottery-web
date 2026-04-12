@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/product.dart';
+import '../services/local_session_service.dart';
 
 class CartItem {
   final String id;
@@ -35,14 +36,37 @@ class CartItem {
       sku: sku,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'price': price,
+      'imageUrl': imageUrl,
+      'quantity': quantity,
+      'isExclusive': isExclusive,
+      'sku': sku,
+    };
+  }
+
+  factory CartItem.fromMap(Map<String, dynamic> map) {
+    return CartItem(
+      id: map['id'] as String? ?? '',
+      name: map['name'] as String? ?? '',
+      price: (map['price'] as num?)?.toDouble() ?? 0,
+      imageUrl: map['imageUrl'] as String? ?? '',
+      quantity: map['quantity'] as int? ?? 1,
+      isExclusive: map['isExclusive'] as bool? ?? false,
+      sku: map['sku'] as String?,
+    );
+  }
 }
 
 class CartProvider with ChangeNotifier {
   CartProvider() {
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user == null) {
-        _items.clear();
-        notifyListeners();
+        _loadGuestCart();
       } else {
         _load(user.uid);
       }
@@ -151,6 +175,7 @@ class CartProvider with ChangeNotifier {
 
   Future<void> _load(String uid) async {
     try {
+      final guestItems = await LocalSessionService.readGuestCart();
       final doc = await FirebaseFirestore.instance
           .collection('user_carts')
           .doc(uid)
@@ -159,48 +184,66 @@ class CartProvider with ChangeNotifier {
 
       _items.clear();
       for (final item in rawItems.whereType<Map>()) {
-        final map = Map<String, dynamic>.from(item);
-        final cartItem = CartItem(
-          id: map['id'] as String? ?? '',
-          name: map['name'] as String? ?? '',
-          price: (map['price'] as num?)?.toDouble() ?? 0,
-          imageUrl: map['imageUrl'] as String? ?? '',
-          quantity: map['quantity'] as int? ?? 1,
-          isExclusive: map['isExclusive'] as bool? ?? false,
-          sku: map['sku'] as String?,
-        );
+        final cartItem = CartItem.fromMap(Map<String, dynamic>.from(item));
         if (cartItem.id.isNotEmpty) {
           _items[cartItem.id] = cartItem;
         }
       }
+
+      for (final item in guestItems) {
+        final guestItem = CartItem.fromMap(item);
+        if (guestItem.id.isEmpty) continue;
+        if (_items.containsKey(guestItem.id)) {
+          _items.update(
+            guestItem.id,
+            (existing) => existing.copyWith(
+              quantity: existing.quantity + guestItem.quantity,
+            ),
+          );
+        } else {
+          _items[guestItem.id] = guestItem;
+        }
+      }
+
+      if (guestItems.isNotEmpty) {
+        await _persist();
+        await LocalSessionService.clearGuestCart();
+      }
+
       notifyListeners();
     } catch (_) {}
   }
 
   Future<void> _persist() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      await LocalSessionService.writeGuestCart(
+        _items.values.map((item) => item.toMap()).toList(),
+      );
+      return;
+    }
 
-    await FirebaseFirestore.instance.collection('user_carts').doc(user.uid).set(
-      {
-        'userId': user.uid,
-        'items': _items.values
-            .map(
-              (item) => {
-                'id': item.id,
-                'name': item.name,
-                'price': item.price,
-                'imageUrl': item.imageUrl,
-                'quantity': item.quantity,
-                'isExclusive': item.isExclusive,
-                'sku': item.sku,
-              },
-            )
-            .toList(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await FirebaseFirestore.instance
+        .collection('user_carts')
+        .doc(user.uid)
+        .set({
+          'userId': user.uid,
+          'items': _items.values.map((item) => item.toMap()).toList(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+  }
+
+  Future<void> _loadGuestCart() async {
+    final guestItems = await LocalSessionService.readGuestCart();
+    _items
+      ..clear()
+      ..addEntries(
+        guestItems
+            .map(CartItem.fromMap)
+            .where((item) => item.id.isNotEmpty)
+            .map((item) => MapEntry(item.id, item)),
+      );
+    notifyListeners();
   }
 
   @override

@@ -84,7 +84,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 24,
                         offset: const Offset(0, 8),
                       ),
@@ -94,8 +94,8 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                     children: [
                       CircleAvatar(
                         radius: 44,
-                        backgroundColor: AppTheme.primaryBrown.withOpacity(
-                          0.08,
+                        backgroundColor: AppTheme.primaryBrown.withValues(
+                          alpha: 0.08,
                         ),
                         child: const Icon(
                           Icons.shield_outlined,
@@ -176,7 +176,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
         label: Text(label),
         style: OutlinedButton.styleFrom(
           foregroundColor: color,
-          side: BorderSide(color: color.withOpacity(0.3)),
+          side: BorderSide(color: color.withValues(alpha: 0.3)),
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

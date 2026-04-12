@@ -125,7 +125,7 @@ class HeroSection extends StatelessWidget {
           style: GoogleFonts.jost(
             fontSize: 10,
             fontWeight: FontWeight.w400,
-            color: AppTheme.primaryBrown.withOpacity(0.55),
+            color: AppTheme.primaryBrown.withValues(alpha: 0.55),
             letterSpacing: 3.5,
           ),
         ),
@@ -204,7 +204,7 @@ class HeroSection extends StatelessWidget {
         Container(
           height: height,
           decoration: BoxDecoration(
-            color: AppTheme.divider.withOpacity(0.35),
+            color: AppTheme.divider.withValues(alpha: 0.35),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(80),
               bottomRight: Radius.circular(100),
@@ -219,7 +219,7 @@ class HeroSection extends StatelessWidget {
                   width: double.infinity,
                   height: height,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const PotteryPlaceholder(),
+                  errorBuilder: (_, _, _) => const PotteryPlaceholder(),
                 )
               : const PotteryPlaceholder(),
         ),
@@ -233,7 +233,7 @@ class HeroSection extends StatelessWidget {
             height: 140,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppTheme.lightBrown.withOpacity(0.15),
+              color: AppTheme.lightBrown.withValues(alpha: 0.15),
             ),
           ),
         ),
@@ -345,7 +345,7 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           decoration: BoxDecoration(
             color: _isHovered
-                ? AppTheme.primaryBrown.withOpacity(0.82)
+                ? AppTheme.primaryBrown.withValues(alpha: 0.82)
                 : AppTheme.primaryBrown,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -396,7 +396,7 @@ class _TextButtonState extends State<_TextButton> {
               bottom: BorderSide(
                 color: _isHovered
                     ? AppTheme.primaryBrown
-                    : AppTheme.primaryBrown.withOpacity(0.35),
+                    : AppTheme.primaryBrown.withValues(alpha: 0.35),
                 width: 1.5,
               ),
             ),

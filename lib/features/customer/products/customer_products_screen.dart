@@ -28,12 +28,49 @@ class CustomerProductsScreen extends StatefulWidget {
 class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
   bool _isLoading = true;
   List<Product> _products = [];
+  final TextEditingController _searchController = TextEditingController();
   int _refreshVersion = 0;
+  String _searchQuery = '';
+  String _sortBy = 'featured';
+
+  List<Product> get _visibleProducts {
+    final normalizedQuery = _searchQuery.trim().toLowerCase();
+    final filtered = _products.where((product) {
+      if (normalizedQuery.isEmpty) return true;
+      return product.title.toLowerCase().contains(normalizedQuery) ||
+          product.description.toLowerCase().contains(normalizedQuery) ||
+          product.tags.any(
+            (tag) => tag.toLowerCase().contains(normalizedQuery),
+          );
+    }).toList();
+
+    switch (_sortBy) {
+      case 'price_low_high':
+        filtered.sort((a, b) => a.sellingPrice.compareTo(b.sellingPrice));
+        break;
+      case 'price_high_low':
+        filtered.sort((a, b) => b.sellingPrice.compareTo(a.sellingPrice));
+        break;
+      case 'popular':
+        filtered.sort((a, b) => b.soldCount.compareTo(a.soldCount));
+        break;
+      default:
+        break;
+    }
+
+    return filtered;
+  }
 
   @override
   void initState() {
     super.initState();
     _loadProducts();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -62,7 +99,9 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
       );
       if (mounted) {
         setState(() {
-          final activeProds = prods.where(StorefrontFilters.showProduct).toList();
+          final activeProds = prods
+              .where(StorefrontFilters.showProduct)
+              .toList();
           activeProds.shuffle(); // Randomize for customer
           _products = activeProds;
           _isLoading = false;
@@ -129,8 +168,54 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) {
+                            setState(() => _searchQuery = value);
+                          },
+                          decoration: AppTheme.inputDecoration(
+                            label: 'Search within this collection',
+                            hint: 'Search by title or tag',
+                          ).copyWith(prefixIcon: const Icon(Icons.search)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      SizedBox(
+                        width: isMobile ? 150 : 220,
+                        child: DropdownButtonFormField<String>(
+                          initialValue: _sortBy,
+                          decoration: AppTheme.inputDecoration(label: 'Sort'),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'featured',
+                              child: Text('Featured'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'popular',
+                              child: Text('Popular'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'price_low_high',
+                              child: Text('Price: Low to High'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'price_high_low',
+                              child: Text('Price: High to Low'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) setState(() => _sortBy = value);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                   Text(
-                    '${_products.length} Products',
+                    '${_visibleProducts.length} Products',
                     style: GoogleFonts.jost(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -148,12 +233,10 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
                       mainAxisSpacing: isMobile ? 28 : 40,
                       childAspectRatio: 0.72,
                     ),
-                    itemCount: _products.length,
+                    itemCount: _visibleProducts.length,
                     itemBuilder: (context, index) {
-                      final product = _products[index];
-                      return ProductCard(
-                        product: product,
-                      );
+                      final product = _visibleProducts[index];
+                      return ProductCard(product: product);
                     },
                   ),
                   const SizedBox(height: 64),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../app/routes.dart';
+import '../../../../core/services/auth_gate_service.dart';
 import '../../../../core/providers/cart_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/config_provider.dart';
@@ -23,7 +25,7 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
 
   // Fixed height for the nav bar — used by Scaffold appBar
   @override
-  Size get preferredSize => const Size.fromHeight(72);
+  Size get preferredSize => const Size.fromHeight(80);
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +34,13 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
     final currentRoute = ModalRoute.of(context)?.settings.name;
 
     return Container(
-      height: 72,
+      height: 80,
       decoration: BoxDecoration(
         // Slightly transparent warm white — glass effect
-        color: AppTheme.background.withOpacity(0.88),
+        color: AppTheme.background.withValues(alpha: 0.88),
         border: Border(
           bottom: BorderSide(
-            color: AppTheme.divider.withOpacity(0.4),
+            color: AppTheme.divider.withValues(alpha: 0.4),
             width: 1,
           ),
         ),
@@ -62,7 +64,8 @@ class _DesktopNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final canGoBack = Navigator.canPop(context) && currentRoute != Routes.customerHome;
+    final canGoBack =
+        Navigator.canPop(context) && currentRoute != Routes.customerHome;
 
     // Dynamic spacing and padding based on available width
     // Helps prevent "Overflow" errors on smaller desktop screens
@@ -134,20 +137,21 @@ class _DesktopNav extends StatelessWidget {
                     // Custom Orders
                     _NavItem(
                       label: 'Custom Orders',
-                      onTap: () => Navigator.pushNamed(context, Routes.customOrder),
+                      onTap: () =>
+                          Navigator.pushNamed(context, Routes.customOrder),
                     ),
 
                     SizedBox(width: width < 1200 ? 16 : 28),
 
                     // Search icon
                     IconButton(
-                      icon: const Icon(Icons.search, size: 20),
+                      icon: const Icon(Icons.search, size: 24),
                       color: AppTheme.textLight,
                       onPressed: () => _openRoute(context, Routes.categories),
                     ),
 
                     IconButton(
-                      icon: const Icon(Icons.favorite_border, size: 20),
+                      icon: const Icon(Icons.favorite_border, size: 24),
                       color: AppTheme.textLight,
                       onPressed: () => _openRoute(context, Routes.wishlist),
                     ),
@@ -156,9 +160,18 @@ class _DesktopNav extends StatelessWidget {
 
                     // Profile icon — now routes to MyAccount
                     IconButton(
-                      icon: const Icon(Icons.person_outline, size: 20),
+                      icon: const Icon(Icons.person_outline, size: 24),
                       color: AppTheme.textLight,
-                      onPressed: () => Navigator.pushNamed(context, Routes.myAccount),
+                      onPressed: () {
+                        if (FirebaseAuth.instance.currentUser == null) {
+                          AuthGateService.requireLogin(
+                            context,
+                            routeName: Routes.myAccount,
+                          );
+                          return;
+                        }
+                        Navigator.pushNamed(context, Routes.myAccount);
+                      },
                     ),
 
                     SizedBox(width: width < 1200 ? 12 : 20),
@@ -205,7 +218,7 @@ class _MobileNav extends StatelessWidget {
 
           // Search icon
           IconButton(
-            icon: const Icon(Icons.search, size: 20),
+            icon: const Icon(Icons.search, size: 24),
             color: AppTheme.textDark,
             onPressed: () => _openRoute(context, Routes.categories),
           ),
@@ -214,7 +227,7 @@ class _MobileNav extends StatelessWidget {
           const _CartButton(isMobile: true),
 
           IconButton(
-            icon: const Icon(Icons.favorite_border, size: 20),
+            icon: const Icon(Icons.favorite_border, size: 24),
             color: AppTheme.textDark,
             onPressed: () => _openRoute(context, Routes.wishlist),
           ),
@@ -282,7 +295,9 @@ class NavDrawer extends StatelessWidget {
 
               _DrawerItem(
                 label: 'Collections',
-                isActive: ModalRoute.of(context)?.settings.name == Routes.customerHome,
+                isActive:
+                    ModalRoute.of(context)?.settings.name ==
+                    Routes.customerHome,
                 onTap: () {
                   Navigator.pop(context);
                   _openRoute(context, Routes.customerHome);
@@ -297,7 +312,8 @@ class NavDrawer extends StatelessWidget {
               ),
               _DrawerItem(
                 label: 'About',
-                isActive: ModalRoute.of(context)?.settings.name == Routes.aboutUs,
+                isActive:
+                    ModalRoute.of(context)?.settings.name == Routes.aboutUs,
                 onTap: () {
                   Navigator.pop(context);
                   _openRoute(context, Routes.aboutUs);
@@ -328,6 +344,13 @@ class NavDrawer extends StatelessWidget {
                 label: 'My Account',
                 onTap: () {
                   Navigator.pop(context);
+                  if (FirebaseAuth.instance.currentUser == null) {
+                    AuthGateService.requireLogin(
+                      context,
+                      routeName: Routes.myAccount,
+                    );
+                    return;
+                  }
                   _openRoute(context, Routes.myAccount);
                 },
               ),
@@ -336,13 +359,24 @@ class NavDrawer extends StatelessWidget {
 
               // Sign out at bottom of drawer
               _DrawerItem(
-                label: 'Sign Out',
-                icon: Icons.logout,
+                label: FirebaseAuth.instance.currentUser == null
+                    ? 'Sign In'
+                    : 'Sign Out',
+                icon: FirebaseAuth.instance.currentUser == null
+                    ? Icons.login
+                    : Icons.logout,
                 onTap: () async {
                   Navigator.pop(context);
+                  if (FirebaseAuth.instance.currentUser == null) {
+                    Navigator.pushNamed(context, Routes.signin);
+                    return;
+                  }
                   await AuthService().logout();
                   if (context.mounted) {
-                    Navigator.pushReplacementNamed(context, Routes.signin);
+                    Navigator.pushReplacementNamed(
+                      context,
+                      Routes.customerHome,
+                    );
                   }
                 },
               ),
@@ -400,9 +434,9 @@ class _NavItemState extends State<_NavItem> {
           child: Text(
             widget.label.toUpperCase(),
             style: GoogleFonts.jost(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 2,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 2.2,
               color: highlight ? AppTheme.primaryBrown : AppTheme.textLight,
             ),
           ),
@@ -444,7 +478,7 @@ class _DrawerItem extends StatelessWidget {
             Text(
               label.toUpperCase(),
               style: GoogleFonts.jost(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                 letterSpacing: 2.5,
                 color: isActive ? AppTheme.primaryBrown : AppTheme.textLight,
@@ -461,15 +495,7 @@ class _DrawerItem extends StatelessWidget {
 // DIALOGS — About and Contact
 // ─────────────────────────────────────────
 
-void _showAbout(BuildContext context, ConfigProvider config) {
-  _showInfoDialog(
-    context,
-    title: 'About Us',
-    content: config.content.aboutUs.isNotEmpty
-        ? config.content.aboutUs
-        : 'Pottery Station Ramgarh is dedicated to the art of hand-thrown ceramics.',
-  );
-}
+// About dialog removed in favor of About Page
 
 void _showContact(BuildContext context, ConfigProvider config) {
   final c = config.contact;

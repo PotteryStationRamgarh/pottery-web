@@ -180,8 +180,8 @@ class VerifyEmailForm extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isSuccess
-            ? AppTheme.successGreen.withOpacity(0.08)
-            : AppTheme.errorRed.withOpacity(0.08),
+            ? AppTheme.successGreen.withValues(alpha: 0.08)
+            : AppTheme.errorRed.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border(
           left: BorderSide(
@@ -298,7 +298,7 @@ class _AnimatedEmailIconState extends State<_AnimatedEmailIcon>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppTheme.primaryBrown.withOpacity(0.08),
+                color: AppTheme.primaryBrown.withValues(alpha: 0.08),
                 width: 2,
               ),
             ),
@@ -309,7 +309,7 @@ class _AnimatedEmailIconState extends State<_AnimatedEmailIcon>
             width: 58,
             height: 58,
             decoration: BoxDecoration(
-              color: AppTheme.primaryBrown.withOpacity(0.08),
+              color: AppTheme.primaryBrown.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -352,7 +352,7 @@ class _SpinnerPainter extends CustomPainter {
     );
 
     // Draw a second, very subtle trailing arc
-    paint.color = color.withOpacity(0.3);
+    paint.color = color.withValues(alpha: 0.3);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       2.0,

@@ -20,14 +20,15 @@ class CustomProductsConfig {
   factory CustomProductsConfig.fromMap(Map<String, dynamic>? map) {
     final data = map ?? {};
     return CustomProductsConfig(
-      heroImageUrl: data['heroImageUrl'] as String? ??
+      heroImageUrl:
+          data['heroImageUrl'] as String? ??
           'https://images.unsplash.com/photo-1565191999001-551c187427bb?q=80&w=1500&auto=format&fit=crop',
       heroTitle: data['heroTitle'] as String? ?? 'Bespoke Creations',
-      heroSubtitle: data['heroSubtitle'] as String? ??
+      heroSubtitle:
+          data['heroSubtitle'] as String? ??
           'Design a custom ceramic piece in the Pottery Station aesthetic.',
-      glazeOptions: (data['glazeOptions'] as List?)
-              ?.map((e) => e.toString())
-              .toList() ??
+      glazeOptions:
+          (data['glazeOptions'] as List?)?.map((e) => e.toString()).toList() ??
           const [
             'Natural Matte',
             'Ash Glaze',
@@ -36,11 +37,11 @@ class CustomProductsConfig {
             'Speckled Stone',
             'Satin Black',
           ],
-      productTypes: (data['productTypes'] as List?)
-              ?.map((e) => e.toString())
-              .toList() ??
+      productTypes:
+          (data['productTypes'] as List?)?.map((e) => e.toString()).toList() ??
           const ['Bowl', 'Vase', 'Mug', 'Plate', 'Decorative', 'Other'],
-      introText: data['introText'] as String? ??
+      introText:
+          data['introText'] as String? ??
           'Shape a custom piece with your preferred form, glaze, and inspiration details.',
       isEnabled: data['isEnabled'] as bool? ?? true,
     );
@@ -78,4 +79,3 @@ class CustomProductsConfig {
     );
   }
 }
-

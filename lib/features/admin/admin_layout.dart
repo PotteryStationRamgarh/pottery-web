@@ -12,8 +12,15 @@ import 'catalog/categories/admin_categories_list_page.dart';
 import 'catalog/all_products/admin_products_list_page.dart';
 import 'catalog/exclusive_products/admin_exclusive_list_page.dart';
 import 'custom_products/admin_custom_products_page.dart';
+import 'orders/admin_orders_page.dart';
+import 'support/admin_support_page.dart';
 import 'settings/admin_settings_page.dart';
 import '../../core/repositories/exhibition_repository.dart';
+import 'catalog/repositories/product_repository.dart';
+import '../../core/repositories/custom_order_repository.dart';
+import '../../core/services/storefront_cleanup_service.dart';
+import '../../models/product.dart';
+import '../../models/custom_order_model.dart';
 
 class AdminLayout extends StatefulWidget {
   const AdminLayout({super.key});
@@ -25,6 +32,8 @@ class AdminLayout extends StatefulWidget {
 class _AdminLayoutState extends State<AdminLayout> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  int _incompleteCount = 0;
+  int _pendingRequestsCount = 0;
 
   List<Widget> get _pages => [
     AdminDashboardPage(onNavigate: _navigate),
@@ -33,9 +42,12 @@ class _AdminLayoutState extends State<AdminLayout> {
     const AdminCategoriesListPage(),
     const AdminProductsListPage(),
     const AdminExclusiveListPage(),
-    const AdminCustomProductsPage(),
-    const AdminSettingsPage(),
+    const AdminCustomProductsPage(initialIndex: 0), // Requests
+    const AdminCustomProductsPage(initialIndex: 1), // Config
     const AdminProductsListPage(showOnlyIncomplete: true),
+    const AdminSettingsPage(),
+    const AdminOrdersPage(),
+    const AdminSupportPage(),
   ];
 
   @override
@@ -43,6 +55,40 @@ class _AdminLayoutState extends State<AdminLayout> {
     super.initState();
     // Fire-and-forget: auto-clean exhibitions older than 30 days
     ExhibitionRepository.deleteOldExhibitions();
+    StorefrontCleanupService.runMaintenanceIfDue();
+    _loadNotificationCounts();
+  }
+
+  Future<void> _loadNotificationCounts() async {
+    try {
+      final results = await Future.wait<dynamic>([
+        ProductRepository.getProducts(forceRefresh: true),
+        CustomOrderRepository.getCustomOrders(),
+      ]);
+
+      final products = results[0] as List<Product>;
+      final requests = results[1] as List<CustomOrderModel>;
+
+      if (mounted) {
+        setState(() {
+          _incompleteCount = products.where(_isIncomplete).length;
+          _pendingRequestsCount = requests
+              .where((r) => r.status == 'submitted')
+              .length;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading notification counts: $e');
+    }
+  }
+
+  bool _isIncomplete(Product p) {
+    return p.mrp <= 0 ||
+        p.sellingPrice <= 0 ||
+        p.imageUrls.isEmpty ||
+        p.categoryId.isEmpty ||
+        p.description.trim().isEmpty ||
+        p.stockCount < 0;
   }
 
   void _navigate(int index) {
@@ -50,6 +96,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
+    _loadNotificationCounts();
   }
 
   Widget _buildPage() {
@@ -74,11 +121,17 @@ class _AdminLayoutState extends State<AdminLayout> {
       case 5:
         return 'Exclusives';
       case 6:
-        return 'Custom Products';
+        return 'Custom Requests';
       case 7:
-        return 'Settings';
+        return 'Custom Config';
       case 8:
-        return 'Attention Required';
+        return 'Incomplete Products';
+      case 9:
+        return 'Settings';
+      case 10:
+        return 'Orders';
+      case 11:
+        return 'Support';
       default:
         return 'Dashboard';
     }
@@ -156,16 +209,45 @@ class _AdminLayoutState extends State<AdminLayout> {
                   onTap: _navigate,
                 ),
                 _SidebarItem(
+                  icon: Icons.collections_bookmark_outlined,
+                  label: 'Incomplete Products',
+                  index: 8,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                  badgeCount: _incompleteCount,
+                ),
+                const SizedBox(height: 16),
+
+                const _SidebarGroupLabel('CUSTOM PRODUCT'),
+                _SidebarItem(
                   icon: Icons.design_services_outlined,
-                  label: 'Custom Orders',
+                  label: 'Requests',
                   index: 6,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                  badgeCount: _pendingRequestsCount,
+                ),
+                _SidebarItem(
+                  icon: Icons.tune_outlined,
+                  label: 'Config',
+                  index: 7,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
+                const SizedBox(height: 16),
+
+                const _SidebarGroupLabel('OPERATIONS'),
+                _SidebarItem(
+                  icon: Icons.local_shipping_outlined,
+                  label: 'Orders',
+                  index: 10,
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),
                 _SidebarItem(
-                  icon: Icons.collections_bookmark_outlined,
-                  label: 'Custom Collections',
-                  index: 8, // New index
+                  icon: Icons.support_agent_outlined,
+                  label: 'Support',
+                  index: 11,
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),
@@ -175,7 +257,7 @@ class _AdminLayoutState extends State<AdminLayout> {
                 _SidebarItem(
                   icon: Icons.settings_outlined,
                   label: 'Settings',
-                  index: 7,
+                  index: 9,
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),
@@ -336,6 +418,7 @@ class _SidebarItem extends StatelessWidget {
   final int index;
   final int selectedIndex;
   final ValueChanged<int> onTap;
+  final int badgeCount;
 
   const _SidebarItem({
     required this.icon,
@@ -343,6 +426,7 @@ class _SidebarItem extends StatelessWidget {
     required this.index,
     required this.selectedIndex,
     required this.onTap,
+    this.badgeCount = 0,
   });
 
   @override
@@ -381,17 +465,39 @@ class _SidebarItem extends StatelessWidget {
                         : Colors.white.withValues(alpha: 0.7),
                     size: 20,
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    label,
-                    style: AppTheme.bodyMedium.copyWith(
-                      color: selected
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.7),
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                      fontSize: 13,
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: AppTheme.bodyMedium.copyWith(
+                        color: selected
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.7),
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
+                  if (badgeCount > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.terracotta,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        badgeCount > 99 ? '99+' : badgeCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

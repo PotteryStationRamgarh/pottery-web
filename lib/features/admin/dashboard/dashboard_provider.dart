@@ -52,12 +52,15 @@ class DashboardProvider extends ChangeNotifier {
       _productCount = products.length;
       _exclusiveCount = exclusives.length;
 
-      _incompleteProductCount = products.where((p) =>
-          p.mrp <= 0 ||
-          p.sellingPrice <= 0 ||
-          p.imageUrls.isEmpty ||
-          p.categoryId.isEmpty
-      ).length;
+      _incompleteProductCount = products
+          .where(
+            (p) =>
+                p.mrp <= 0 ||
+                p.sellingPrice <= 0 ||
+                p.imageUrls.isEmpty ||
+                p.categoryId.isEmpty,
+          )
+          .length;
 
       if (current != null) {
         _exhibition = AppExhibition(

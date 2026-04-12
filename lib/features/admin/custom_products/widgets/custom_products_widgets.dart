@@ -186,7 +186,7 @@ class CustomOrderCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                order.status.toUpperCase(),
+                order.displayStatus.toUpperCase(),
                 style: GoogleFonts.jost(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
@@ -258,10 +258,7 @@ class CustomOrderReviewForm extends StatelessWidget {
               width: double.infinity,
               fit: BoxFit.contain, // Maintain aspect ratio
               frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                return Container(
-                  color: AppTheme.background,
-                  child: child,
-                );
+                return Container(color: AppTheme.background, child: child);
               },
             ),
           ),
@@ -269,25 +266,29 @@ class CustomOrderReviewForm extends StatelessWidget {
         const SizedBox(height: 20),
         DropdownButtonFormField<String>(
           initialValue: status,
-          items: const [
-            'pending',
-            'reviewing',
-            'quoted',
-            'accepted',
-            'rejected',
-            'in_production',
-            'finished',
-            'packed',
-            'shipped',
-            'delivered'
-          ]
-              .map(
-                (value) => DropdownMenuItem(
-                  value: value,
-                  child: Text(value.replaceAll('_', ' ').toUpperCase()),
-                ),
-              )
-              .toList(),
+          items:
+              const [
+                    'submitted',
+                    'in_review',
+                    'quoted',
+                    'confirmed',
+                    'rejected',
+                    'in_production',
+                    'ready_to_dispatch',
+                    'in_transit',
+                    'delivered',
+                  ]
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(
+                        CustomOrderModel.normalizeStatus(
+                          value,
+                        ).replaceAll('_', ' ').toUpperCase(),
+                      ),
+                    ),
+                  )
+                  .toList(),
           onChanged: (value) {
             if (value != null) onStatusChanged(value);
           },

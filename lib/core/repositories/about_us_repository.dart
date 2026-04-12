@@ -17,9 +17,9 @@ class AboutUsRepository {
   }
 
   static Future<void> updateAboutUs(AboutUsModel aboutUs) async {
-    await _db.collection('app_config').doc('about_us').set(
-      aboutUs.toMap(),
-      SetOptions(merge: true),
-    );
+    await _db
+        .collection('app_config')
+        .doc('about_us')
+        .set(aboutUs.toMap(), SetOptions(merge: true));
   }
 }

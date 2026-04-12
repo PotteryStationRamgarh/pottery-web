@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:typed_data';
 import '../../../app/routes.dart';
+import '../../../core/services/auth_gate_service.dart';
 import '../../../core/repositories/custom_products_config_repository.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/repositories/custom_order_repository.dart';
@@ -83,10 +84,17 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
   }
 
   Future<void> _handleSubmit() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      AuthGateService.requireLogin(context, routeName: Routes.customOrder);
+      return;
+    }
+
     if (_nameController.text.isEmpty || _emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
           content: Text('Please provide your name and email'),
         ),
       );
@@ -96,10 +104,9 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
       final customOrder = CustomOrderModel(
         id: '',
-        userId: user?.uid ?? '',
+        userId: user.uid,
         name: _nameController.text,
         email: _emailController.text,
         phone: _phoneController.text,
@@ -121,6 +128,7 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
             content: Text('Custom product request submitted successfully.'),
             backgroundColor: AppTheme.successGreen,
           ),
@@ -132,6 +140,7 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
             content: Text('Submission failed: $e'),
           ),
         );
@@ -214,13 +223,14 @@ class _CustomOrderScreenState extends State<CustomOrderScreen> {
                                     null) ...[
                                   const SizedBox(height: 16),
                                   OutlinedButton.icon(
-                                    onPressed: () => Navigator.pushNamed(
-                                      context,
-                                      Routes.signin,
-                                    ),
+                                    onPressed: () =>
+                                        AuthGateService.requireLogin(
+                                          context,
+                                          routeName: Routes.customOrder,
+                                        ),
                                     icon: const Icon(Icons.login),
                                     label: const Text(
-                                      'LOGIN TO SAVE YOUR DETAILS',
+                                      'LOGIN TO SUBMIT THIS REQUEST',
                                     ),
                                   ),
                                 ],

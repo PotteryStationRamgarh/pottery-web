@@ -68,7 +68,9 @@ class AddressModel {
       'pincode': pincode,
       'addressType': addressType,
       'isDefault': isDefault,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
     };
   }
 

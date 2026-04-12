@@ -48,12 +48,18 @@ class _AdminBrandingPageState extends State<AdminBrandingPage> {
     try {
       await _ctrl.saveAll();
       if (mounted) {
+        final config = context.read<ConfigProvider>();
+        final branding = context.read<BrandingProvider>();
+        final exhibition = context.read<ExhibitionProvider>();
+        final refresh = context.read<AppRefreshProvider>();
+
         await Future.wait([
-          context.read<ConfigProvider>().reload(),
-          context.read<BrandingProvider>().reloadBranding(),
-          context.read<ExhibitionProvider>().reload(),
+          config.reload(),
+          branding.reloadBranding(),
+          exhibition.reload(),
         ]);
-        context.read<AppRefreshProvider>().invalidateAll();
+
+        refresh.invalidateAll();
         _showSnackbar('All branding & content updated successfully!');
         setState(() {});
       }

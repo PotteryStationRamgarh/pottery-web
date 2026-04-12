@@ -137,7 +137,7 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
           curve: Curves.easeOut,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: AppTheme.divider.withOpacity(0.35),
+            color: AppTheme.divider.withValues(alpha: 0.35),
             // Corner shape animates slightly on hover
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(32),
@@ -171,7 +171,7 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(32),
                   bottomRight: Radius.circular(_isHovered ? 16 : 32),
@@ -181,7 +181,10 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
               ),
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(4),
@@ -207,11 +210,11 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(4),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -251,7 +254,7 @@ class _ExclusiveCardState extends State<ExclusiveCard> {
           top: isCompact ? 12 : 16,
           right: isCompact ? 12 : 16,
           child: Material(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),

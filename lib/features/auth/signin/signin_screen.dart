@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../app/routes.dart';
+import '../../../core/services/auth_gate_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/utils/responsive_utils.dart';
@@ -80,7 +81,16 @@ class _SigninScreenState extends State<SigninScreen>
           return;
         }
       }
-      Navigator.pushReplacementNamed(context, Routes.customerHome);
+      final pending = AuthGateService.consumePendingNavigation();
+      if (pending != null) {
+        Navigator.pushReplacementNamed(
+          context,
+          pending.routeName,
+          arguments: pending.arguments,
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, Routes.customerHome);
+      }
     } else if (result == 'email_not_verified') {
       Navigator.pushReplacementNamed(context, Routes.verifyEmail);
     } else {
@@ -134,7 +144,7 @@ class _SigninScreenState extends State<SigninScreen>
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primaryBrown.withOpacity(0.12),
+                color: AppTheme.primaryBrown.withValues(alpha: 0.12),
                 blurRadius: 40,
                 offset: const Offset(0, 12),
               ),
@@ -213,7 +223,7 @@ class _SigninScreenState extends State<SigninScreen>
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.primaryBrown.withOpacity(0.08),
+                  color: AppTheme.primaryBrown.withValues(alpha: 0.08),
                   blurRadius: 32,
                   offset: const Offset(0, 6),
                 ),
