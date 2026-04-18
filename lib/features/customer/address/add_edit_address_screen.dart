@@ -9,6 +9,7 @@ import '../../../models/address_model.dart';
 import '../../../core/services/pincode_service.dart';
 import '../../../core/services/phone_verification_service.dart';
 import '../../../core/repositories/address_repository.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DEBOUNCER
@@ -276,15 +277,17 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: Text(
           widget.existingAddress != null ? 'Edit Address' : 'Add New Address',
           style: AppTheme.headingLarge,
         ),
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.background,
         foregroundColor: AppTheme.textDark,
         surfaceTintColor: Colors.transparent,
       ),
@@ -293,17 +296,18 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
         child: Consumer<AddressFormNotifier>(
           builder: (context, notifier, _) => Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
+              constraints: const BoxConstraints(maxWidth: 760),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32, vertical: 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // ── Section: Contact Info ─────────────────────────────
-                      _sectionHeader('Contact Information'),
-                      const SizedBox(height: 16),
+                      _buildCard(
+                        title: 'Contact Information',
+                        children: [
 
                       // Full Name
                       _label('Full Name *'),
@@ -389,11 +393,13 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
                             style: const TextStyle(color: Colors.red, fontSize: 12),
                           ),
                         ),
-                      const SizedBox(height: 28),
+                      ],
+                    ),
 
-                      // ── Section: Delivery Address ─────────────────────────
-                      _sectionHeader('Delivery Address'),
-                      const SizedBox(height: 16),
+                    // ── Section: Delivery Address ─────────────────────────
+                    _buildCard(
+                      title: 'Delivery Address',
+                      children: [
 
                       // Address Line 1
                       _label('Address Line 1 *'),
@@ -522,47 +528,63 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
                       const SizedBox(height: 16),
 
                       // City & State — always editable but auto-filled from PIN
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _label('City / District *'),
-                                TextFormField(
-                                  controller: _cityCtrl,
-                                  onChanged: notifier.setCity,
-                                  textCapitalization: TextCapitalization.words,
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'City required' : null,
-                                  decoration: _inputDec(
-                                    hint: 'Auto-filled / Enter city',
-                                    icon: Icons.location_city_outlined,
+                      // City & State — always editable but auto-filled from PIN
+                      if (isMobile) ...[
+                        _label('City / District *'),
+                        TextFormField(
+                          controller: _cityCtrl,
+                          onChanged: notifier.setCity,
+                          textCapitalization: TextCapitalization.words,
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'City required' : null,
+                          decoration: _inputDec(hint: 'Auto-filled / Enter city', icon: Icons.location_city_outlined),
+                        ),
+                        const SizedBox(height: 16),
+                        _label('State *'),
+                        TextFormField(
+                          controller: _stateCtrl,
+                          onChanged: notifier.setState,
+                          textCapitalization: TextCapitalization.words,
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'State required' : null,
+                          decoration: _inputDec(hint: 'Auto-filled / Enter state', icon: Icons.map_outlined),
+                        ),
+                      ] else ...[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _label('City / District *'),
+                                  TextFormField(
+                                    controller: _cityCtrl,
+                                    onChanged: notifier.setCity,
+                                    textCapitalization: TextCapitalization.words,
+                                    validator: (v) => (v == null || v.trim().isEmpty) ? 'City required' : null,
+                                    decoration: _inputDec(hint: 'Auto-filled / Enter city', icon: Icons.location_city_outlined),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _label('State *'),
-                                TextFormField(
-                                  controller: _stateCtrl,
-                                  onChanged: notifier.setState,
-                                  textCapitalization: TextCapitalization.words,
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'State required' : null,
-                                  decoration: _inputDec(
-                                    hint: 'Auto-filled / Enter state',
-                                    icon: Icons.map_outlined,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _label('State *'),
+                                  TextFormField(
+                                    controller: _stateCtrl,
+                                    onChanged: notifier.setState,
+                                    textCapitalization: TextCapitalization.words,
+                                    validator: (v) => (v == null || v.trim().isEmpty) ? 'State required' : null,
+                                    decoration: _inputDec(hint: 'Auto-filled / Enter state', icon: Icons.map_outlined),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                       if (notifier.isPincodeVerified)
                         Padding(
                           padding: const EdgeInsets.only(top: 6, left: 4),
@@ -571,11 +593,13 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
                             style: GoogleFonts.jost(fontSize: 11, color: Colors.green.shade700),
                           ),
                         ),
-                      const SizedBox(height: 28),
+                      ],
+                    ),
 
-                      // ── Section: Address Type ─────────────────────────────
-                      _sectionHeader('Address Type'),
-                      const SizedBox(height: 12),
+                    // ── Section: Address Type & Defaults ────────────────────
+                    _buildCard(
+                      title: 'Preferences',
+                      children: [
                       Wrap(
                         spacing: 10,
                         runSpacing: 10,
@@ -637,7 +661,10 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
 
                       // Save Button
                       SizedBox(
@@ -679,21 +706,40 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen> {
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  Widget _sectionHeader(String text) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        text,
-        style: GoogleFonts.jost(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          color: AppTheme.textDark,
-        ),
+  Widget _buildCard({required String title, required List<Widget> children}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(color: AppTheme.divider.withValues(alpha: 0.5)),
       ),
-      const SizedBox(height: 4),
-      Container(height: 2, width: 40, color: AppTheme.terracotta),
-    ],
-  );
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textDark,
+            ),
+          ),
+          const SizedBox(height: 20),
+          ...children,
+        ],
+      ),
+    );
+  }
 
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8),

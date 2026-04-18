@@ -137,22 +137,26 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
                             ),
                           )
                         else
-                          GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: isDesktop ? 2 : 1,
-                                  crossAxisSpacing: 32,
-                                  mainAxisSpacing: 32,
-                                  mainAxisExtent: 220,
-                                ),
-                            itemCount: _addresses.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index == _addresses.length) {
-                                return _buildAddNewCard();
-                              }
-                              return _buildAddressCard(_addresses[index]);
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final itemWidth = isDesktop
+                                  ? (constraints.maxWidth - 32) / 2
+                                  : constraints.maxWidth;
+                              return Wrap(
+                                spacing: 32,
+                                runSpacing: 32,
+                                children: List.generate(_addresses.length + 1, (index) {
+                                  return SizedBox(
+                                    width: itemWidth,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(minHeight: 220),
+                                      child: index == _addresses.length
+                                          ? _buildAddNewCard()
+                                          : _buildAddressCard(_addresses[index]),
+                                    ),
+                                  );
+                                }),
+                              );
                             },
                           ),
                       ],
@@ -287,7 +291,7 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
             "${addr.city}, ${addr.state} - ${addr.pincode}",
             style: GoogleFonts.jost(color: AppTheme.textLight),
           ),
-          const Spacer(),
+          const SizedBox(height: 24),
           Row(
             children: [
               const Icon(

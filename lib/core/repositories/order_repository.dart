@@ -60,17 +60,40 @@ class OrderRepository {
       for (final item in items) {
         final collection = item.isExclusive ? 'exclusive_products' : 'products';
         final productRef = _db.collection(collection).doc(item.productId);
-        await _db.runTransaction((txn) async {
+        
+        final newStock = await _db.runTransaction<int>((txn) async {
           final snap = await txn.get(productRef);
           final data = snap.data() ?? <String, dynamic>{};
           final soldCount = data['soldCount'] as int? ?? 0;
           final stockCount = data['stockCount'] as int? ?? 99;
+
+          if (stockCount < item.qty) {
+            throw Exception('Insufficient stock for ${item.title}. Only $stockCount left.');
+          }
+
+          final updatedStock = stockCount - item.qty;
+
           txn.set(productRef, {
             'soldCount': soldCount + item.qty,
-            'stockCount': stockCount > 0 ? stockCount - item.qty : stockCount,
+            'stockCount': updatedStock,
+            'isInStock': updatedStock > 0,
             'updatedAt': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
+
+          return updatedStock;
         });
+
+        if (newStock <= 10) {
+          await NotificationRepository.sendNotification(
+            audience: 'admin',
+            recipientId: '',
+            title: newStock == 0 ? 'Out of Stock Alert' : 'Low Stock Alert',
+            body: '${item.title} has ${newStock == 0 ? 'completely run out of stock!' : 'dropped to $newStock pieces left.'} Please restock.',
+            category: 'inventory',
+            entityType: 'product',
+            entityId: item.productId,
+          );
+        }
       }
 
       await NotificationRepository.sendNotification(

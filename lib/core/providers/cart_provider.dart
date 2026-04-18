@@ -14,6 +14,7 @@ class CartItem {
   final int quantity;
   final bool isExclusive;
   final String? sku;
+  final int maxStock;
 
   CartItem({
     required this.id,
@@ -23,9 +24,10 @@ class CartItem {
     this.quantity = 1,
     this.isExclusive = false,
     this.sku,
+    this.maxStock = 99,
   });
 
-  CartItem copyWith({int? quantity}) {
+  CartItem copyWith({int? quantity, int? maxStock}) {
     return CartItem(
       id: id,
       name: name,
@@ -34,6 +36,7 @@ class CartItem {
       quantity: quantity ?? this.quantity,
       isExclusive: isExclusive,
       sku: sku,
+      maxStock: maxStock ?? this.maxStock,
     );
   }
 
@@ -46,6 +49,7 @@ class CartItem {
       'quantity': quantity,
       'isExclusive': isExclusive,
       'sku': sku,
+      'maxStock': maxStock,
     };
   }
 
@@ -58,6 +62,7 @@ class CartItem {
       quantity: map['quantity'] as int? ?? 1,
       isExclusive: map['isExclusive'] as bool? ?? false,
       sku: map['sku'] as String?,
+      maxStock: map['maxStock'] as int? ?? 99,
     );
   }
 }
@@ -93,10 +98,13 @@ class CartProvider with ChangeNotifier {
       if (_items.containsKey(product.id)) {
         _items.update(
           product.id,
-          (existing) =>
-              existing.copyWith(quantity: existing.quantity + quantity),
+          (existing) {
+             final newQuantity = (existing.quantity + quantity).clamp(1, existing.maxStock);
+             return existing.copyWith(quantity: newQuantity);
+          }
         );
       } else {
+        final newQuantity = quantity.clamp(1, product.stockCount);
         _items.putIfAbsent(
           product.id,
           () => CartItem(
@@ -104,9 +112,10 @@ class CartProvider with ChangeNotifier {
             name: product.title,
             price: product.sellingPrice,
             imageUrl: product.primaryImage,
-            quantity: quantity,
+            quantity: newQuantity,
             isExclusive: false,
             sku: product.sku,
+            maxStock: product.stockCount,
           ),
         );
       }
@@ -114,10 +123,13 @@ class CartProvider with ChangeNotifier {
       if (_items.containsKey(product.id)) {
         _items.update(
           product.id,
-          (existing) =>
-              existing.copyWith(quantity: existing.quantity + quantity),
+          (existing) {
+             final newQuantity = (existing.quantity + quantity).clamp(1, existing.maxStock);
+             return existing.copyWith(quantity: newQuantity);
+          }
         );
       } else {
+        final newQuantity = quantity.clamp(1, product.stockCount);
         _items.putIfAbsent(
           product.id,
           () => CartItem(
@@ -125,9 +137,10 @@ class CartProvider with ChangeNotifier {
             name: product.title,
             price: product.sellingPrice,
             imageUrl: product.primaryImage,
-            quantity: quantity,
+            quantity: newQuantity,
             isExclusive: true,
             sku: product.sku,
+            maxStock: product.stockCount,
           ),
         );
       }
@@ -161,7 +174,10 @@ class CartProvider with ChangeNotifier {
     if (!_items.containsKey(productId)) return;
     _items.update(
       productId,
-      (existing) => existing.copyWith(quantity: existing.quantity + 1),
+      (existing) {
+        if (existing.quantity >= existing.maxStock) return existing;
+        return existing.copyWith(quantity: existing.quantity + 1);
+      }
     );
     notifyListeners();
     _persist();

@@ -181,6 +181,10 @@ class ProductInfoSection extends StatelessWidget {
               ),
           ],
         ),
+        if (data.stockCount <= 10) ...[
+          const SizedBox(height: 16),
+          _buildStockWarning(data.stockCount),
+        ],
         const SizedBox(height: 18),
         Text(
           data.shortDescription,
@@ -216,50 +220,100 @@ class ProductInfoSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 28),
-        QuantitySelector(
-          quantity: quantity,
-          onDecrease: onDecreaseQuantity,
-          onIncrease: onIncreaseQuantity,
-        ),
-        const SizedBox(height: 20),
+        if (data.stockCount > 0) ...[
+          QuantitySelector(
+            quantity: quantity,
+            onDecrease: onDecreaseQuantity,
+            onIncrease: data.stockCount > quantity ? onIncreaseQuantity : () {},
+          ),
+          const SizedBox(height: 20),
+        ],
         SizedBox(
           width: double.infinity,
           child: FilledButton(
-            onPressed: onAddToCart,
+            onPressed: data.stockCount > 0 ? onAddToCart : null,
             style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.terracotta,
-              foregroundColor: AppTheme.white,
+              backgroundColor: data.stockCount > 0 ? AppTheme.terracotta : AppTheme.divider,
+              foregroundColor: data.stockCount > 0 ? AppTheme.white : AppTheme.textLight,
               padding: const EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: Text('ADD TO CART', style: AppTheme.labelLarge),
+            child: Text(data.stockCount > 0 ? 'ADD TO CART' : 'OUT OF STOCK', style: AppTheme.labelLarge),
           ),
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: onBuyNow,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.textDark,
-              side: const BorderSide(color: AppTheme.borderColor),
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+        if (data.stockCount > 0)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: onBuyNow,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.textDark,
+                side: const BorderSide(color: AppTheme.borderColor),
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
-            ),
-            child: Text(
-              'BUY NOW',
-              style: AppTheme.bodyLarge.copyWith(
-                fontWeight: FontWeight.w600,
-                letterSpacing: 1.2,
+              child: Text(
+                'BUY NOW',
+                style: AppTheme.bodyLarge.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
           ),
-        ),
       ],
+    );
+  }
+
+  Widget _buildStockWarning(int stock) {
+    if (stock <= 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.block, color: Colors.red.shade700, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              'Out of Stock',
+              style: AppTheme.bodySmall.copyWith(
+                color: Colors.red.shade700,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Colors.orange.shade800, size: 16),
+          const SizedBox(width: 8),
+          Text(
+            'Only $stock left in stock',
+            style: AppTheme.bodySmall.copyWith(
+              color: Colors.orange.shade800,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

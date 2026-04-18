@@ -187,15 +187,19 @@ class ExclusiveSection extends StatelessWidget {
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(3, (index) {
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              top: index == 1 ? 64.0 : 0.0, // Staggered look
-              left: index == 0 ? 0.0 : 20.0,
-              right: index == 2 ? 0.0 : 20.0,
+        return Flexible(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: index == 1 ? 64.0 : 0.0, // Staggered look
+                left: index == 0 ? 0.0 : 20.0,
+                right: index == 2 ? 0.0 : 20.0,
+              ),
+              child: ExclusiveCard(product: fallbacks[index], onTap: () {}),
             ),
-            child: ExclusiveCard(product: fallbacks[index], onTap: () {}),
           ),
         );
       }),
@@ -212,18 +216,22 @@ class ExclusiveSection extends StatelessWidget {
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(items.length, (index) {
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              // Middle card pushed down for editorial stagger effect
-              top: index == 1 ? 64.0 : 0.0,
-              left: index == 0 ? 0.0 : 20.0,
-              right: index == items.length - 1 ? 0.0 : 20.0,
-            ),
-            child: ExclusiveCard(
-              product: items[index],
-              onTap: () => onProductTap(items[index]),
+        return Flexible(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Padding(
+              padding: EdgeInsets.only(
+                // Middle card pushed down for editorial stagger effect
+                top: index == 1 && items.length > 1 ? 64.0 : 0.0,
+                left: index == 0 ? 0.0 : 20.0,
+                right: index == items.length - 1 ? 0.0 : 20.0,
+              ),
+              child: ExclusiveCard(
+                product: items[index],
+                onTap: () => onProductTap(items[index]),
+              ),
             ),
           ),
         );
@@ -281,15 +289,19 @@ class ExclusiveSection extends StatelessWidget {
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(3, (index) {
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              top: index == 1 ? 64.0 : 0.0,
-              left: index == 0 ? 0.0 : 20.0,
-              right: index == 2 ? 0.0 : 20.0,
+        return Flexible(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: index == 1 ? 64.0 : 0.0,
+                left: index == 0 ? 0.0 : 20.0,
+                right: index == 2 ? 0.0 : 20.0,
+              ),
+              child: _ShimmerCard(),
             ),
-            child: _ShimmerCard(),
           ),
         );
       }),

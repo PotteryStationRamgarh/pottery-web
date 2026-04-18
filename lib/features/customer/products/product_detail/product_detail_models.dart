@@ -37,6 +37,7 @@ class ProductDetailData {
   final String careInstructions;
   final List<ProductReviewData> reviews;
   final List<String> tags;
+  final int stockCount;
 
   const ProductDetailData({
     required this.id,
@@ -51,6 +52,7 @@ class ProductDetailData {
     required this.careInstructions,
     required this.reviews,
     required this.tags,
+    required this.stockCount,
   });
 
   static ProductDetailData? fromSnapshot(
@@ -77,6 +79,7 @@ class ProductDetailData {
       careInstructions: fallback.careInstructions.join(' • '),
       reviews: const [],
       tags: fallback.tags,
+      stockCount: fallback.stockCount,
     );
   }
 
@@ -124,6 +127,7 @@ class ProductDetailData {
               .where((item) => item.isNotEmpty)
               .toList() ??
           const [],
+      stockCount: map['stockCount'] as int? ?? 99,
     );
   }
 
@@ -173,6 +177,7 @@ class ProductDetailData {
       careInstructions: careInstructions.isEmpty
           ? const []
           : careInstructions.split(' • '),
+      stockCount: stockCount,
     );
   }
 
