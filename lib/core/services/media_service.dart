@@ -11,6 +11,9 @@ class MediaService {
   static const String _publicUrlBase =
       'https://pub-32b0eccfedfb4b29980313569dfccc15.r2.dev';
 
+  /// Track upload progress description
+  final ValueNotifier<String> uploadStatus = ValueNotifier<String>('');
+
   Minio _createMinio() {
     final accountId = RemoteConfigService.r2AccountId;
     final accessKey = RemoteConfigService.r2AccessKeyId;

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
-import '../repositories/custom_order_repository.dart';
 import 'local_session_service.dart';
 import 'media_service.dart';
 
@@ -16,7 +15,6 @@ class StorefrontCleanupService {
     'categories',
     'exclusive_products',
     'exhibition',
-    'custom_orders',
     'support_messages',
     'notifications',
     'system_email_outbox',
@@ -30,7 +28,7 @@ class StorefrontCleanupService {
     if (lastRun != null && now.difference(lastRun) < interval) return;
 
     try {
-      await CustomOrderRepository.cleanupRejectedOrders();
+
       await cleanupOrphanedCloudflareImages();
       await LocalSessionService.writeLastMaintenanceRun(now);
     } catch (e) {

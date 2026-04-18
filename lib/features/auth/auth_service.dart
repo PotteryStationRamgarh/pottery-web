@@ -23,6 +23,9 @@ class AuthService {
   /// Always call reloadUser() first — emailVerified is cached locally.
   bool get isEmailVerified => _auth.currentUser?.emailVerified ?? false;
 
+  /// Returns the current user's phone number from Firebase Auth.
+  String get currentPhoneNumber => _auth.currentUser?.phoneNumber ?? '';
+
   // ─────────────────────────────────────────
   // SIGN UP
   // ─────────────────────────────────────────
@@ -149,5 +152,22 @@ class AuthService {
       // Any error — default to customer for safety
       return 'customer';
     }
+  }
+
+  /// Starts the phone verification process by sending an OTP.
+  /// Returns a ConfirmationResult used for web OTP verification.
+  Future<ConfirmationResult> startPhoneVerificationWithVerifier(
+    String phoneNumber, {
+    dynamic verifier,
+  }) async {
+    return await _auth.signInWithPhoneNumber(phoneNumber, verifier);
+  }
+
+  /// Confirms the OTP code and links it to the current user or signs them in.
+  Future<UserCredential> confirmPhoneVerification(
+    ConfirmationResult result,
+    String smsCode,
+  ) async {
+    return await result.confirm(smsCode);
   }
 }

@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/providers/config_provider.dart';
-import '../../../../core/repositories/custom_order_repository.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/remote_config_service.dart';
-import '../../../../models/custom_order_model.dart';
 import '../dashboard_provider.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/stat_card.dart';
@@ -97,25 +95,7 @@ class _DashboardViewState extends State<_DashboardView> {
             const SizedBox(height: 24),
             _StatsRow(dashboard: dashboard),
             const SizedBox(height: 32),
-            // Custom Order Notifications
-            FutureBuilder<List<CustomOrderModel>>(
-              future: CustomOrderRepository.getCustomOrders(),
-              builder: (context, snapshot) {
-                final pendingCount =
-                    snapshot.data
-                        ?.where((order) => order.status == 'submitted')
-                        .length ??
-                    0;
-                if (pendingCount == 0) return const SizedBox.shrink();
-                return _DashboardNotification(
-                  icon: Icons.notifications_active_outlined,
-                  message:
-                      '$pendingCount custom product request(s) need review.',
-                  buttonLabel: 'Open Requests',
-                  onPressed: () => _nav(6),
-                );
-              },
-            ),
+
 
             // Incomplete Product Notifications
             if (dashboard.incompleteProductCount > 0)
@@ -124,7 +104,7 @@ class _DashboardViewState extends State<_DashboardView> {
                 message:
                     '${dashboard.incompleteProductCount} product(s) in your collection are missing critical details (MRP, Images, etc.).',
                 buttonLabel: 'Fix Issues',
-                onPressed: () => _nav(8),
+                onPressed: () => _nav(6),
               ),
 
             // 2. Main content row (Quick Actions + System Overview)
@@ -472,8 +452,7 @@ class _QuickActionsGrid extends StatelessWidget {
     _ActionItem('Add Product', Icons.inventory_2_outlined, 4),
     _ActionItem('Add Category', Icons.category_outlined, 3),
     _ActionItem('Add Exclusive', Icons.star_border_outlined, 5),
-    _ActionItem('Custom Requests', Icons.design_services_outlined, 6),
-    _ActionItem('Custom Collection', Icons.collections_bookmark_outlined, 8),
+    _ActionItem('Fix Incomplete', Icons.collections_bookmark_outlined, 6),
     _ActionItem('Add Exhibition', Icons.event_outlined, 2),
     _ActionItem('Edit Branding', Icons.brush_outlined, 1),
   ];

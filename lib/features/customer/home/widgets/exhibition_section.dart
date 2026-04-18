@@ -24,7 +24,8 @@ class ExhibitionSection extends StatelessWidget {
     final exhibition = context.watch<ExhibitionProvider>().exhibition;
     final isMobile = ResponsiveBreakpoints.isMobile(context);
 
-    if (exhibition.title.isEmpty) return const SizedBox.shrink();
+    // Guard: only hide if this is a completely empty placeholder (no id = no data from Firestore)
+    if (exhibition.id.isEmpty) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,

@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import '../../models/exhibition.dart';
-import '../repositories/exhibition_repository.dart';
+import '../../core/repositories/exhibition_repository.dart';
+import '../../features/exhibition/data/models/exhibition_model.dart';
+import '../../features/exhibition/data/repositories/exhibition_repository.dart'
+    as feat;
 
 /// Exposes the currently active exhibition to the customer home screen tree.
 /// Loaded once by CustomerLoadingScreen — ExhibitionSection never fetches
@@ -15,6 +18,11 @@ class ExhibitionProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isLoaded => _isLoaded;
   String? get error => _error;
+
+  /// Real-time stream of exhibitions for the Exhibition listing screen.
+  /// Uses the richer feature-level repository which boasts better sorting.
+  Stream<List<ExhibitionModel>> get allExhibitionsStream =>
+      feat.ExhibitionRepository.watchAllExhibitions();
 
   Future<void> load({bool forceRefresh = false}) async {
     if (_isLoading) return; // Don't load multiple times simultaneously

@@ -22,7 +22,6 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  String _pincodeStatus = "";
   List<AddressModel> _savedAddresses = [];
   String? _selectedAddressId;
   bool _isLoadingAddresses = false;
@@ -454,43 +453,42 @@ class _CartScreenState extends State<CartScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Shipping Address",
-                style: GoogleFonts.jost(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textLight,
-                  letterSpacing: 1,
-                ),
-              ),
-              Text(
-                "NEW ADDRESS",
-                style: GoogleFonts.jost(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.terracotta,
-                ),
-              ),
-            ],
+          Text(
+            "Shipping Address",
+            style: GoogleFonts.jost(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textLight,
+              letterSpacing: 1,
+            ),
           ),
           const SizedBox(height: 24),
-          _buildAddressForm(),
+          Text(
+            'You have no saved addresses yet.',
+            style: GoogleFonts.jost(
+              fontSize: 14,
+              color: AppTheme.textLight,
+            ),
+          ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Checkbox(
-                value: true,
-                onChanged: (_) {},
-                activeColor: AppTheme.terracotta,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.pushNamed(
+                context,
+                Routes.savedAddresses,
+              ).then((_) => _loadAddresses()),
+              icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+              label: const Text('Add Delivery Address'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.terracotta,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              Text(
-                "Save this address for future curated purchases",
-                style: GoogleFonts.jost(fontSize: 12, color: AppTheme.textDark),
-              ),
-            ],
+            ),
           ),
         ],
       );
@@ -542,104 +540,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildAddressForm() {
-    return Column(
-      children: [
-        TextField(
-          decoration: AppTheme.inputDecoration(label: "Full Name"),
-          style: AppTheme.bodyMedium,
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: AppTheme.inputDecoration(label: "Pincode").copyWith(
-            prefixIcon: _pincodeStatus.isEmpty
-                ? null
-                : Padding(
-                    padding: const EdgeInsets.only(left: 14, right: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _pincodeStatus.contains("available")
-                              ? Icons.local_shipping_outlined
-                              : Icons.hourglass_top_rounded,
-                          size: 16,
-                          color: _pincodeStatus.contains("available")
-                              ? AppTheme.successGreen
-                              : AppTheme.terracotta,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _pincodeStatus,
-                          style: GoogleFonts.jost(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: _pincodeStatus.contains("available")
-                                ? AppTheme.successGreen
-                                : AppTheme.terracotta,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-            prefixIconConstraints: const BoxConstraints(
-              minWidth: 0,
-              minHeight: 0,
-            ),
-          ),
-          onChanged: (val) {
-            setState(() {
-              if (val.length == 6) {
-                _pincodeStatus = "Checking";
-                Future.delayed(const Duration(seconds: 1), () {
-                  if (mounted) {
-                    setState(() => _pincodeStatus = "Delivery available");
-                  }
-                });
-              } else {
-                _pincodeStatus = "";
-              }
-            });
-          },
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: AppTheme.inputDecoration(
-            label: "House / Flat / Building",
-          ),
-          style: AppTheme.bodyMedium,
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: AppTheme.inputDecoration(label: "Street / Area / Colony"),
-          style: AppTheme.bodyMedium,
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: AppTheme.inputDecoration(label: "Landmark"),
-          style: AppTheme.bodyMedium,
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                decoration: AppTheme.inputDecoration(label: "City"),
-                style: AppTheme.bodyMedium,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextField(
-                decoration: AppTheme.inputDecoration(label: "State"),
-                style: AppTheme.bodyMedium,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
   Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
     return Padding(
@@ -766,16 +666,11 @@ class _CartScreenState extends State<CartScreen> {
       cart.clear();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppTheme.successGreen,
-          content: Text(
-            'Order ${order.id.substring(0, 8).toUpperCase()} placed. Payment and delivery are in demo mode.',
-          ),
-        ),
+      Navigator.pushReplacementNamed(
+        context,
+        Routes.orderConfirmation,
+        arguments: order.id,
       );
-      Navigator.pushNamed(context, Routes.myAccount);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(

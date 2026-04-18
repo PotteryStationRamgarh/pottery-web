@@ -85,10 +85,49 @@ class AddressRepository {
         batch.update(doc.reference, {'isDefault': false});
       }
 
-      batch.update(colRef.doc(addressId), {'isDefault': true});
+  batch.update(colRef.doc(addressId), {'isDefault': true});
       await batch.commit();
     } catch (e) {
       debugPrint('AddressRepository.setDefault error: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> updateAddress(
+    String userId,
+    String addressId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      if (userId.isEmpty || addressId.isEmpty) return;
+
+      final docRef = _db
+          .collection('users')
+          .doc(userId)
+          .collection('addresses')
+          .doc(addressId);
+
+      final isDefault = data['isDefault'] == true;
+
+      if (isDefault) {
+        final colRef = _db
+            .collection('users')
+            .doc(userId)
+            .collection('addresses');
+        final batch = _db.batch();
+        final snap = await colRef.get();
+
+        for (final doc in snap.docs) {
+          batch.update(doc.reference, {'isDefault': false});
+        }
+
+        batch.update(docRef, data);
+        await batch.commit();
+      } else {
+        await docRef.update(data);
+      }
+    } catch (e) {
+      debugPrint('AddressRepository.updateAddress error: $e');
       rethrow;
     }
   }

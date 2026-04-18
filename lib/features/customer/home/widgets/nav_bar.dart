@@ -9,6 +9,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/config_provider.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../features/auth/auth_service.dart';
+import 'notification_bell.dart';
 
 /// NavBar — fixed glass effect navigation bar at the top of the home screen.
 ///
@@ -134,12 +135,7 @@ class _DesktopNav extends StatelessWidget {
                     ),
                     SizedBox(width: itemSpacing),
 
-                    // Custom Orders
-                    _NavItem(
-                      label: 'Custom Orders',
-                      onTap: () =>
-                          Navigator.pushNamed(context, Routes.customOrder),
-                    ),
+
 
                     SizedBox(width: width < 1200 ? 16 : 28),
 
@@ -155,6 +151,8 @@ class _DesktopNav extends StatelessWidget {
                       color: AppTheme.textLight,
                       onPressed: () => _openRoute(context, Routes.wishlist),
                     ),
+
+                    const NotificationBell(),
 
                     const _CartButton(),
 
@@ -326,13 +324,7 @@ class NavDrawer extends StatelessWidget {
                   _showContact(context, config);
                 },
               ),
-              _DrawerItem(
-                label: 'Custom Orders',
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, Routes.customOrder);
-                },
-              ),
+
               _DrawerItem(
                 label: 'Wishlist',
                 onTap: () {

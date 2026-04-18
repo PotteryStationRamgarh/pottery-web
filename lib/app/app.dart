@@ -21,8 +21,10 @@ import '../features/customer/cart/cart_screen.dart';
 import '../features/customer/account/wishlist_screen.dart';
 import '../features/customer/account/my_account_screen.dart';
 import '../features/customer/account/saved_addresses_screen.dart';
-import '../features/customer/orders/custom_order_screen.dart';
 import '../features/customer/about_us/about_us_screen.dart';
+import '../features/auth/verify_phone/verify_phone_screen.dart';
+import '../features/exhibition/presentation/screens/exhibition_screen.dart';
+import '../features/customer/orders/order_confirmation_screen.dart';
 
 /// Root of the entire app.
 /// All screens are registered here as named routes.
@@ -111,15 +113,22 @@ class MyApp extends StatelessWidget {
         Routes.wishlist: (context) => const WishlistScreen(),
         Routes.myAccount: (context) => const MyAccountScreen(),
         Routes.savedAddresses: (context) => const SavedAddressesScreen(),
-        Routes.customOrder: (context) => const CustomOrderScreen(),
 
-        // Only accessible to users with role: 'admin' in Firestore
         Routes.adminDashboard: (context) => const AdminLayout(),
 
         // Admin Profile Page
         Routes.profile: (context) => const AdminProfilePage(),
 
         Routes.aboutUs: (context) => const AboutUsScreen(),
+
+        // Phone verification screen
+        Routes.verifyPhone: (context) => const VerifyPhoneScreen(),
+
+        // Exhibition listing screen
+        Routes.exhibitions: (context) => const ExhibitionScreen(),
+
+        // Order confirmation after successful purchase
+        Routes.orderConfirmation: (context) => const OrderConfirmationScreen(),
       },
     );
   }

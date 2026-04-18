@@ -232,15 +232,10 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
       children: [
         Padding(
           padding: const EdgeInsets.all(32),
-          child: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            runAlignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 16,
-            runSpacing: 16,
-            children: [
-              Text('Product Categories', style: AppTheme.headingLarge),
-              ElevatedButton.icon(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 600;
+              final button = ElevatedButton.icon(
                 onPressed: () => _showForm(),
                 icon: const Icon(Icons.add),
                 label: const Text('Add Category'),
@@ -255,8 +250,25 @@ class _AdminCategoriesListPageState extends State<AdminCategoriesListPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ),
-            ],
+              );
+              if (isMobile) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Product Categories', style: AppTheme.headingLarge),
+                    const SizedBox(height: 16),
+                    SizedBox(width: double.infinity, child: button),
+                  ],
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Product Categories', style: AppTheme.headingLarge),
+                  button,
+                ],
+              );
+            },
           ),
         ),
 

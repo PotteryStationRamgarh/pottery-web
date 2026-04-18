@@ -31,4 +31,8 @@ class AuthGateService {
     _pendingNavigation = null;
     return pending;
   }
+
+  static PendingAuthNavigation? peekPendingNavigation() {
+    return _pendingNavigation;
+  }
 }

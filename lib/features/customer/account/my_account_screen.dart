@@ -4,14 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/routes.dart';
-import '../../../core/repositories/custom_order_repository.dart';
 import '../../../core/repositories/notification_repository.dart';
 import '../../../core/repositories/order_repository.dart';
 import '../../../core/repositories/support_repository.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/app_notification.dart';
-import '../../../models/custom_order_model.dart';
 import '../../../models/order_model.dart';
 import '../../../models/support_message.dart';
 import '../home/home_footer.dart';
@@ -38,7 +36,6 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
   String _supportType = 'support';
 
   List<OrderModel> _orders = [];
-  List<CustomOrderModel> _customOrders = [];
   List<AppNotification> _notifications = [];
   List<SupportMessage> _supportRequests = [];
   Map<String, dynamic> _profile = <String, dynamic>{};
@@ -67,7 +64,6 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
     try {
       final results = await Future.wait<dynamic>([
         OrderRepository.getOrdersByUser(_user.uid),
-        CustomOrderRepository.getCustomOrdersByUser(_user.uid),
         NotificationRepository.getForUser(_user.uid),
         SupportRepository.getForUser(_user.uid),
         FirebaseService.getUserProfile(_user.uid),
@@ -76,7 +72,6 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
       if (!mounted) return;
       setState(() {
         _orders = results[0] as List<OrderModel>;
-        _customOrders = results[1] as List<CustomOrderModel>;
         _notifications = results[2] as List<AppNotification>;
         _supportRequests = results[3] as List<SupportMessage>;
         _profile = results[4] as Map<String, dynamic>;
@@ -174,20 +169,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
     }
   }
 
-  Future<void> _respondToQuote(CustomOrderModel order, bool confirm) async {
-    await CustomOrderRepository.respondToQuote(order, confirmed: confirm);
-    await _load();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          confirm
-              ? 'Quote confirmed. The order will move into production.'
-              : 'Quote rejected. The request will auto-clean after 30 days.',
-        ),
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -528,20 +510,16 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Orders & Custom Work', style: AppTheme.serifHeadingMedium),
+        Text('My Orders', style: AppTheme.serifHeadingMedium),
         const SizedBox(height: 32),
-        if (_orders.isEmpty && _customOrders.isEmpty) _buildEmptyOrders(),
+        if (_orders.isEmpty) _buildEmptyOrders(),
         if (_orders.isNotEmpty) ...[
           Text('Storefront Orders', style: AppTheme.headingMedium),
           const SizedBox(height: 16),
           ..._orders.map(_buildOrderCard),
           const SizedBox(height: 24),
         ],
-        if (_customOrders.isNotEmpty) ...[
-          Text('Custom Orders', style: AppTheme.headingMedium),
-          const SizedBox(height: 16),
-          ..._customOrders.map(_buildCustomOrderCard),
-        ],
+
       ],
     );
   }
@@ -682,89 +660,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
     );
   }
 
-  Widget _buildCustomOrderCard(CustomOrderModel order) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(order.productType, style: AppTheme.headingMedium),
-              ),
-              _buildStatusBadge(order.displayStatus),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Requested ${DateFormat('dd MMM yyyy').format(order.createdAt)}',
-            style: AppTheme.bodySmall,
-          ),
-          if (order.quotedPrice > 0) ...[
-            const SizedBox(height: 10),
-            Text(
-              'Quoted price: ₹${order.quotedPrice.toStringAsFixed(0)}',
-              style: AppTheme.bodyLarge.copyWith(color: AppTheme.terracotta),
-            ),
-          ],
-          if (order.adminNotes.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(order.adminNotes, style: AppTheme.bodyMedium),
-          ],
-          const SizedBox(height: 16),
-          ...order.statusHistory.reversed
-              .take(4)
-              .map(
-                (entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    '${DateFormat('dd MMM').format(entry.timestamp)} • ${CustomOrderModel.normalizeStatus(entry.status).replaceAll('_', ' ')} • ${entry.note}',
-                    style: AppTheme.bodySmall,
-                  ),
-                ),
-              ),
-          if (order.status == 'quoted') ...[
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _respondToQuote(order, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.terracotta,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('CONFIRM QUOTE'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _respondToQuote(order, false),
-                    child: const Text('REJECT QUOTE'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildNotificationsView() {
     return Column(

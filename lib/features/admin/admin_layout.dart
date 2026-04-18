@@ -4,6 +4,7 @@ import '../../core/providers/config_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_logo.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../app/routes.dart';
 
 import 'dashboard/pages/dashboard_page.dart';
 import 'content/branding/admin_branding_page.dart';
@@ -11,16 +12,16 @@ import 'content/exhibition/admin_exhibition_page.dart';
 import 'catalog/categories/admin_categories_list_page.dart';
 import 'catalog/all_products/admin_products_list_page.dart';
 import 'catalog/exclusive_products/admin_exclusive_list_page.dart';
-import 'custom_products/admin_custom_products_page.dart';
 import 'orders/admin_orders_page.dart';
 import 'support/admin_support_page.dart';
 import 'settings/admin_settings_page.dart';
 import '../../core/repositories/exhibition_repository.dart';
 import 'catalog/repositories/product_repository.dart';
-import '../../core/repositories/custom_order_repository.dart';
 import '../../core/services/storefront_cleanup_service.dart';
 import '../../models/product.dart';
-import '../../models/custom_order_model.dart';
+import 'customers/admin_customers_page.dart';
+import 'notifications/admin_notifications_page.dart';
+import 'content/about_us/admin_about_us_page.dart';
 
 class AdminLayout extends StatefulWidget {
   const AdminLayout({super.key});
@@ -33,21 +34,21 @@ class _AdminLayoutState extends State<AdminLayout> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _incompleteCount = 0;
-  int _pendingRequestsCount = 0;
 
   List<Widget> get _pages => [
-    AdminDashboardPage(onNavigate: _navigate),
-    const AdminBrandingPage(),
-    const AdminExhibitionPage(),
-    const AdminCategoriesListPage(),
-    const AdminProductsListPage(),
-    const AdminExclusiveListPage(),
-    const AdminCustomProductsPage(initialIndex: 0), // Requests
-    const AdminCustomProductsPage(initialIndex: 1), // Config
-    const AdminProductsListPage(showOnlyIncomplete: true),
-    const AdminSettingsPage(),
-    const AdminOrdersPage(),
-    const AdminSupportPage(),
+    AdminDashboardPage(onNavigate: _navigate),   // 0
+    const AdminBrandingPage(),                   // 1
+    const AdminExhibitionPage(),                 // 2
+    const AdminCategoriesListPage(),             // 3
+    const AdminProductsListPage(),               // 4
+    const AdminExclusiveListPage(),              // 5
+    const AdminProductsListPage(showOnlyIncomplete: true), // 6
+    const AdminSettingsPage(),                   // 7
+    const AdminOrdersPage(),                     // 8
+    const AdminSupportPage(),                    // 9
+    const AdminCustomersPage(),                  // 10
+    const AdminNotificationsPage(),              // 11
+    const AdminAboutUsPage(),                    // 12
   ];
 
   @override
@@ -63,18 +64,13 @@ class _AdminLayoutState extends State<AdminLayout> {
     try {
       final results = await Future.wait<dynamic>([
         ProductRepository.getProducts(forceRefresh: true),
-        CustomOrderRepository.getCustomOrders(),
       ]);
 
       final products = results[0] as List<Product>;
-      final requests = results[1] as List<CustomOrderModel>;
 
       if (mounted) {
         setState(() {
           _incompleteCount = products.where(_isIncomplete).length;
-          _pendingRequestsCount = requests
-              .where((r) => r.status == 'submitted')
-              .length;
         });
       }
     } catch (e) {
@@ -121,17 +117,19 @@ class _AdminLayoutState extends State<AdminLayout> {
       case 5:
         return 'Exclusives';
       case 6:
-        return 'Custom Requests';
-      case 7:
-        return 'Custom Config';
-      case 8:
         return 'Incomplete Products';
-      case 9:
+      case 7:
         return 'Settings';
-      case 10:
+      case 8:
         return 'Orders';
-      case 11:
+      case 9:
         return 'Support';
+      case 10:
+        return 'Customers';
+      case 11:
+        return 'Notifications';
+      case 12:
+        return 'About Us';
       default:
         return 'Dashboard';
     }
@@ -154,12 +152,13 @@ class _AdminLayoutState extends State<AdminLayout> {
             ),
           ),
           const Divider(color: Colors.white12, height: 1),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               children: [
                 const _SidebarGroupLabel('MAIN'),
+                const SizedBox(height: 4),
                 _SidebarItem(
                   icon: Icons.dashboard_outlined,
                   label: 'Dashboard',
@@ -167,9 +166,10 @@ class _AdminLayoutState extends State<AdminLayout> {
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
                 const _SidebarGroupLabel('CONTENT'),
+                const SizedBox(height: 4),
                 _SidebarItem(
                   icon: Icons.brush_outlined,
                   label: 'Branding',
@@ -184,9 +184,17 @@ class _AdminLayoutState extends State<AdminLayout> {
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),
-                const SizedBox(height: 16),
+                _SidebarItem(
+                  icon: Icons.info_outline,
+                  label: 'About Us',
+                  index: 12,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
+                const SizedBox(height: 20),
 
                 const _SidebarGroupLabel('CATALOG'),
+                const SizedBox(height: 4),
                 _SidebarItem(
                   icon: Icons.category_outlined,
                   label: 'Categories',
@@ -210,59 +218,59 @@ class _AdminLayoutState extends State<AdminLayout> {
                 ),
                 _SidebarItem(
                   icon: Icons.collections_bookmark_outlined,
-                  label: 'Incomplete Products',
-                  index: 8,
+                  label: 'Incomplete',
+                  index: 6,
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                   badgeCount: _incompleteCount,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
-                const _SidebarGroupLabel('CUSTOM PRODUCT'),
-                _SidebarItem(
-                  icon: Icons.design_services_outlined,
-                  label: 'Requests',
-                  index: 6,
-                  selectedIndex: _selectedIndex,
-                  onTap: _navigate,
-                  badgeCount: _pendingRequestsCount,
-                ),
-                _SidebarItem(
-                  icon: Icons.tune_outlined,
-                  label: 'Config',
-                  index: 7,
-                  selectedIndex: _selectedIndex,
-                  onTap: _navigate,
-                ),
-                const SizedBox(height: 16),
+
 
                 const _SidebarGroupLabel('OPERATIONS'),
+                const SizedBox(height: 4),
                 _SidebarItem(
                   icon: Icons.local_shipping_outlined,
                   label: 'Orders',
+                  index: 8,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
+                _SidebarItem(
+                  icon: Icons.people_outline,
+                  label: 'Customers',
                   index: 10,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
+                _SidebarItem(
+                  icon: Icons.notifications_outlined,
+                  label: 'Notifications',
+                  index: 11,
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),
                 _SidebarItem(
                   icon: Icons.support_agent_outlined,
                   label: 'Support',
-                  index: 11,
-                  selectedIndex: _selectedIndex,
-                  onTap: _navigate,
-                ),
-                const SizedBox(height: 16),
-
-                const _SidebarGroupLabel('SYSTEM'),
-                _SidebarItem(
-                  icon: Icons.settings_outlined,
-                  label: 'Settings',
                   index: 9,
                   selectedIndex: _selectedIndex,
                   onTap: _navigate,
                 ),
-
                 const SizedBox(height: 20),
+
+                const _SidebarGroupLabel('SYSTEM'),
+                const SizedBox(height: 4),
+                _SidebarItem(
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
+                  index: 7,
+                  selectedIndex: _selectedIndex,
+                  onTap: _navigate,
+                ),
+
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -363,7 +371,7 @@ class _AdminLayoutState extends State<AdminLayout> {
                           cursor: SystemMouseCursors.click,
                           child: GestureDetector(
                             onTap: () =>
-                                Navigator.pushNamed(context, '/profile'),
+                                Navigator.pushNamed(context, Routes.profile),
                             child: const CircleAvatar(
                               backgroundColor: AppTheme.primaryBrown,
                               radius: 18,
@@ -455,7 +463,7 @@ class _SidebarItem extends StatelessWidget {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Row(
                 children: [
                   Icon(
@@ -465,6 +473,7 @@ class _SidebarItem extends StatelessWidget {
                         : Colors.white.withValues(alpha: 0.7),
                     size: 20,
                   ),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       label,

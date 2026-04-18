@@ -50,6 +50,7 @@ dependencies:
   minio: ^3.5.8
   url_launcher: ^6.3.2
   shared_preferences: ^2.5.3
+  firebase_auth_platform_interface: ^8.1.9
 
 dev_dependencies:
   flutter_test:

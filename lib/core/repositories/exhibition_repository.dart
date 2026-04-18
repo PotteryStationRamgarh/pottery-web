@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/exhibition.dart';
+import '../../features/exhibition/data/models/exhibition_model.dart';
 
 /// Single source of truth for the top-level `exhibition` Firestore collection.
 /// No widget, page, or service touches this collection directly — only this file.
@@ -15,6 +16,7 @@ class ExhibitionRepository {
   // ── READ ──────────────────────────────────────────────────────────────────
 
   /// All exhibitions, newest first.
+  /// All exhibitions, newest first.
   static Future<List<Exhibition>> getAll({bool forceRefresh = false}) async {
     try {
       final snap = await _db
@@ -26,6 +28,19 @@ class ExhibitionRepository {
       debugPrint('ExhibitionRepository.getAll error: $e');
       return [];
     }
+  }
+
+  /// Real-time stream of all exhibitions used by ExhibitionScreen
+  static Stream<List<ExhibitionModel>> watchAllExhibitions() {
+    return _db
+        .collection(_col)
+        .where('isActive', isEqualTo: true)
+        .snapshots()
+        .map((snap) {
+      final list = snap.docs.map(ExhibitionModel.fromDoc).toList();
+      list.sort((a, b) => a.compareTo(b)); // Use model's priority sorting
+      return list;
+    });
   }
 
   /// First active exhibition, or Exhibition.empty() if none.

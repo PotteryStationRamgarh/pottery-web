@@ -28,6 +28,9 @@ class Routes {
   /// Shown after signup — user must verify email before they can enter
   static const String verifyEmail = '/verify-email';
 
+  /// Phone verification screen — OTP entry after adding address phone
+  static const String verifyPhone = '/verify-phone';
+
   /// Password recovery screen
   static const String forgotPassword = '/forgot-password';
 
@@ -73,7 +76,8 @@ class Routes {
   static const String wishlist = '/wishlist';
   static const String myAccount = '/my-account';
   static const String savedAddresses = '/saved-addresses';
-  static const String customOrder = '/custom-order';
+  static const String orderConfirmation = '/order-confirmation';
+  static const String exhibitions = '/exhibitions';
 
   // ─────────────────────────────────────────
   // ADMIN
